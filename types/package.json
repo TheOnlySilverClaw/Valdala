@@ -1,0 +1,11 @@
+{
+  "name": "@yamc/types",
+  "version": "0.0.1",
+  "description": "",
+  "types": "src/index.d.ts",
+  "keywords": [],
+  "author": "",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}

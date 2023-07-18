@@ -1,0 +1,12 @@
+{
+	"imports": {
+		
+		"types" : "../types/src/index.ts",
+
+		"path": "https://deno.land/std/path/mod.ts",
+		"toml": "https://deno.land/std/toml/mod.ts",
+
+		"hono": "https://deno.land/x/hono@v3.3.1/mod.ts",
+		"hono-middleware": "https://deno.land/x/hono@v3.3.1/middleware.ts"
+	}
+}
