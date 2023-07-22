@@ -1,10 +1,10 @@
-import { ArcRotateCamera, Color3, DirectionalLight, Engine, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "babylonjs"
+import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "babylonjs"
 
 const CHUNKS_COUNT = 12
 const CHUNK_SIZE = 16
 const WORLD_SIZE = CHUNKS_COUNT * CHUNK_SIZE
 // how often blocks types are mixed
-const BLOCK_TYPE_INTERVAL = 13 * (CHUNK_SIZE / 2 - 1)
+const BLOCK_TYPE_INTERVAL = 7 * (CHUNK_SIZE / 2 - 1)
 
 export class Renderer {
 
@@ -12,6 +12,7 @@ export class Renderer {
     private readonly scene: Scene
     private readonly camera: ArcRotateCamera
     private readonly sunLight: DirectionalLight
+    private readonly ambientLight: HemisphericLight
 
     #blockCount: number
 
@@ -19,13 +20,20 @@ export class Renderer {
         
         this.engine = new Engine(canvas, true)
         this.scene = new Scene(this.engine)
+        this.scene.clearColor = new Color4(0.53, 0.81, 0.92, 1.0) // sky blue
         
         // easier for mesh building
         this.camera = new ArcRotateCamera("camera", 1, 1, WORLD_SIZE + 10, new Vector3(WORLD_SIZE / 2, 0, WORLD_SIZE / 2), this.scene)
         // this.camera.setTarget(Vector3.Zero())
         this.camera.attachControl(this.canvas, false)
-        this.sunLight = new DirectionalLight("sun-light", new Vector3(0, -1, 0), this.scene)
-        this.sunLight.diffuse = Color3.White()
+        this.sunLight = new DirectionalLight("sun-light", new Vector3(0.2, -1, 0.2), this.scene)
+        this.sunLight.diffuse = new Color3(0.945, 0.855, 0.64) // sun light
+        this.sunLight.intensity = 0.5
+
+        this.ambientLight = new HemisphericLight("ambient-light", Vector3.Up(), this.scene)
+        this.ambientLight.diffuse = Color3.White()
+        this.ambientLight.groundColor = Color3.Black()
+        this.ambientLight.intensity = 0.6
 
         window.addEventListener("resize", () => this.engine.resize())
 
@@ -67,7 +75,7 @@ export class Renderer {
         material1.diffuseColor = Color3.Green()
         material2.diffuseColor = Color3.Blue()
         material3.diffuseColor = Color3.Red()
-        material4.diffuseColor = Color3.Yellow()
+        material4.diffuseColor = Color3.Purple()
 
         const blockTemplate1 = MeshBuilder.CreateBox("block1")
         const blockTemplate2 = MeshBuilder.CreateBox("block2")
