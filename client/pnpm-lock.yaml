@@ -8,6 +8,12 @@ dependencies:
   babylonjs:
     specifier: ^6.13.0
     version: 6.13.0
+  perlin-noise-2d:
+    specifier: ^1.0.0
+    version: 1.0.0
+  simplex-noise:
+    specifier: ^4.0.1
+    version: 4.0.1
 
 devDependencies:
   '@yamc/types':
@@ -269,6 +275,12 @@ packages:
     hasBin: true
     dev: true
 
+  /perlin-noise-2d@1.0.0:
+    resolution: {integrity: sha512-aZrqFCeCMExmrHa8482MxDf+G49CXSvqiHcxhmKb8KFDBKIt+5eAA7UdkXtGMfr2dnEdIomOIRUYOXjfV6L8Gw==}
+    dependencies:
+      seedrandom: 3.0.5
+    dev: false
+
   /picocolors@1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
@@ -289,6 +301,14 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
+
+  /seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
+    dev: false
+
+  /simplex-noise@4.0.1:
+    resolution: {integrity: sha512-zl/+bdSqW7HJOQ0oDbxrNYaF4F5ik0i7M6YOYmEoIJNtg16NpvWaTTM1Y7oV/7T0jFljawLgYPS81Uu2rsfo1A==}
+    dev: false
 
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}

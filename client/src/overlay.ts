@@ -8,6 +8,7 @@ export class Overlay{
         const positionElement = element.querySelector("#position") as HTMLElement
         const rotationElement = element.querySelector("#rotation") as HTMLElement
         const meshCountElement = element.querySelector("#mesh-count") as HTMLElement
+        const blockCountElement = element.querySelector("#block-count") as HTMLElement
 
         setInterval(() => {
             fpsElement.innerText = renderer.fps.toFixed(2) + " FPS"
@@ -20,6 +21,8 @@ export class Overlay{
             // rotationElement.innerText = `rotation: x: ${rotation.x.toFixed(2)} y: ${rotation.y.toFixed(2)} z: ${rotation.z.toFixed(2)}`
 
             meshCountElement.innerText = `${renderer.meshCount} meshes`
+            
+            blockCountElement.innerText = `${renderer.blockCount.toLocaleString("de")} blocks`
         }, 200)
     }    
 }
