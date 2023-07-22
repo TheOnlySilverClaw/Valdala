@@ -1,9 +1,12 @@
-import {ServerInfo } from "@yamc/types"
+import { StandardMaterial, Vector3 } from "babylonjs"
+import { Overlay } from "./overlay"
+import { Renderer } from "./renderer"
 
-const applicationElement = document.getElementById("application")!
+const canvasElement = document.getElementById("canvas") as HTMLCanvasElement
+const overlayElement = document.getElementById("overlay")!
 
+const renderer = new Renderer(canvasElement)
+const overlay = new Overlay(overlayElement, renderer)
 
-const response = await fetch("http://localhost:8080")
-const serverInfo = await response.json() as ServerInfo
+renderer.render()
 
-applicationElement.innerText = serverInfo.name + " v" + serverInfo.version

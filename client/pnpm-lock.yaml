@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  babylonjs:
+    specifier: ^6.13.0
+    version: 6.13.0
+
 devDependencies:
   '@yamc/types':
     specifier: link:../types
@@ -214,6 +219,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /babylonjs@6.13.0:
+    resolution: {integrity: sha512-KRlGP8Ri51BRx8NzBxQUca/5SDWNeS/4zIDmMzOxAZ5G94UlIFIjRKXRNwpmWq2sBG5DQlU3om5GPWknEps6wg==}
+    requiresBuild: true
+    dev: false
 
   /esbuild@0.18.14:
     resolution: {integrity: sha512-uNPj5oHPYmj+ZhSQeYQVFZ+hAlJZbAGOmmILWIqrGvPVlNLbyOvU5Bu6Woi8G8nskcx0vwY0iFoMPrzT86Ko+w==}

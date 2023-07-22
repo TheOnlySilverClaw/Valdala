@@ -12,5 +12,8 @@
     "@yamc/types": "link:../types",
     "typescript": "^5.0.2",
     "vite": "^4.4.0"
+  },
+  "dependencies": {
+    "babylonjs": "^6.13.0"
   }
 }
