@@ -1,7 +1,0 @@
-{
-	"deno.enable": true,
-	"deno.config": "./server/deno.jsonc",
-	"deno.lint": true,
-	"deno.unstable": true,
-	"deno.enablePaths": ["./server"]
-}

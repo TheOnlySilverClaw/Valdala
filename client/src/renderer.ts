@@ -1,6 +1,6 @@
 import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "babylonjs"
 
-const CHUNKS_COUNT = 12
+const CHUNKS_COUNT = 2
 const CHUNK_SIZE = 16
 const WORLD_SIZE = CHUNKS_COUNT * CHUNK_SIZE
 // how often blocks types are mixed
