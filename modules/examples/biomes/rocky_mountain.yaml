@@ -1,0 +1,16 @@
+id: rocky_mountain
+
+characteristics:
+  slope:
+    - high
+  altitude:
+    - high
+
+layers:
+  rock: {}
+
+vegetation:
+  coverage: 0.02
+  categories:
+    bush:
+      coverage: 1

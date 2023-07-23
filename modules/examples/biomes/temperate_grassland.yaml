@@ -1,0 +1,29 @@
+characteristics:
+  temperature:
+    - medium
+  humidity:
+    - medium
+  slope:
+    - low
+  altitude:
+    - low
+    - medium
+
+layers:
+  
+  surface: {}
+
+  soil:
+    depth:
+      min: 2
+      max: 4
+
+vegetation:
+  coverage: 0.8
+  categories:
+    grass:
+      share: 100
+    grain:
+      share: 10
+    bush:
+      share: 5

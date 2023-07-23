@@ -1,0 +1,13 @@
+id: stone
+
+categories:
+  - stone
+
+orientation: false
+hardness: 1000
+
+textures:
+  default: stone.png
+
+generation:
+  layer: rock

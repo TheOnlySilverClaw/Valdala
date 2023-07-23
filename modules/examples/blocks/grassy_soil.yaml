@@ -1,0 +1,19 @@
+id: grassy_soil
+
+categories:
+  - grass
+
+orientation: false
+hardness: 150
+
+textures:
+  default: grassy_soil_top.png
+  top: grass.png
+  bottom: soil.png
+
+generation:
+  layer: surface
+  temperature:
+    min: 5
+    max: 30
+

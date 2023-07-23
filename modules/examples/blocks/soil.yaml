@@ -1,0 +1,13 @@
+id: soil
+
+categories:
+  - soil
+
+orientation: false
+hardness: 100
+
+textures:
+  default: soil.png
+
+generation:
+  layer: soil
