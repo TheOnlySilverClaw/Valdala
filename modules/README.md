@@ -10,7 +10,7 @@ Blocks can only have very basic state that's predefined by the game.
 Their position is determined by the "slot" they occupy in the game world's block grid.
 They can have an orientation that determines which of their faces are aligned with which world axis.
 
-Blocks definitions contain the following properties:
+Block definitions contain the following properties:
 
 
 #### orientation
@@ -26,7 +26,7 @@ If false, the block is always placed in default orientation.
 ```type: Integer```
 
 Determines the amount of damage a block requires to be destroyed.  
-Different tools be defined how much damage they do against blocks with certain charateristics.
+Different tools can define how much damage they do against blocks with certain charateristics.
 
 
 #### textures
@@ -70,7 +70,7 @@ The layer value should be a valid layer ID, one of:
 
 ##### generation.temperature
 
-```type: Integer Range in *C```
+```type: Integer Range in °C```
 
 If a given chunk's temperature is in the range, the block can be placed.
 
