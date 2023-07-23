@@ -13,4 +13,4 @@ vegetation:
   coverage: 0.02
   categories:
     bush:
-      coverage: 1
+      share: 1
