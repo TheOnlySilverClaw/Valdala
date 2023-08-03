@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "babylonjs"
+import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, Space, StandardMaterial, Vector3 } from "babylonjs"
 
 const CHUNKS_COUNT = 2
 const CHUNK_SIZE = 16
@@ -15,6 +15,8 @@ export class Renderer {
     private readonly ambientLight: HemisphericLight
     private readonly playerMesh: Mesh
 
+    private chunkMap = new Map<string, Mesh>()
+
     #blockCount: number
 
     constructor(private readonly canvas: HTMLCanvasElement) {
@@ -24,7 +26,7 @@ export class Renderer {
         this.scene.clearColor = new Color4(0.53, 0.81, 0.92, 1.0) // sky blue
         
         // easier for mesh building
-        this.camera = new ArcRotateCamera("camera", 1, 1, WORLD_SIZE + 10, new Vector3(WORLD_SIZE / 2, 0, WORLD_SIZE / 2), this.scene)
+        this.camera = new ArcRotateCamera("camera", -1, 1, WORLD_SIZE + 10, new Vector3(WORLD_SIZE / 2, 0, WORLD_SIZE / 2), this.scene)
         // this.camera.setTarget(Vector3.Zero())
         this.camera.attachControl(this.canvas, false)
         this.sunLight = new DirectionalLight("sun-light", new Vector3(0.2, -1, 0.2), this.scene)
@@ -40,20 +42,94 @@ export class Renderer {
         const playerMaterial = new StandardMaterial("player-material")
         playerMaterial.diffuseColor = Color3.Black()
         this.playerMesh.material = playerMaterial
+        this.playerMesh.position.y = 1 + CHUNK_SIZE/2
 
+        MeshBuilder.CreateGround("ground", {width: CHUNK_SIZE * 2, height: CHUNK_SIZE * 2})
         window.addEventListener("resize", () => this.engine.resize())
 
         window.addEventListener("keydown", (event) => {
+            
             switch(event.key) {
             case "a": { this.playerMesh.position.x += 1; break}
             case "d": { this.playerMesh.position.x -= 1; break}
             case "w": { this.playerMesh.position.z -= 1; break}
             case "s": { this.playerMesh.position.z += 1; break}
             }
+
+            this.updateChunks()
         })
 
         this.#blockCount = 0
         // this.setupScene()
+
+        this.updateChunks()
+    }
+
+    toChunkPosition(worldPosition: Vector3) {
+        const x = Math.floor(worldPosition.x / CHUNK_SIZE)
+        const y = Math.floor(worldPosition.y / CHUNK_SIZE)
+        const z = Math.floor(worldPosition.z / CHUNK_SIZE)
+        return new Vector3(x, y, z)
+    }
+
+    // workaround for Vectors not being considered equal
+    toChunkString(v: Vector3) {
+        return `${v.x}/${v.y}/${v.z}`
+    }
+
+    updateChunks() {
+
+        const position = this.toChunkPosition(this.playerMesh.position)
+        position.y = 0
+        
+        const chunkCorners = this.chunkCornersAround(position, 1)
+        for(let corner of chunkCorners) {
+            if(!this.chunkMap.has(this.toChunkString(corner))) {
+                const mesh = this.createChunkMesh(corner)
+                mesh.position = corner
+                mesh.translate(new Vector3(CHUNK_SIZE/2, CHUNK_SIZE/4, CHUNK_SIZE/2), Space.WORLD)
+                this.chunkMap.set(this.toChunkString(corner), mesh)
+            }
+        }
+    }
+
+    chunkCornersAround(position: Vector3, distance: number): Vector3[] {
+
+        const chunkCorners: Vector3[] = []
+
+        const base = new Vector3()
+        base.x = position.x * CHUNK_SIZE
+        base.y = position.y * CHUNK_SIZE
+        base.z = position.z * CHUNK_SIZE
+        chunkCorners.push(base)
+
+        const z_offset = base.clone()
+        z_offset.z -= CHUNK_SIZE
+        chunkCorners.push(z_offset)
+
+        const x_offset = base.clone()
+        x_offset.x -= CHUNK_SIZE
+        chunkCorners.push(x_offset)
+
+        const xz_offset = base.clone()
+        xz_offset.x -= CHUNK_SIZE
+        xz_offset.z -= CHUNK_SIZE
+        chunkCorners.push(xz_offset)
+
+        return chunkCorners
+    }
+
+    createChunkMesh(position: Vector3) {
+        const {x, y, z} = position
+        const mesh = MeshBuilder.CreateBox(`chunk-${x}-${y}-${z}`,
+            {width: CHUNK_SIZE, depth: CHUNK_SIZE, height: CHUNK_SIZE / 2})
+        const material = new StandardMaterial("chunk-material")
+        material.diffuseColor = Color3.Green()
+        mesh.material = material
+
+        
+        //mesh.position = position
+        return mesh
     }
 
     get fps(): number {
