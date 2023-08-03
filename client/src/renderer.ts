@@ -13,6 +13,7 @@ export class Renderer {
     private readonly camera: ArcRotateCamera
     private readonly sunLight: DirectionalLight
     private readonly ambientLight: HemisphericLight
+    private readonly playerMesh: Mesh
 
     #blockCount: number
 
@@ -35,10 +36,24 @@ export class Renderer {
         this.ambientLight.groundColor = Color3.Black()
         this.ambientLight.intensity = 0.6
 
+        this.playerMesh = MeshBuilder.CreateCapsule("player", {height: 2, radius: 0.4})
+        const playerMaterial = new StandardMaterial("player-material")
+        playerMaterial.diffuseColor = Color3.Black()
+        this.playerMesh.material = playerMaterial
+
         window.addEventListener("resize", () => this.engine.resize())
 
+        window.addEventListener("keydown", (event) => {
+            switch(event.key) {
+            case "a": { this.playerMesh.position.x += 1; break}
+            case "d": { this.playerMesh.position.x -= 1; break}
+            case "w": { this.playerMesh.position.z -= 1; break}
+            case "s": { this.playerMesh.position.z += 1; break}
+            }
+        })
+
         this.#blockCount = 0
-        this.setupScene()
+        // this.setupScene()
     }
 
     get fps(): number {
