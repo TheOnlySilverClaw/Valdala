@@ -68,6 +68,10 @@ export class Renderer {
         return this.camera.rotation
     }
 
+    get playerPosition(): Vector3 {
+        return this.playerMesh.position
+    }
+
     get meshCount(): number {
         return this.scene.meshes.length
     }

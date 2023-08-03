@@ -13,7 +13,7 @@ export class Overlay{
         setInterval(() => {
             fpsElement.innerText = renderer.fps.toFixed(2) + " FPS"
 
-            const position = renderer.cameraPosition
+            const position = renderer.playerPosition
             positionElement.innerText = `position: x: ${position.x.toFixed(2)} y: ${position.y.toFixed(2)} z: ${position.z.toFixed(2)}`
 
             // doesn't work with arc camera?
