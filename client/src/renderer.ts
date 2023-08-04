@@ -26,7 +26,7 @@ export class Renderer {
         this.scene.clearColor = new Color4(0.53, 0.81, 0.92, 1.0) // sky blue
         
         // easier for mesh building
-        this.camera = new ArcRotateCamera("camera", -1, 1, WORLD_SIZE + 10, new Vector3(WORLD_SIZE / 2, 0, WORLD_SIZE / 2), this.scene)
+        this.camera = new ArcRotateCamera("camera", 3/2 * Math.PI, Math.PI / 4, WORLD_SIZE + 40, new Vector3(WORLD_SIZE / 2, 0, WORLD_SIZE / 2), this.scene)
         // this.camera.setTarget(Vector3.Zero())
         this.camera.attachControl(this.canvas, false)
         this.sunLight = new DirectionalLight("sun-light", new Vector3(0.2, -1, 0.2), this.scene)
@@ -44,16 +44,18 @@ export class Renderer {
         this.playerMesh.material = playerMaterial
         this.playerMesh.position.y = 1 + CHUNK_SIZE/2
 
-        MeshBuilder.CreateGround("ground", {width: CHUNK_SIZE * 2, height: CHUNK_SIZE * 2})
+        const ground = MeshBuilder.CreateGround("ground", {width: CHUNK_SIZE * 4, height: CHUNK_SIZE * 4})
+        ground.locallyTranslate(new Vector3(100, 0, 0))
+        ground.position = Vector3.Zero()
         window.addEventListener("resize", () => this.engine.resize())
 
         window.addEventListener("keydown", (event) => {
             
             switch(event.key) {
-            case "a": { this.playerMesh.position.x += 1; break}
-            case "d": { this.playerMesh.position.x -= 1; break}
-            case "w": { this.playerMesh.position.z -= 1; break}
-            case "s": { this.playerMesh.position.z += 1; break}
+            case "a": { this.playerMesh.position.x -= 1; break}
+            case "d": { this.playerMesh.position.x += 1; break}
+            case "w": { this.playerMesh.position.z += 1; break}
+            case "s": { this.playerMesh.position.z -= 1; break}
             }
 
             this.updateChunks()
@@ -87,7 +89,6 @@ export class Renderer {
             if(!this.chunkMap.has(this.toChunkString(corner))) {
                 const mesh = this.createChunkMesh(corner)
                 mesh.position = corner
-                mesh.translate(new Vector3(CHUNK_SIZE/2, CHUNK_SIZE/4, CHUNK_SIZE/2), Space.WORLD)
                 this.chunkMap.set(this.toChunkString(corner), mesh)
             }
         }
@@ -126,9 +127,7 @@ export class Renderer {
         const material = new StandardMaterial("chunk-material")
         material.diffuseColor = Color3.Green()
         mesh.material = material
-
-        
-        //mesh.position = position
+        // mesh.setPivotPoint(new Vector3(-CHUNK_SIZE/2, -CHUNK_SIZE/4, -CHUNK_SIZE/2))
         return mesh
     }
 
