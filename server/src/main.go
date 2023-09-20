@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
 )
@@ -112,63 +110,6 @@ func startWebtransportServer() error {
 	}
 
 	log.Info().Msg("Listening to connections")
-
-	return nil
-}
-
-func startQuicServer() error {
-
-	ipAddress := net.ParseIP("127.0.0.1")
-	udpAddress := net.UDPAddr{IP: ipAddress, Port: 8080}
-
-	udpConnection, err := net.ListenUDP("udp", &udpAddress)
-	if err != nil {
-		log.Err(err).Msg("UDP server could not start")
-		return err
-	}
-
-	transport := quic.Transport{Conn: udpConnection}
-
-	certificate, err := tls.LoadX509KeyPair("certs/cert_dev.pem", "certs/key_dev.pem")
-	if err != nil {
-		log.Err(err).Msg("Failed to load TLS certificate")
-		return err
-	}
-
-	tlsConfiguration := tls.Config{Certificates: []tls.Certificate{certificate}}
-	quicConfiguration := quic.Config{}
-
-	listener, err := transport.Listen(&tlsConfiguration, &quicConfiguration)
-	if err != nil {
-		log.Err(err).Msg("Cannot listen to UDP connections")
-		return err
-	}
-
-	connection, err := listener.Accept(context.Background())
-	if err != nil {
-		return err
-	}
-
-	log.Info().Msg(connection.RemoteAddr().String())
-
-	stream, err := connection.AcceptStream(context.Background())
-	if err != nil {
-		log.Err(err).Msg("Failed to accept stream")
-		return err
-	}
-	defer stream.Close()
-
-	log.Info().Msg("Accepted stream")
-
-	data := make([]byte, 100)
-	readCount, err := stream.Read(data)
-
-	if err != nil {
-		log.Err(err).Msg("Failed to read from stream")
-		return err
-	}
-
-	log.Info().Int("read count", readCount).Msg("Received data: " + string(data))
 
 	return nil
 }
