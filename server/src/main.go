@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -32,6 +32,11 @@ func main() {
 	log.Info().Msg("Current directory: " + cwd)
 
 	startWebtransportServer()
+}
+
+type ServerChatMessage struct {
+	Sender  string
+	Message string
 }
 
 func startWebtransportServer() error {
@@ -85,12 +90,24 @@ func startWebtransportServer() error {
 			message := string(buffer[2:readCount])
 			log.Debug().Int("read-count", readCount).Str("data", message).Msg("Received data")
 
-			responseMessage := strings.ToUpper(message)
-			responseLength := len(responseMessage)
-			responseData := make([]byte, responseLength+2)
+			serverMessage := ServerChatMessage{
+				Sender:  wtConnection.RemoteAddr().String(),
+				Message: message,
+			}
+			
+			responseData, err := cbor.Marshal(&serverMessage)
+			if err != nil {
+				log.Err(err).Msg("Failed to marshal response message")
+			}
+			
+			responseLength := len(responseData)
+			
+			lengthBytes := make([]byte, 2)
+			binary.BigEndian.PutUint16(lengthBytes, uint16(responseLength))
+			
+			fmt.Printf("%v -> %v\n", responseLength, lengthBytes)
 
-			binary.BigEndian.PutUint16(responseData, uint16(responseLength))
-			copy(responseData[2:], []byte(responseMessage))
+			responseData = append(lengthBytes, responseData...)
 
 			log.Debug().Msg(fmt.Sprintf("data: %v", responseData))
 
