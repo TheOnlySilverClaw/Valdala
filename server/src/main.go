@@ -39,9 +39,27 @@ type ServerChatMessage struct {
 	Message string
 }
 
-func startWebtransportServer() error {
+type ConnectWebtransportHandler struct {
+	server         *webtransport.Server
+	sessionChannel chan *webtransport.Session
+}
 
-	router := http.NewServeMux()
+func (handler *ConnectWebtransportHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+
+	log.Debug().Str("address", request.RemoteAddr).Msg("Incoming request")
+
+	session, err := handler.server.Upgrade(writer, request)
+	if err != nil {
+		log.Err(err).Msg("Failed to upgrade")
+		return
+	}
+
+	handler.sessionChannel <- session
+
+	log.Debug().Msg("Successfully created webtransport connection")
+}
+
+func startWebtransportServer() error {
 
 	certificate, err := tls.LoadX509KeyPair("certs/cert_dev.pem", "certs/key_dev.pem")
 	if err != nil {
@@ -50,6 +68,8 @@ func startWebtransportServer() error {
 	}
 
 	tlsConfiguration := tls.Config{Certificates: []tls.Certificate{certificate}}
+
+	router := http.NewServeMux()
 
 	server := webtransport.Server{
 		H3: http3.Server{
@@ -60,73 +80,98 @@ func startWebtransportServer() error {
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
 
-	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hallo!"))
-	})
+	sessionChannel := make(chan *webtransport.Session)
+	connectHandler := ConnectWebtransportHandler{
+		sessionChannel: sessionChannel,
+		server:         &server,
+	}
 
-	router.HandleFunc("/connect", func(w http.ResponseWriter, r *http.Request) {
+	router.Handle("/connect", &connectHandler)
 
-		wtConnection, err := server.Upgrade(w, r)
-		if err != nil {
-			log.Err(err).Msg("Failed to upgrade")
+	go func() {
+
+		if err := server.ListenAndServe(); err != nil {
+			log.Err(err).Msg("Failed to start listening")
 		}
+	}()
 
-		wtStream, err := wtConnection.AcceptStream(context.Background())
-		if err != nil {
-			log.Err(err).Msg("Failed to open stream")
-		}
-		defer wtStream.Close()
+	log.Info().Msg("Listening to connections")
 
-		for {
-			log.Debug().Msg("Waiting for message")
-			buffer := make([]byte, 1024)
+	sessions := make(map[string]*webtransport.Session)
 
-			readCount, err := wtStream.Read(buffer)
+	for {
+		log.Debug().Msg("Waiting for connection")
+		var session *webtransport.Session = <-sessionChannel
+		log.Info().Msg("Connection from " + session.RemoteAddr().String())
+		sessions[session.RemoteAddr().String()] = session
+		log.Debug().Int("session-count", len(sessions)).Msg("current sessions")
 
-			if err != nil {
-				log.Err(err).Msg("Failed to read data")
-			}
+		go handleChat(session)
+	}
 
-			message := string(buffer[2:readCount])
-			log.Debug().Int("read-count", readCount).Str("data", message).Msg("Received data")
+	return nil
+}
 
-			serverMessage := ServerChatMessage{
-				Sender:  wtConnection.RemoteAddr().String(),
-				Message: message,
-			}
-			
-			responseData, err := cbor.Marshal(&serverMessage)
-			if err != nil {
-				log.Err(err).Msg("Failed to marshal response message")
-			}
-			
-			responseLength := len(responseData)
-			
-			lengthBytes := make([]byte, 2)
-			binary.BigEndian.PutUint16(lengthBytes, uint16(responseLength))
-			
-			fmt.Printf("%v -> %v\n", responseLength, lengthBytes)
+func handleChat(session *webtransport.Session) error {
 
-			responseData = append(lengthBytes, responseData...)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	stream, err := session.AcceptStream(ctx)
+	defer cancel()
 
-			log.Debug().Msg(fmt.Sprintf("data: %v", responseData))
-
-			writeCount, err := wtStream.Write(responseData)
-			if err != nil {
-				log.Err(err).Msg("Failed to write response")
-			}
-
-			log.Debug().Int("write-count", writeCount).Msg("Wrote response message")
-
-		}
-	})
-
-	if err := server.ListenAndServe(); err != nil {
-		log.Err(err).Msg("Failed to start listening")
+	if err != nil {
+		log.Err(err).Msg("Failed to open chat stream")
 		return err
 	}
 
-	log.Info().Msg("Listening to connections")
+	defer stream.Close()
+
+	log.Debug().Msg("Established chat stream")
+
+	for {
+		log.Debug().Msg("Waiting for message")
+		buffer := make([]byte, 1024)
+
+		readCount, err := stream.Read(buffer)
+
+		if err != nil {
+			log.Err(err).Msg("Failed to read data")
+			return err
+		}
+
+		message := string(buffer[2:readCount])
+		log.Debug().Int("read-count", readCount).Str("data", message).Msg("Received data")
+
+		serverMessage := ServerChatMessage{
+			Sender:  session.RemoteAddr().String(),
+			Message: message,
+		}
+
+		responseData, err := cbor.Marshal(&serverMessage)
+		if err != nil {
+			log.Err(err).Msg("Failed to marshal response message")
+			return err
+		}
+
+		responseLength := len(responseData)
+
+		lengthBytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(lengthBytes, uint16(responseLength))
+
+		fmt.Printf("%v -> %v\n", responseLength, lengthBytes)
+
+		responseData = append(lengthBytes, responseData...)
+
+		log.Debug().Msg(fmt.Sprintf("data: %v", responseData))
+
+		writeCount, err := stream.Write(responseData)
+		if err != nil {
+			log.Err(err).Msg("Failed to write response")
+			return err
+		}
+
+		log.Debug().Int("write-count", writeCount).Msg("Wrote response message")
+
+	}
 
 	return nil
 }
