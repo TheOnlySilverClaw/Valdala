@@ -23,3 +23,16 @@ To start the client on a vite development server:
 ```
 pnpm run dev
 ```
+
+### Server
+
+The server uses [Task](https://taskfile.dev/) as a task runner.
+
+Task can be installed with most system package managers or with npm/pnpm, too.
+See here for installation options: https://taskfile.dev/installation/
+
+Launch the server with
+
+```
+task run
+```

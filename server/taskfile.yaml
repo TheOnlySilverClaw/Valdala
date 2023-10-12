@@ -1,0 +1,6 @@
+version: "3"
+
+tasks:
+  run:
+    cmd: go run yamc.go
+    desc: launch the YAMC server
