@@ -29,4 +29,3 @@ func main() {
 	go chatController.Start()
 	yamc.StartWebtransportServer(&chatController)
 }
-

@@ -11,7 +11,7 @@ import (
 )
 
 type ClientConnection struct {
-	name string
+	name   string
 	stream webtransport.Stream
 }
 
@@ -21,20 +21,19 @@ type ChatMessage struct {
 }
 
 type ChatController struct {
-
 	connections map[string]*ClientConnection
 
-	connectChannel chan *ClientConnection
+	connectChannel    chan *ClientConnection
 	disconnectChannel chan *ClientConnection
-	messageChannel chan *ChatMessage
+	messageChannel    chan *ChatMessage
 }
 
 func NewChatController() ChatController {
-	return ChatController {
-		connections: make(map[string]*ClientConnection),
-		connectChannel: make(chan *ClientConnection),
+	return ChatController{
+		connections:       make(map[string]*ClientConnection),
+		connectChannel:    make(chan *ClientConnection),
 		disconnectChannel: make(chan *ClientConnection),
-		messageChannel: make(chan *ChatMessage),
+		messageChannel:    make(chan *ChatMessage),
 	}
 }
 
@@ -52,31 +51,29 @@ func (controller *ChatController) Start() {
 		fmt.Println("selecting ... ")
 		select {
 
-		case connection := <- controller.connectChannel:
+		case connection := <-controller.connectChannel:
 			controller.connect(connection)
 			break
-		
-		case connection := <- controller.disconnectChannel:
+
+		case connection := <-controller.disconnectChannel:
 			controller.disconnect(connection)
 			break
-		
-		case message := <- controller.messageChannel:
+
+		case message := <-controller.messageChannel:
 			controller.broadcast(message)
-			break;
+			break
 		}
 	}
 }
 
-
 func (controller *ChatController) connect(connection *ClientConnection) {
-	
+
 	log.Debug().Str("name", connection.name).Msg("Connect")
 	controller.connections[connection.name] = connection
 	go controller.receiveMessages(connection)
 }
 
 func (controller *ChatController) receiveMessages(connection *ClientConnection) {
-	
 
 	for {
 		log.Debug().Msg("Waiting for message length")
@@ -138,7 +135,7 @@ func (controller *ChatController) broadcast(message *ChatMessage) {
 func ReadLength(reader io.Reader) (uint16, error) {
 
 	buffer := make([]byte, 2)
-	
+
 	count, err := reader.Read(buffer)
 	if err != nil {
 		return 0, err

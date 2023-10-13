@@ -4,3 +4,7 @@ tasks:
   run:
     cmd: go run yamc.go
     desc: launch the YAMC server
+
+  test:
+    cmd: go test ./...
+    desc: run all tests
