@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"time"
 
@@ -24,8 +25,8 @@ func main() {
 	cwd, _ := os.Getwd()
 	log.Info().Msg("Current directory: " + cwd)
 
-	chatController := yamc.NewChatController()
+	certificates := flag.String("secure", "", "a path to TLS certificates")
+	flag.Parse()
 
-	go chatController.Start()
-	yamc.StartWebtransportServer(&chatController)
+	yamc.StartWebtransportServer(*certificates)
 }

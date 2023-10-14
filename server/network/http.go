@@ -1,7 +1,6 @@
 package yamc
 
 import (
-	"context"
 	"crypto/tls"
 	"net/http"
 
@@ -11,28 +10,48 @@ import (
 )
 
 type ConnectWebtransportHandler struct {
-	server         *webtransport.Server
-	sessionChannel chan *webtransport.Session
+	server             *webtransport.Server
+	connectionAttempts chan ConnectionAttempt
+}
+
+type ConnectionAttempt struct {
+	username string
+	password string
+	session  *webtransport.Session
+	err      error
 }
 
 func (handler *ConnectWebtransportHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+
+	username, password, ok := request.BasicAuth()
+	if ok == false {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	log.Debug().Str("address", request.RemoteAddr).Msg("Incoming request")
 
 	session, err := handler.server.Upgrade(writer, request)
 	if err != nil {
 		log.Err(err).Msg("Failed to upgrade")
+		handler.connectionAttempts <- ConnectionAttempt{err: err}
 		return
 	}
 
-	handler.sessionChannel <- session
+	log.Debug().Msgf("connection with name %v and password %v", username, password)
+
+	handler.connectionAttempts <- ConnectionAttempt{
+		username: username,
+		password: password,
+		session: session,
+	}
 
 	log.Debug().Msg("Successfully created webtransport connection")
 }
 
-func StartWebtransportServer(chat *ChatController) error {
+func StartWebtransportServer(certificateFolder string) error {
 
-	certificate, err := tls.LoadX509KeyPair("certs/cert_dev.pem", "certs/key_dev.pem")
+	certificate, err := tls.LoadX509KeyPair(certificateFolder + "/cert_dev.pem", certificateFolder + "/key_dev.pem")
 	if err != nil {
 		log.Err(err).Msg("Failed to load TLS certificate")
 		return err
@@ -51,10 +70,10 @@ func StartWebtransportServer(chat *ChatController) error {
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
 
-	sessionChannel := make(chan *webtransport.Session)
+	connectionAttempts := make(chan ConnectionAttempt)
 	connectHandler := ConnectWebtransportHandler{
-		sessionChannel: sessionChannel,
-		server:         &server,
+		connectionAttempts: connectionAttempts,
+		server:             &server,
 	}
 
 	router.Handle("/connect", &connectHandler)
@@ -70,14 +89,15 @@ func StartWebtransportServer(chat *ChatController) error {
 
 	for {
 		log.Debug().Msg("Waiting for connection")
-		var session *webtransport.Session = <-sessionChannel
+		connectionAttempt := <-connectionAttempts
 
-		stream, err := session.AcceptStream(context.Background())
+		connection, err := Connect(connectionAttempt)
 		if err != nil {
-			log.Err(err).Msg("Failed to accept stream")
+			log.Err(err).Msg("Failed to created webtransport connection")
 		}
 
-		chat.Connect(&ClientConnection{name: session.RemoteAddr().String(), stream: stream})
+		go connection.Listen()
+		
 	}
 
 	return nil

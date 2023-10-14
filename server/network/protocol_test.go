@@ -1,59 +1,117 @@
 package yamc
 
 import (
-	"io"
+	"context"
+	"crypto/tls"
+	"encoding/base64"
+	"fmt"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/fxamacker/cbor/v2"
+	"github.com/quic-go/quic-go/http3"
+	"github.com/quic-go/webtransport-go"
 )
 
-type TestStream struct {
-}
+func TestConnection(test *testing.T) {
 
-type TestMessage struct {
-	Counter int
-	Text    string
-}
+	var client webtransport.Dialer
+	var roundTripper http3.RoundTripper
+	var tlsConfig tls.Config
 
-func TestReadMessages(test *testing.T) {
+	tlsConfig.InsecureSkipVerify = true
+	roundTripper.TLSClientConfig = &tlsConfig
+	client.RoundTripper = &roundTripper
 
-	reader, writer := io.Pipe()
+	header := make(http.Header, 2)
 
-	var success = make(chan bool, 1)
-	var serverReady = make(chan bool, 1)
+	header.Add("Authorization", "Basic "+base64.RawStdEncoding.EncodeToString([]byte("Jürgen:1234")))
+
+	serverReady := make(chan bool, 1)
+	errors := make(chan error, 1)
 
 	go func() {
 
-		test.Log("read messages")
-		var stream = NewMessageStream[TestMessage](reader)
-		var results = stream.OnRead()
+		test.Log("Starting webtransport server")
+
+		go StartWebtransportServer("../certs")
+		time.Sleep(300 * time.Millisecond)
 		serverReady <- true
-
-		first := <-results
-		second := <-results
-
-		test.Log(first)
-		test.Log(second)
-
-		if first.err == nil && first.message.Counter == 0 && first.message.Text == "1234" &&
-			second.err == nil && second.message.Counter == 1 && second.message.Text == "Kürbis" {
-			success <- true
-		} else {
-			success <- false
-		}
 	}()
 
 	go func() {
 
 		<-serverReady
-		test.Log("write message")
-		encoder := cbor.NewEncoder(writer)
-		encoder.Encode(TestMessage{Counter: 0, Text: "1234"})
-		encoder.Encode(TestMessage{Counter: 1, Text: "Kürbis"})
+
+		test.Log("Dialing ...")
+
+		response, session, err := client.Dial(
+			context.Background(), "https://localhost:8080/connect", header)
+
+		if err != nil {
+			errors <- err
+			return
+		}
+
+		if response.StatusCode != 200 {
+			errors <- fmt.Errorf("Invalid response status: %v", response.StatusCode)
+			return
+		}
+
+		stream, err := session.OpenStream()
+		if err != nil {
+			errors <- err
+			return
+		}
+
+		messageType := make([]byte, 1)
+		messageType[0] = byte(CHAT_MESSAGE)
+
+		if _, err := stream.Write(messageType); err != nil {
+			errors <- err
+			return
+		}
+
+		encoder := cbor.NewEncoder(stream)
+		if err := encoder.Encode(ClientChatMessage{Text: "Hello!"}); err != nil {
+			errors <- err
+			return
+		}
+
+		if err := encoder.Encode(ClientChatMessage{Text: "What's up?"}); err != nil {
+			errors <- err
+			return
+		}
+
+		// decoder := cbor.NewDecoder(stream)
+
+		// var firstResponse ServerChatMessage
+		// if err := decoder.Decode(&firstResponse); err != nil {
+		// 	errors <- err
+		// 	return
+		// }
+
+		// test.Log(firstResponse)
+
+		time.Sleep(1 * time.Second)
+
+		if err := stream.Close(); err != nil {
+			errors <- err
+			return
+		}
+
+		if err := client.Close(); err != nil {
+			errors <- err
+			return
+		}
+
+		errors <- nil
 	}()
 
-	result := <-success
-	if result == false {
-		test.Fail()
+	err := <-errors
+	if err != nil {
+		test.Fatal(err)
 	}
+
 }
