@@ -1,4 +1,4 @@
-import { ArcRotateCamera, AxesViewer, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, Space, StandardMaterial, Vector3 } from "babylonjs"
+import { ArcRotateCamera, AxesViewer, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, Space, StandardMaterial, Vector3, VertexBuffer } from "babylonjs"
 
 const CHUNKS_COUNT = 2
 const CHUNK_SIZE = 16
@@ -71,10 +71,10 @@ export class Renderer {
 
     toChunkPosition(worldPosition: Vector3) {
 
-        const offset = 0.5
-        const x = Math.floor(worldPosition.x / CHUNK_SIZE + offset)
-        const y = Math.floor(worldPosition.y / CHUNK_SIZE + offset)
-        const z = Math.floor(worldPosition.z / CHUNK_SIZE + offset)
+        const offset = 0.0
+        const x = Math.round(worldPosition.x / CHUNK_SIZE + offset)
+        const y = Math.round(worldPosition.y / CHUNK_SIZE + offset)
+        const z = Math.round(worldPosition.z / CHUNK_SIZE + offset)
         return new Vector3(x, y, z)
     }
 
@@ -89,7 +89,7 @@ export class Renderer {
         console.log("chunk position", "x", position.x, "z", position.z)
         position.y = 0
         
-        const chunkCorners = this.chunkCornersAround(position, 4)
+        const chunkCorners = this.chunkCornersAround(position, 1)
         for(let corner of chunkCorners) {
             if(!this.chunkMap.has(this.toChunkString(corner))) {
                 const mesh = this.createChunkMesh(corner)
@@ -103,19 +103,9 @@ export class Renderer {
 
         const chunkCorners: Vector3[] = []
 
-        const base = new Vector3()
-        base.x = position.x * CHUNK_SIZE
-        base.y = position.y * CHUNK_SIZE
-        base.z = position.z * CHUNK_SIZE
-        chunkCorners.push(base)
-
         for(let x = position.x - distance; x < position.x + distance; x++) {
             for(let z = position.z - distance; z < position.z + distance; z++) {
-                console.log({x, z})
-                const clone = base.clone()
-                clone.x = x * CHUNK_SIZE
-                clone.z = z * CHUNK_SIZE
-                chunkCorners.push(clone)
+                chunkCorners.push(new Vector3(x * CHUNK_SIZE, 0, z * CHUNK_SIZE))
             }
         }
 
@@ -123,13 +113,46 @@ export class Renderer {
     }
 
     createChunkMesh(position: Vector3) {
-        const {x, y, z} = position
-        const mesh = MeshBuilder.CreateBox(`chunk-${x}-${y}-${z}`,
-            {width: CHUNK_SIZE, depth: CHUNK_SIZE, height: CHUNK_SIZE / 2})
+        let {x, y, z} = position
+        
+        const name = `chunk-${x}-${y}-${z}`;
+        const mesh = new Mesh(name)
+        
+        const positions: number[] = []
+        const indices: number[] = []
+
+        let indexOffset = 0
+
+        for(let x = 0; x < CHUNK_SIZE; x++) {
+            for(let z = 0; z < CHUNK_SIZE; z++) {
+
+                y = Math.floor(CHUNK_SIZE / 2 + Math.random() * CHUNK_SIZE / 8)
+
+                positions.push(
+                    x, y, z+1,
+                    x+1, y, z+1,
+                    x, y, z,
+                    x+1, y, z
+                )
+                indices.push(
+                    0 + indexOffset,
+                    2 + indexOffset,
+                    3 + indexOffset,
+                    0 + indexOffset,
+                    3 + indexOffset,
+                    1 + indexOffset)
+
+                indexOffset += 4
+            }
+        }
+
+
+        mesh.setVerticesData(VertexBuffer.PositionKind, new Float32Array(positions))
+        mesh.setIndices(new Uint16Array(indices))
+        console.log(mesh.getIndices())
         const material = new StandardMaterial("chunk-material")
         material.diffuseColor = Color3.Random()
         mesh.material = material
-        // mesh.setPivotPoint(new Vector3(-CHUNK_SIZE/2, -CHUNK_SIZE/4, -CHUNK_SIZE/2))
         return mesh
     }
 
