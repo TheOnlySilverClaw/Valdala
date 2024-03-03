@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, Space, StandardMaterial, Vector3 } from "babylonjs"
+import { ArcRotateCamera, AxesViewer, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Mesh, MeshBuilder, Scene, Space, StandardMaterial, Vector3 } from "babylonjs"
 
 const CHUNKS_COUNT = 2
 const CHUNK_SIZE = 16
@@ -38,6 +38,7 @@ export class Renderer {
         this.ambientLight.groundColor = Color3.Black()
         this.ambientLight.intensity = 0.6
 
+        new AxesViewer(this.scene, 16)
         this.playerMesh = MeshBuilder.CreateCapsule("player", {height: 2, radius: 0.4})
         const playerMaterial = new StandardMaterial("player-material")
         playerMaterial.diffuseColor = Color3.Black()
@@ -45,6 +46,7 @@ export class Renderer {
         this.playerMesh.position.y = 1 + CHUNK_SIZE/2
 
         const ground = MeshBuilder.CreateGround("ground", {width: CHUNK_SIZE * 4, height: CHUNK_SIZE * 4})
+        
         ground.locallyTranslate(new Vector3(100, 0, 0))
         ground.position = Vector3.Zero()
         window.addEventListener("resize", () => this.engine.resize())
@@ -68,9 +70,11 @@ export class Renderer {
     }
 
     toChunkPosition(worldPosition: Vector3) {
-        const x = Math.floor(worldPosition.x / CHUNK_SIZE)
-        const y = Math.floor(worldPosition.y / CHUNK_SIZE)
-        const z = Math.floor(worldPosition.z / CHUNK_SIZE)
+
+        const offset = 0.5
+        const x = Math.floor(worldPosition.x / CHUNK_SIZE + offset)
+        const y = Math.floor(worldPosition.y / CHUNK_SIZE + offset)
+        const z = Math.floor(worldPosition.z / CHUNK_SIZE + offset)
         return new Vector3(x, y, z)
     }
 
@@ -82,9 +86,10 @@ export class Renderer {
     updateChunks() {
 
         const position = this.toChunkPosition(this.playerMesh.position)
+        console.log("chunk position", "x", position.x, "z", position.z)
         position.y = 0
         
-        const chunkCorners = this.chunkCornersAround(position, 1)
+        const chunkCorners = this.chunkCornersAround(position, 4)
         for(let corner of chunkCorners) {
             if(!this.chunkMap.has(this.toChunkString(corner))) {
                 const mesh = this.createChunkMesh(corner)
@@ -104,18 +109,15 @@ export class Renderer {
         base.z = position.z * CHUNK_SIZE
         chunkCorners.push(base)
 
-        const z_offset = base.clone()
-        z_offset.z -= CHUNK_SIZE
-        chunkCorners.push(z_offset)
-
-        const x_offset = base.clone()
-        x_offset.x -= CHUNK_SIZE
-        chunkCorners.push(x_offset)
-
-        const xz_offset = base.clone()
-        xz_offset.x -= CHUNK_SIZE
-        xz_offset.z -= CHUNK_SIZE
-        chunkCorners.push(xz_offset)
+        for(let x = position.x - distance; x < position.x + distance; x++) {
+            for(let z = position.z - distance; z < position.z + distance; z++) {
+                console.log({x, z})
+                const clone = base.clone()
+                clone.x = x * CHUNK_SIZE
+                clone.z = z * CHUNK_SIZE
+                chunkCorners.push(clone)
+            }
+        }
 
         return chunkCorners
     }
@@ -125,7 +127,7 @@ export class Renderer {
         const mesh = MeshBuilder.CreateBox(`chunk-${x}-${y}-${z}`,
             {width: CHUNK_SIZE, depth: CHUNK_SIZE, height: CHUNK_SIZE / 2})
         const material = new StandardMaterial("chunk-material")
-        material.diffuseColor = Color3.Green()
+        material.diffuseColor = Color3.Random()
         mesh.material = material
         // mesh.setPivotPoint(new Vector3(-CHUNK_SIZE/2, -CHUNK_SIZE/4, -CHUNK_SIZE/2))
         return mesh
