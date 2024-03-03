@@ -11,12 +11,12 @@
   },
   "devDependencies": {
     "@yamc/types": "link:../types",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.0",
-    "vitest": "^0.34.1"
+    "typescript": "^5.3.3",
+    "vite": "^4.5.2",
+    "vitest": "^0.34.6"
   },
   "dependencies": {
-    "babylonjs": "^6.13.0",
+    "babylonjs": "^6.45.1",
     "perlin-noise-2d": "^1.0.0",
     "simplex-noise": "^4.0.1"
   }
