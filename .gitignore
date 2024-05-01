@@ -1,1 +1,4 @@
 **/build
+
+!application/libraries/README.md
+application/libraries/**/*.a
