@@ -3,11 +3,11 @@ version: "3"
 tasks:
   run:
     dir: application
-    cmd: v -cc clang-17 run src/main.v
+    cmd: v -cc clang-17 run main.v
 
   build:
     dir: application
-    cmd: v -o yamc -cc clang-17 src/main.v
+    cmd: v -o yamc -cc clang-17 .
   
   init-submodules:
     cmd: git submodule update --init --recursive
