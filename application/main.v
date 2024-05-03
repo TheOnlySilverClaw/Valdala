@@ -16,4 +16,11 @@ fn main() {
 
 	instance := webgpu.create_instance()!
 	defer {instance.release()}
+
+	adapter := instance.request_adapter() or {
+		println("failed to request adapter")
+		return
+	}
+	
+	defer {adapter.release()}
 }
