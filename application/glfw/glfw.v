@@ -2,11 +2,13 @@ module glfw
 
 #flag -I include
 #flag -l glfw
-#include "glfw3.h"
+#include "GLFW/glfw3.h"
 
 pub type Window = voidptr
 
 fn C.glfwInit() int
+
+fn C.glfwWindowHint(hint int value int)
 
 fn C.glfwCreateWindow(width int, height int, name &char, monitor voidptr, sharedWindow voidptr) Window
 

@@ -10,27 +10,27 @@ module webgpu
 
 #include "wgpu.h"
 
-pub type Instance = voidptr
-pub type Adapter = voidptr
 
-pub fn create_instance() !Instance {
+pub fn create_instance() !WGPUInstance {
+
 	descriptor := C.WGPUInstanceDescriptor{}
 	instance := C.wgpuCreateInstance(&descriptor)
 	return instance
 }
 
-pub fn (instance Instance) release() {
+pub fn (instance WGPUInstance) release() {
 	C.wgpuInstanceRelease(instance)
 }
 
-pub fn (instance Instance) request_adapter() !Adapter {
+pub fn (instance WGPUInstance) request_adapter(surface WGPUSurface) !WGPUAdapter {
 
 
 	options := C.WGPURequestAdapterOptions{
-		powerPreference: .high_performance
+		powerPreference: .high_performance,
+		compatibleSurface: surface
 	}
 
-	channel := chan Adapter{cap: 1}
+	channel := chan WGPUAdapter{cap: 1}
 
 	callback := fn [channel] (
 		status WGPURequestAdapterStatus,
@@ -54,6 +54,6 @@ pub fn (instance Instance) request_adapter() !Adapter {
 	return adapter
 }
 
-pub fn (adapter Adapter) release() {
+pub fn (adapter WGPUAdapter) release() {
 	C.wgpuAdapterRelease(adapter)
 }

@@ -2,28 +2,28 @@ module webgpu
 
 type WGPUBool = int
 
-type WGPUAdapter = voidptr
-type WGPUBindGroup = voidptr
-type WGPUBindGroupLayout = voidptr
-type WGPUBuffer = voidptr
-type WGPUCommandBuffer = voidptr
-type WGPUCommandEncoder = voidptr
-type WGPUComputePassEncoder = voidptr
-type WGPUComputePipeline = voidptr
-type WGPUDevice = voidptr
-type WGPUInstance = voidptr
-type WGPUPipelineLayout = voidptr
-type WGPUQuerySet = voidptr
-type WGPUQueue = voidptr
-type WGPURenderBundle = voidptr
-type WGPURenderBundleEncoder = voidptr
-type WGPURenderPassEncoder = voidptr
-type WGPURenderPipeline = voidptr
-type WGPUSampler = voidptr
-type WGPUShaderModule = voidptr
-type WGPUSurface = voidptr
-type WGPUTexture = voidptr
-type WGPUTextureView = voidptr
+pub type WGPUAdapter = voidptr
+pub type WGPUBindGroup = voidptr
+pub type WGPUBindGroupLayout = voidptr
+pub type WGPUBuffer = voidptr
+pub type WGPUCommandBuffer = voidptr
+pub type WGPUCommandEncoder = voidptr
+pub type WGPUComputePassEncoder = voidptr
+pub type WGPUComputePipeline = voidptr
+pub type WGPUDevice = voidptr
+pub type WGPUInstance = voidptr
+pub type WGPUPipelineLayout = voidptr
+pub type WGPUQuerySet = voidptr
+pub type WGPUQueue = voidptr
+pub type WGPURenderBundle = voidptr
+pub type WGPURenderBundleEncoder = voidptr
+pub type WGPURenderPassEncoder = voidptr
+pub type WGPURenderPipeline = voidptr
+pub type WGPUSampler = voidptr
+pub type WGPUShaderModule = voidptr
+pub type WGPUSurface = voidptr
+pub type WGPUTexture = voidptr
+pub type WGPUTextureView = voidptr
 
 enum WGPUPowerPreference {
 	undefined        = 0x00000000

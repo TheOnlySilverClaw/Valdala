@@ -22,6 +22,6 @@ tasks:
   update-wgpu:
     deps: [build-wgpu]
     cmds:
-      - cp application/submodules/wgpu-native/target/debug/libwgpu_native.a application/libraries
-      - cp application/submodules/wgpu-native/ffi/wgpu.h application/include
-      - cp application/submodules/wgpu-native/ffi/webgpu-headers/webgpu.h application/include
+      - cp -r application/submodules/wgpu-native/target/debug/libwgpu_native.a application/libraries
+      - cp -r application/submodules/wgpu-native/ffi/wgpu.h application/include
+      - cp -r application/submodules/wgpu-native/ffi/webgpu-headers/webgpu.h application/include

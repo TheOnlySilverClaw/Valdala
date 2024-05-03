@@ -2,25 +2,36 @@ module main
 
 import glfw
 import webgpu
+import glfw3webgpu
 
 fn main() {
 
-	window := glfw.open_window(1200, 1000, "YAMC")!
-	_ = window
-	defer { glfw.terminate() }
-
-	// for !window.should_close() {
-	// 	window.swap_buffers()
-	// 	glfw.poll_events()
-	// }
-
+	println("launch")
+	
 	instance := webgpu.create_instance()!
 	defer {instance.release()}
+	println("created instance")
 
-	adapter := instance.request_adapter() or {
+	window := glfw.open_window(1200, 1000, "YAMC")!
+	defer { glfw.terminate() }
+	println("created window")
+
+
+
+	surface := glfw3webgpu.get_surface(instance, window)
+	println("created surface")
+
+	adapter := instance.request_adapter(surface) or {
 		println("failed to request adapter")
 		return
 	}
-	
 	defer {adapter.release()}
+	println("created addapter")
+
+	for !window.should_close() {
+		window.swap_buffers()
+		glfw.poll_events()
+	}
+
+	println("done")
 }

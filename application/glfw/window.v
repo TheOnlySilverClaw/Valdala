@@ -11,6 +11,8 @@ pub fn open_window(width int, height int, name string) !Window {
 		error("could not initialze GLFW")
 	}
 
+	C.glfwWindowHint(C.GLFW_CLIENT_API, C.GLFW_NO_API)
+	
 	window := C.glfwCreateWindow(width, height, &char(name.str), C.NULL, C.NULL)
 	return window
 }
