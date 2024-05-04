@@ -24,7 +24,6 @@ pub fn (instance WGPUInstance) release() {
 
 pub fn (instance WGPUInstance) request_adapter(surface WGPUSurface) !WGPUAdapter {
 
-
 	options := C.WGPURequestAdapterOptions{
 		powerPreference: .high_performance,
 		compatibleSurface: surface
@@ -58,6 +57,41 @@ pub fn (adapter WGPUAdapter) release() {
 	C.wgpuAdapterRelease(adapter)
 }
 
+pub fn (adapter WGPUAdapter) request_device() !WGPUDevice {
+
+	descriptor := C.WGPUDeviceDescriptor{
+		label: "device".str,
+		requiredFeatures: unsafe { nil },
+		requiredLimits: unsafe { nil }
+	}
+
+	channel := chan WGPUDevice{cap: 1}
+
+	callback := fn [channel] (
+		status WGPURequestDeviceStatus,
+		device WGPUDevice,
+		message &char,
+		user_data voidptr) {
+		
+		if status == .success {
+			channel <- device
+		} else {
+			channel.close()
+		}
+	}
+
+	user_data := unsafe { nil }
+
+	C.wgpuAdapterRequestDevice(adapter, &descriptor, callback, user_data)
+
+	device := <- channel ?
+
+	return device
+}
+
+pub fn (device WGPUDevice) release() {
+	C.wgpuDeviceRelease(device)
+}
 
 pub fn (surface WGPUSurface) release() {
 	C.wgpuSurfaceRelease(surface)

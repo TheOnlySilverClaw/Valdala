@@ -21,11 +21,18 @@ fn main() {
 	println("created surface")
 
 	adapter := instance.request_adapter(surface) or {
-		println("failed to request adapter")
+		println("failed to get adapter")
 		return
 	}
 	defer { adapter.release() }
 	println("created adapter")
+
+	device := adapter.request_device() or {
+		println("failed to get device")
+		return
+	}
+	defer { device.release() }
+	println("created device")
 
 	for !window.should_close() {
 		window.swap_buffers()
