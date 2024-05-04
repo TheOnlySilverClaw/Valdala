@@ -26,7 +26,7 @@ fn main() {
 		return
 	}
 	defer {adapter.release()}
-	println("created addapter")
+	println("created adapter")
 
 	for !window.should_close() {
 		window.swap_buffers()
