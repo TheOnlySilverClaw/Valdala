@@ -27,60 +27,70 @@ pub type WGPUTextureView = voidptr
 
 
 enum WGPUPowerPreference {
-	undefined        = 0x00000000
-	low_power        = 0x00000001
-	high_performance = 0x00000002
+	undefined        = 0
+	low_power        = 1
+	high_performance = 2
 	// https://github.com/vlang/v/issues/19315
 	// force32         = 0x7FFFFFFF
 }
 
 enum WGPUBackendType {
-	undefined = 0x00000000
-	null      = 0x00000001
-	webgpu    = 0x00000002
-	d3d11     = 0x00000003
-	d3d12     = 0x00000004
-	metal     = 0x00000005
-	vulkan    = 0x00000006
-	opengl    = 0x00000007
-	opengles  = 0x00000008
+	undefined = 0
+	null      = 1
+	webgpu    = 2
+	d3d11     = 3
+	d3d12     = 4
+	metal     = 5
+	vulkan    = 6
+	opengl    = 7
+	opengles  = 8
 	// force32   = 0x7FFFFFFF
 }
 
 enum WGPURequestAdapterStatus {
-	success     = 0x00000000
-	unavailable = 0x00000001
-	error       = 0x00000002
-	unknown     = 0x00000003
+	success     = 0
+	unavailable = 1
+	error       = 2
+	unknown     = 3
 	// force32     = 2147483647
 }
 
 enum WGPURequestDeviceStatus {
-	success = 0x00000000
-	error   = 0x00000001
-	unknown = 0x00000002
+	success = 0
+	error   = 1
+	unknown = 2
 	// force32   = 0x7FFFFFFF
 }
 
 enum WGPUFeatureName {
-	undefined               = 0x00000000
-	depth_clip_control        = 0x00000001
-	depth32_floatstencil8    = 0x00000002
-	timestamp_query          = 0x00000003
-	texture_compression_bc    = 0x00000004
-	texture_compression_etc2  = 0x00000005
-	texture_compression_astc  = 0x00000006
-	indirect_first_instance   = 0x00000007
-	shaderf16               = 0x00000008
-	rg11b10_ufloat_renderable = 0x00000009
-	bgra8_unorm_storage       = 0x000000010
-	float32_filterable       = 0x000000011
+	undefined               = 0
+	depth_clip_control        = 1
+	depth32_floatstencil8    = 2
+	timestamp_query          = 3
+	texture_compression_bc    = 4
+	texture_compression_etc2  = 5
+	texture_compression_astc  = 6
+	indirect_first_instance   = 7
+	shaderf16               = 8
+	rg11b10_ufloat_renderable = 9
+	bgra8_unorm_storage       = 10
+	float32_filterable       = 11
 	// force32   = 0x7FFFFFFF
 }
 
 enum WGPUDeviceLostReason {
-	undefined = 0x00000000
-	destroyed = 0x00000001
+	undefined = 0
+	destroyed = 1
+	// force32   = 0x7FFFFFFF
+}
+
+enum WGPUErrorType {
+	no_error     = 0
+	validation  = 1
+	out_of_memory = 2
+	internal    = 3
+	unknown     = 4
+	device_lost  = 5
 	// force32   = 0x7FFFFFFF
 }
 
@@ -161,3 +171,4 @@ struct C.WGPUDeviceDescriptor {
 type WGPURequestAdapterCallback = fn (WGPURequestAdapterStatus, WGPUAdapter, &char, voidptr)
 type WGPURequestDeviceCallback = fn (WGPURequestDeviceStatus, WGPUDevice, &char, voidptr)
 type WGPUDeviceLostCallback = fn (WGPUDeviceLostReason, &char, voidptr)
+type WGPUErrorCallback = fn (WGPUErrorType, &char, voidptr)

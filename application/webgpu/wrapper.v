@@ -44,9 +44,7 @@ pub fn (instance WGPUInstance) request_adapter(surface WGPUSurface) !WGPUAdapter
 		}
 	}
 
-	user_data := unsafe { nil }
-
-	C.wgpuInstanceRequestAdapter(instance, &options, callback, user_data)
+	C.wgpuInstanceRequestAdapter(instance, &options, callback, unsafe { nil })
 
 	adapter := <- channel ?
 
@@ -80,12 +78,17 @@ pub fn (adapter WGPUAdapter) request_device() !WGPUDevice {
 		}
 	}
 
-	user_data := unsafe { nil }
-
-	C.wgpuAdapterRequestDevice(adapter, &descriptor, callback, user_data)
+	C.wgpuAdapterRequestDevice(adapter, &descriptor, callback, unsafe { nil })
 
 	device := <- channel ?
 
+	error_callback := fn(errorType WGPUErrorType, message &char, user_data voidptr) {
+		message_string := unsafe { message.vstring() }
+		println("device error ($errorType): $message_string")
+	}
+
+	C.wgpuDeviceSetUncapturedErrorCallback(device, error_callback, unsafe { nil })
+	
 	return device
 }
 
