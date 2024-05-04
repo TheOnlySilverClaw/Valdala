@@ -21,3 +21,7 @@ fn C.glfwSwapBuffers(window Window)
 fn C.glfwPollEvents()
 
 fn C.glfwTerminate()
+
+fn C.glfwSetFramebufferSizeCallback(window Window, callback FramebufferSizeCallback)
+
+type FramebufferSizeCallback = fn(window Window, width int, height int)

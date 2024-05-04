@@ -21,6 +21,18 @@ pub fn (window Window) should_close() bool {
 	return C.glfwWindowShouldClose(window) == C.GLFW_TRUE
 }
 
+pub type ResizeListener = fn(int, int)
+
+pub fn (window Window) on_resize(listener ResizeListener) {
+	
+	callback := fn[listener](window Window, width int, height int) {
+		println("resize width $width, height: $height")
+		listener(width, height)
+	}
+
+	C.glfwSetFramebufferSizeCallback(window, callback)
+}
+
 pub fn (window Window) destroy() {
 	C.glfwDestroyWindow(window)
 }

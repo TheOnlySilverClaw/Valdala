@@ -1,6 +1,7 @@
 module graphics
 
 import log
+import time
 
 import glfw
 import webgpu
@@ -9,6 +10,9 @@ struct Renderer {
 	device webgpu.WGPUDevice
 	surface webgpu.WGPUSurface
 	queue webgpu.WGPUQueue
+	mut:
+	width u32
+	height u32
 }
 
 pub fn create_renderer()! {
@@ -47,9 +51,14 @@ pub fn create_renderer()! {
 	log.info("created queue")
 
 	surface.configure(adapter, device, 1200, 1000)
+
+	window.on_resize(fn[surface, adapter, device](width int, height int) {
+		surface.configure(adapter, device, u32(width), u32(height))
+	})
+
 	log.info("surface configured")
 
-	renderer := Renderer {
+	mut renderer := Renderer {
 		device: device,
 		surface: surface,
 		queue: queue
@@ -61,6 +70,8 @@ pub fn create_renderer()! {
 
 		window.swap_buffers()
 		glfw.poll_events()
+
+		time.sleep(10 * time.millisecond)
 	}
 }
 
