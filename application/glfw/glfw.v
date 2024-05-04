@@ -2,7 +2,7 @@ module glfw
 
 #flag -I include
 #flag -l glfw
-#include "GLFW/glfw3.h"
+#include "glfw3.h"
 
 pub type Window = voidptr
 

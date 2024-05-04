@@ -31,7 +31,7 @@
 #define _glfw3_webgpu_h_
 
 #include <webgpu.h>
-#include <GLFW/glfw3.h>
+#include <glfw3.h>
 
 #ifdef __cplusplus
 extern "C" {
