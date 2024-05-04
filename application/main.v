@@ -2,7 +2,6 @@ module main
 
 import glfw
 import webgpu
-import glfw3webgpu
 
 fn main() {
 
@@ -17,7 +16,7 @@ fn main() {
 	defer { window.destroy() }
 	println("created window")
 
-	surface := glfw3webgpu.get_surface(instance, window)
+	surface := window.get_surface(instance)
 	defer { surface.release() }
 	println("created surface")
 
