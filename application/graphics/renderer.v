@@ -10,9 +10,6 @@ struct Renderer {
 	device webgpu.WGPUDevice
 	surface webgpu.WGPUSurface
 	queue webgpu.WGPUQueue
-	mut:
-	width u32
-	height u32
 }
 
 pub fn create_renderer()! {
@@ -71,7 +68,7 @@ pub fn create_renderer()! {
 		window.swap_buffers()
 		glfw.poll_events()
 
-		time.sleep(10 * time.millisecond)
+		time.sleep(1 * time.millisecond)
 	}
 }
 
