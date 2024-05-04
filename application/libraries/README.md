@@ -1,3 +1,3 @@
 # Libraries
 
-Run `task update-wgpu` to create the wgpu library here.
+Run `task setup` to build remaining binary dependencies.

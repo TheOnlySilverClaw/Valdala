@@ -1,4 +1,6 @@
 **/build
 
+# TODO figure out binary dependency mess
 !application/libraries/README.md
-application/libraries/**/*.a
+!application/libraries/libglfw3webgpu.a
+application/libraries/libwgpu_native.a
