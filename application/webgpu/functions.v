@@ -9,3 +9,5 @@ fn C.wgpuInstanceRelease(instance WGPUInstance)
 fn C.wgpuInstanceRequestAdapter(instance WGPUInstance, options &C.WGPURequestAdapterOptions, callback WGPURequestAdapterCallback, user_data voidptr)
 
 fn C.wgpuAdapterRelease(adapter WGPUAdapter)
+
+fn C.wgpuSurfaceRelease(adapter WGPUSurface)

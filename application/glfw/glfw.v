@@ -14,6 +14,8 @@ fn C.glfwCreateWindow(width int, height int, name &char, monitor voidptr, shared
 
 fn C.glfwWindowShouldClose(window Window) int
 
+fn C.glfwDestroyWindow(window Window)
+
 fn C.glfwSwapBuffers(window Window)
 
 fn C.glfwPollEvents()

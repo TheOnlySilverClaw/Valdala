@@ -14,18 +14,18 @@ fn main() {
 
 	window := glfw.open_window(1200, 1000, "YAMC")!
 	defer { glfw.terminate() }
+	defer { window.destroy() }
 	println("created window")
 
-
-
 	surface := glfw3webgpu.get_surface(instance, window)
+	defer { surface.release() }
 	println("created surface")
 
 	adapter := instance.request_adapter(surface) or {
 		println("failed to request adapter")
 		return
 	}
-	defer {adapter.release()}
+	defer { adapter.release() }
 	println("created adapter")
 
 	for !window.should_close() {

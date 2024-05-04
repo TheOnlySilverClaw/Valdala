@@ -57,3 +57,8 @@ pub fn (instance WGPUInstance) request_adapter(surface WGPUSurface) !WGPUAdapter
 pub fn (adapter WGPUAdapter) release() {
 	C.wgpuAdapterRelease(adapter)
 }
+
+
+pub fn (surface WGPUSurface) release() {
+	C.wgpuSurfaceRelease(surface)
+}

@@ -21,6 +21,10 @@ pub fn (window Window) should_close() bool {
 	return C.glfwWindowShouldClose(window) == C.GLFW_TRUE
 }
 
+pub fn (window Window) destroy() {
+	C.glfwDestroyWindow(window)
+}
+
 pub fn (window Window) swap_buffers() {
 	C.glfwSwapBuffers(window)
 }
