@@ -1,0 +1,25 @@
+version: "3"
+
+tasks:
+  run:
+    cmd: v -cc clang-17 run main.v
+
+  build:
+    cmd: v -o yamc -cc clang-17 .
+  
+  init-submodules:
+    cmd: git submodule update --init --recursive
+  
+  update-submodules:
+    cmd: git submodule update --recursive
+
+  build-wgpu:
+    dir: submodules/wgpu-native
+    cmd: make lib-native
+  
+  update-wgpu:
+    deps: [build-wgpu]
+    cmds:
+      - cp submodules/wgpu-native/target/debug/libwgpu_native.a libraries
+      - cp submodules/wgpu-native/ffi/wgpu.h include
+      - cp submodules/wgpu-native/ffi/webgpu-headers/webgpu.h include
