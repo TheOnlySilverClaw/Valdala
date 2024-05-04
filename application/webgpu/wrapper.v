@@ -188,7 +188,7 @@ pub fn (device WGPUDevice) release() {
 	C.wgpuDeviceRelease(device)
 }
 
-pub fn (surface WGPUSurface) configure(adapter WGPUAdapter, device WGPUDevice) {
+pub fn (surface WGPUSurface) configure(adapter WGPUAdapter, device WGPUDevice, width u32, height u32) {
 	
 	capabilities := C.WGPUSurfaceCapabilities {
 		formats: unsafe { nil },
@@ -207,8 +207,8 @@ pub fn (surface WGPUSurface) configure(adapter WGPUAdapter, device WGPUDevice) {
 		viewFormats: capabilities.formats,
 		viewFormatCount: capabilities.formatCount,
 		// TODO resize with window
-		width: 1200,
-		height: 1000
+		width: width,
+		height: height
 	}
 
 	C.wgpuSurfaceConfigure(surface, &configuration)
