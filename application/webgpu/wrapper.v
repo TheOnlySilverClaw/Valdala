@@ -23,7 +23,7 @@ pub fn (instance WGPUInstance) release() {
 
 pub fn (instance WGPUInstance) request_adapter(surface WGPUSurface) !WGPUAdapter {
 
-	options := C.WGPURequestAdapterOptions{
+	options := C.WGPURequestAdapterOptions {
 		powerPreference: .high_performance,
 		compatibleSurface: surface
 	}

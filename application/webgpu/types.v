@@ -401,7 +401,8 @@ enum WGPUStencilOperation {
 }
 
 struct C.WGPUChainedStruct {
-	next &C.WGPUChainedStruct = unsafe { nil }
+	next &C.WGPUChainedStruct
+	sType WGPUSType
 }
 
 struct C.WGPUChainedStructOut {
@@ -674,6 +675,24 @@ struct C.WGPUVertexAttribute {
 	format         WGPUVertexFormat
 	offset         u64
 	shaderLocation u32
+}
+
+struct C.WGPUShaderModuleDescriptor {
+	nextInChain &C.WGPUChainedStruct
+	label       &char
+	hintCount   usize
+	hints       &C.WGPUShaderModuleCompilationHint
+}
+
+struct C.WGPUShaderModuleWGSLDescriptor {
+	chain C.WGPUChainedStruct
+	code  &char
+}
+
+struct C.WGPUShaderModuleCompilationHint {
+	nextInChain &C.WGPUChainedStruct = unsafe { nil }
+	entryPoint  &char
+	layout      WGPUPipelineLayout
 }
 
 type WGPURequestAdapterCallback = fn (status WGPURequestAdapterStatus, adapter WGPUAdapter, message &char, user_data voidptr)

@@ -51,3 +51,5 @@ fn C.wgpuTextureCreateView(texture WGPUTexture, descriptor &C.WGPUTextureViewDes
 fn C.wgpuTextureRelease(texture WGPUTexture)
 
 fn C.wgpuTextureViewRelease(view WGPUTextureView)
+
+fn C.wgpuDeviceCreateShaderModule(device WGPUDevice, descriptor &C.WGPUShaderModuleDescriptor) WGPUShaderModule

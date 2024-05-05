@@ -55,6 +55,8 @@ pub fn create_renderer()! {
 
 	log.info("surface configured")
 
+	shader := device.create_shader("shaders/colored.wgsl", "colored")!
+
 	mut renderer := Renderer {
 		device: device,
 		surface: surface,

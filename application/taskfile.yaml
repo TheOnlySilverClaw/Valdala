@@ -8,7 +8,7 @@ tasks:
   build:
     cmds:
       - mkdir -p build
-      - v -cc clang -o build/yamc .
+      - v -g -cc clang -o build/yamc .
   
   setup:
     cmds:
