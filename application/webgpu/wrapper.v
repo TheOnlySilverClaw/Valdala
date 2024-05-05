@@ -112,9 +112,9 @@ pub fn (encoder WGPUCommandEncoder) begin_render_pass(view WGPUTextureView) WGPU
 			view: view,
 			resolveTarget: unsafe { nil }
 			clearValue: C.WGPUColor {
-				r: 0.9,
-				g: 0.4,
-				b: 0.0,
+				r: 0.1,
+				g: 0.1,
+				b: 0.1,
 				a: 1.0
 			},
 			loadOp: .clear,
@@ -205,7 +205,6 @@ pub fn (surface WGPUSurface) configure(adapter WGPUAdapter, device WGPUDevice, w
 		alphaMode: unsafe { capabilities.alphaModes[0] },
 		viewFormats: capabilities.formats,
 		viewFormatCount: capabilities.formatCount,
-		// TODO resize with window
 		width: width,
 		height: height
 	}
