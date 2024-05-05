@@ -450,10 +450,10 @@ struct C.WGPUTextureViewDescriptor {
 	aspect          WGPUTextureAspect
 }
 
-type WGPURequestAdapterCallback = fn (WGPURequestAdapterStatus, WGPUAdapter, &char, voidptr)
+type WGPURequestAdapterCallback = fn (status WGPURequestAdapterStatus, adapter WGPUAdapter, message &char, user_data voidptr)
 
-type WGPURequestDeviceCallback = fn (WGPURequestDeviceStatus, WGPUDevice, &char, voidptr)
+type WGPURequestDeviceCallback = fn (status WGPURequestDeviceStatus, device WGPUDevice, message &char, user_data voidptr)
 
-type WGPUDeviceLostCallback = fn (WGPUDeviceLostReason, &char, voidptr)
+type WGPUDeviceLostCallback = fn (reason WGPUDeviceLostReason, message &char, user_data voidptr)
 
-type WGPUErrorCallback = fn (WGPUErrorType, &char, voidptr)
+type WGPUErrorCallback = fn (errorType WGPUErrorType, message &char, user_data voidptr)
