@@ -1,5 +1,7 @@
 module webgpu
 
+import os
+
 #flag -I include
 #flag -L libraries
 
@@ -226,4 +228,32 @@ pub fn (texture WGPUTexture) release() {
 
 pub fn (view WGPUTextureView) release() {
 	C.wgpuTextureViewRelease(view)
+}
+
+pub fn (device WGPUDevice) create_shader(path string, label string) !WGPUShaderModule {
+
+	source := os.read_file(path) or {
+		return error("failed to load shader $label from $path")
+	}
+
+	wgsl_desriptor := &C.WGPUShaderModuleWGSLDescriptor {
+		code: source.str,
+		chain: C.WGPUChainedStruct {
+			next: unsafe { nil },
+			sType: .shader_module_wgsl_descriptor
+		}
+	}
+
+	module_descriptor := &C.WGPUShaderModuleDescriptor {
+		nextInChain: &wgsl_desriptor.chain,
+		label: label.str,
+		hints: unsafe { nil },
+		hintCount: 0
+	}
+
+	return C.wgpuDeviceCreateShaderModule(device, module_descriptor)
+}
+
+pub fn(shader WGPUShaderModule) release() {
+	C.wgpuShaderModuleRelease(shader)
 }

@@ -43,6 +43,12 @@ pub fn create_renderer()! {
 	defer { device.release() }
 	log.info("created device")
 
+	shader := device.create_shader("shaders/colored.wgsl", "colored") or {
+		return error("failed to load shader")
+	}
+	defer { shader.release() }
+	log.info("shader loaded")
+
 	queue := device.get_queue()
 	defer { queue.release() }
 	log.info("created queue")
@@ -54,8 +60,6 @@ pub fn create_renderer()! {
 	})
 
 	log.info("surface configured")
-
-	shader := device.create_shader("shaders/colored.wgsl", "colored")!
 
 	mut renderer := Renderer {
 		device: device,
