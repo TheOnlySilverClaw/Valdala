@@ -3,12 +3,12 @@ version: "3"
 tasks:
 
   run:
-    cmd: v -cc clang-17 run main.v
+    cmd: v -cc clang run main.v
 
   build:
     cmds:
       - mkdir -p build
-      - v -o build/yamc -cc clang-17 .
+      - v -cc clang -o build/yamc .
   
   setup:
     cmds:

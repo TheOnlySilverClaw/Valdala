@@ -5,7 +5,6 @@ module webgpu
 
 #flag -l c
 #flag -l m
-#flag -l unwind
 #flag -l wgpu_native
 
 #include "wgpu.h"
