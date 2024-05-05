@@ -10,6 +10,7 @@ The 0.4.5 version of [V](https://vlang.io/) is used to compile the project.
 
 V uses Tiny C Compiler (tcc) for development builds by default.
 Unfortunately, tcc fails to compile the WebGPU headers.
+
 Therefore, the build commands set [Clang](https://clang.llvm.org/) as the C compiler.
 
 
@@ -24,20 +25,17 @@ Building wgpu-native requires a [Rust](https://www.rust-lang.org/) compiler and 
 
 These dependencies are used to make windowing and graphics work:
 
-| Name | Purpose | Usage |
+| Name | Purpose | Installation |
 | -- | -- | -- |
-| [GLFW 3](https://www.glfw.org/)| window and input handling | headers included, linked as system dependency |
-| [glfw3webgpu](https://github.com/eliemichel/glfw3webgpu)| Create WebGPU surface from GLFW window | header included, precompiled in libraries |
-| [wgpu-native](https://github.com/gfx-rs/wgpu-native)| WebGPU implementation | headers included, submodule compiled with rust |
+| [GLFW 3](https://www.glfw.org/)| window and input handling | system |
+| [glfw3webgpu](https://github.com/eliemichel/glfw3webgpu)| create WebGPU surface from GLFW window | precompiled |
+| [wgpu-native](https://github.com/gfx-rs/wgpu-native)| run WebGPU over system dependent graphics API | submodule |
 
 
 ### Tasks
 
-The server uses [Task](https://taskfile.dev/) as a task runner.
+[Task](https://taskfile.dev/) is used to run repetitive commands.
 It's not required, but makes development easier.
-
-Task can be installed with most system package managers.
-See here for installation options: https://taskfile.dev/installation/
 
 Set up git submodules and compile required libraries:
 ```
