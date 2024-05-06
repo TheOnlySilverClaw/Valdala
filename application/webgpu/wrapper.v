@@ -177,8 +177,8 @@ pub fn (texture WGPUTexture) get_view(mip_levels u32) WGPUTextureView {
 	return C.wgpuTextureCreateView(texture, &descriptor)
 }
 
-pub fn (queue WGPUQueue) submit(command WGPUCommandBuffer) {
-	C.wgpuQueueSubmit(queue, 1, &command)
+pub fn (queue WGPUQueue) submit(command ... WGPUCommandBuffer) {
+	C.wgpuQueueSubmit(queue, command.len, &command[0])
 }
 
 pub fn (queue WGPUQueue) release() {

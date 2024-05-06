@@ -101,7 +101,7 @@ fn (renderer Renderer) render() ! {
 	defer { command_buffer.release() }
 	log.debug("command buffer created")
 
-	renderer.queue.submit(&command_buffer)
+	renderer.queue.submit(command_buffer)
 	log.debug("command submitted")
 
 	renderer.surface.present()
