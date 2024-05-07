@@ -10,6 +10,8 @@ struct Renderer {
 	device webgpu.WGPUDevice
 	surface webgpu.WGPUSurface
 	queue webgpu.WGPUQueue
+	texture_format webgpu.WGPUTextureFormat
+	shader_module webgpu.WGPUShaderModule
 }
 
 pub fn create_renderer()! {
@@ -43,11 +45,11 @@ pub fn create_renderer()! {
 	defer { device.release() }
 	log.info("created device")
 
-	shader := device.create_shader("shaders/colored.wgsl", "colored") or {
-		return error("failed to load shader")
+	shader_module := device.create_shader("shaders/colored.wgsl", "colored") or {
+		return error("failed to load shader_module")
 	}
-	defer { shader.release() }
-	log.info("shader loaded")
+	defer { shader_module.release() }
+	log.info("shader_module loaded")
 
 	queue := device.get_queue()
 	defer { queue.release() }
@@ -61,11 +63,18 @@ pub fn create_renderer()! {
 
 	log.info("surface configured")
 
+	texture_format := surface.get_preferred_format(adapter)
+	log.info("preferred texture format: $texture_format")
+
 	mut renderer := Renderer {
 		device: device,
 		surface: surface,
-		queue: queue
+		queue: queue,
+		shader_module: shader_module,
+		texture_format: texture_format
 	}
+
+	renderer.create_pipeline()
 
 	for !window.should_close() {
 
@@ -76,6 +85,33 @@ pub fn create_renderer()! {
 
 		time.sleep(1 * time.millisecond)
 	}
+}
+
+fn (renderer Renderer) create_pipeline() {
+
+	// position_attribute := C.WGPUVertexAttribute {
+	// 	format: .float32x2,
+	// 	offset: 0,
+	// 	shaderLocation: 0
+	// }
+
+	// color_attribute := C.WGPUVertexAttribute {
+	// 	format: .float32x4,
+	// 	offset: sizeof(float) * 2,
+	// 	shaderLocation: 1
+	// }
+
+	// attributes := [
+	// 	position_attribute,
+	// 	color_attribute
+	// ]
+
+	// vertex_buffer_layout := C.WGPUVertexBufferLayout {
+	// 	arrayStride: sizeof(float) * 6,
+	// 	stepMode: .vertex,
+	// 	attributeCount: attributes.len,
+	// 	attributes: &attributes[0]
+	// }
 }
 
 fn (renderer Renderer) render() ! {

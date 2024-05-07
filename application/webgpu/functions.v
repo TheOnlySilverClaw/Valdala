@@ -28,6 +28,12 @@ fn C.wgpuDeviceCreateCommandEncoder(device WGPUDevice, descriptor &C.WGPUCommand
 
 fn C.wgpuCommandEncoderRelease(encoder WGPUCommandEncoder)
 
+fn C.wgpuDeviceCreatePipelineLayout(device WGPUDevice, descriptor &C.WGPUPipelineLayoutDescriptor) WGPUPipelineLayout
+
+fn C.wgpuPipelineLayoutRelease(layout WGPUPipelineLayout)
+
+fn C.wgpuDeviceCreateRenderPipeline(device WGPUDevice, descriptor &C.WGPURenderPipelineDescriptor) WGPURenderPipeline
+
 fn C.wgpuCommandEncoderBeginRenderPass(commandEncoder WGPUCommandEncoder, descriptor &C.WGPURenderPassDescriptor) WGPURenderPassEncoder
 
 fn C.wgpuCommandEncoderFinish(encoder WGPUCommandEncoder, descriptor &C.WGPUCommandBufferDescriptor) WGPUCommandBuffer
@@ -41,6 +47,8 @@ fn C.wgpuRenderPassEncoderRelease(encoder WGPURenderPassEncoder)
 fn C.wgpuSurfaceGetCapabilities(surface WGPUSurface, adapter WGPUAdapter, &C.WGPUSurfaceCapabilities)
 
 fn C.wgpuSurfaceConfigure(surface WGPUSurface, configuration &C.WGPUSurfaceConfiguration)
+
+fn C.wgpuSurfaceGetPreferredFormat(surface WGPUSurface, adapter WGPUAdapter) WGPUTextureFormat
 
 fn C.wgpuSurfacePresent(surface WGPUSurface)
 

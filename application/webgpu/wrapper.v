@@ -105,6 +105,25 @@ pub fn (device WGPUDevice) create_command_encoder(label string) WGPUCommandEncod
 	return C.wgpuDeviceCreateCommandEncoder(device, &descriptor)
 }
 
+pub fn (device WGPUDevice) create_pipeline_layout() {
+
+}
+
+pub fn (device WGPUDevice) create_render_pipeline(label string, layout WGPUPipelineLayout) {
+
+	// descriptor := C.WGPURenderPipelineDescriptor {
+	// 	label: label.str,
+	// 	layout       WGPUPipelineLayout
+	// 	vertex       C.WGPUVertexState
+	// 	primitive    C.WGPUPrimitiveState
+	// 	depthStencil &C.WGPUDepthStencilState
+	// 	multisample  C.WGPUMultisampleState
+	// 	fragment     C.WGPUFragmentState
+	// }
+
+	// return C.wgpuDeviceCreateRenderPipeline(device)
+}
+
 pub fn (encoder WGPUCommandEncoder) begin_render_pass(view WGPUTextureView) WGPURenderPassEncoder {
 
 	descriptor := C.WGPURenderPassDescriptor {
@@ -212,6 +231,10 @@ pub fn (surface WGPUSurface) configure(adapter WGPUAdapter, device WGPUDevice, w
 	}
 
 	C.wgpuSurfaceConfigure(surface, &configuration)
+}
+
+pub fn (surface WGPUSurface) get_preferred_format(adapter WGPUAdapter) WGPUTextureFormat {
+	return C.wgpuSurfaceGetPreferredFormat(surface, adapter)
 }
 
 pub fn (surface WGPUSurface) present() {

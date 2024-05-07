@@ -695,6 +695,13 @@ struct C.WGPUShaderModuleCompilationHint {
 	layout      WGPUPipelineLayout
 }
 
+struct C.WGPUPipelineLayoutDescriptor {
+	nextInChain          &C.WGPUChainedStruct = unsafe { nil }
+	label                &char
+	bindGroupLayoutCount usize
+	bindGroupLayouts     &WGPUBindGroupLayout
+}
+
 type WGPURequestAdapterCallback = fn (status WGPURequestAdapterStatus, adapter WGPUAdapter, message &char, user_data voidptr)
 
 type WGPURequestDeviceCallback = fn (status WGPURequestDeviceStatus, device WGPUDevice, message &char, user_data voidptr)
