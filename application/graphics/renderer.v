@@ -7,11 +7,11 @@ import glfw
 import webgpu
 
 struct Renderer {
-	device webgpu.WGPUDevice
-	surface webgpu.WGPUSurface
-	queue webgpu.WGPUQueue
-	texture_format webgpu.WGPUTextureFormat
-	shader_module webgpu.WGPUShaderModule
+	device webgpu.Device
+	surface webgpu.Surface
+	queue webgpu.Queue
+	texture_format webgpu.TextureFormat
+	shader_module webgpu.ShaderModule
 }
 
 pub fn create_renderer()! {
@@ -27,7 +27,7 @@ pub fn create_renderer()! {
 	defer { window.destroy() }
 	log.info("created window")
 
-	surface := window.get_surface(instance)
+	surface := instance.get_surface(window)
 	defer { surface.release() }
 	log.info("created surface")
 
