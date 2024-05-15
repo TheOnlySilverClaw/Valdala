@@ -374,3 +374,37 @@ pub enum WGPUStencilOperation {
 	decrement_wrap  = 7
 	// force32   = 0x7FFFFFFF
 }
+
+pub enum WGPUBufferBindingType {
+	undefined         = 0
+	uniform           = 1
+	storage           = 2
+	read_only_storage = 3
+	// force32   = 0x7FFFFFFF
+}
+
+pub enum WGPUSamplerBindingType {
+	undefined     = 0
+	filtering     = 1
+	non_filtering = 2
+	comparison    = 3
+	// force32   = 0x7FFFFFFF
+}
+
+pub enum WGPUTextureSampleType {
+	undefined          = 0
+	float              = 1
+	unfilterable_float = 2
+	depth              = 3
+	sint               = 4
+	uint               = 5
+	// force32   = 0x7FFFFFFF
+}
+
+pub enum WGPUStorageTextureAccess {
+	undefined  = 0
+	write_only = 1
+	read_only  = 2
+	read_write = 3
+	// force32   = 0x7FFFFFFF
+}

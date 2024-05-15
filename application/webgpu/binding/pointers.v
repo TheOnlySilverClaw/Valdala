@@ -21,7 +21,6 @@ pub type WGPUCommandEncoder = voidptr
 pub type WGPUComputePassEncoder = voidptr
 pub type WGPUComputePipeline = voidptr
 
-
 // device
 pub type WGPUDevice = voidptr
 
