@@ -63,7 +63,7 @@ pub fn (device Device) create_render_pipeline(
 			entryPoint: c'vertex'
 			constants: unsafe { nil }
 			buffers: &C.WGPUVertexBufferLayout {
-				arrayStride: 4 * sizeof(f32),
+				arrayStride: (2+4) * sizeof(f32),
 				stepMode: .vertex,
 				attributes: &vertex_attributes[0],
 				attributeCount: usize(vertex_attributes.len)
