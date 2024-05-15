@@ -1,12 +1,11 @@
-# YAMC
 
-## Setup
+# Setup
 
-### V
+## V
 
 The 0.4.5 version of [V](https://vlang.io/) is used to compile the project.
 
-### Compiler
+## Compiler
 
 V uses Tiny C Compiler (tcc) for development builds by default.
 Unfortunately, tcc fails to compile the WebGPU headers.
@@ -14,14 +13,14 @@ Unfortunately, tcc fails to compile the WebGPU headers.
 Therefore, the build commands set [Clang](https://clang.llvm.org/) as the C compiler.
 
 
-### Tools
+## Tools
 
 Checking out the repository and submodules obviously requires [git](https://git-scm.com/).
 
 Building wgpu-native requires a [Rust](https://www.rust-lang.org/) compiler and [make](https://www.gnu.org/software/make/).
 
 
-### Dependencies
+## Dependencies
 
 These dependencies are used to make windowing and graphics work:
 
@@ -32,7 +31,7 @@ These dependencies are used to make windowing and graphics work:
 | [wgpu-native](https://github.com/gfx-rs/wgpu-native)| run WebGPU over system dependent graphics API | submodule |
 
 
-### Tasks
+## Tasks
 
 [Task](https://taskfile.dev/) is used to run repetitive commands.
 It's not required, but makes development easier.
