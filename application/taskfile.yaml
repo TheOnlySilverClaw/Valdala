@@ -28,7 +28,7 @@ tasks:
   
   update-submodules:
     desc: Update all git submodules.
-    cmd: git submodule update --recursive
+    cmd: git submodule update --recursive --remote
 
   build-wgpu:
     desc: Build the wgpu-native submodule into a static library.
