@@ -10,11 +10,11 @@ tasks:
     desc: Build the application in debug mode.
     cmds:
       - mkdir -p build
-      - v -g -cc clang -o build/yamc .
+      - v -g -cc clang -o build/vandala .
 
   start:
     desc: Start the application from an existing binary.
-    cmd: build/yamc
+    cmd: build/vandala
     
   setup:
     desc: Setup development environment.

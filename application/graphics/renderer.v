@@ -22,7 +22,7 @@ pub fn create_renderer()! {
 	defer {instance.release()}
 	log.info("created instance")
 
-	window := glfw.open_window(1200, 1000, "YAMC")!
+	window := glfw.open_window(1200, 1000, "Vandala")!
 	defer { glfw.terminate() }
 	defer { window.destroy() }
 	log.info("created window")
