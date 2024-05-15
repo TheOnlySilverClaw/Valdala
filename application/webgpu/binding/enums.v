@@ -209,7 +209,7 @@ pub enum WGPUTextureFormat {
 }
 
 pub enum WGPUTextureUsage {
-	unused            = 0 // should be "none", but that is a reserved keyword
+	@none             = 0
 	copy_src          = 1
 	copy_dst          = 2
 	texture_binding   = 4
@@ -312,9 +312,9 @@ pub enum WGPUVertexStepMode {
 }
 
 pub enum WGPUCullMode {
-	neither = 0 // "none" is reserved
-	front   = 1
-	back    = 2
+	@none = 0
+	front = 1
+	back  = 2
 	// force32   = 0x7FFFFFFF
 }
 
