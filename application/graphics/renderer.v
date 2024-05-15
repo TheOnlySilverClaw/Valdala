@@ -76,7 +76,7 @@ pub fn create_renderer()! {
 
 	bindgroup_layout := device.create_bindgroup_layout()
 	defer { bindgroup_layout.release() }
-	println("created bindgroup layout")
+	log.info("created bindgroup layout")
 
 	pipeline_layout := device.create_pipeline_layout(bindgroup_layout)
 
@@ -91,33 +91,6 @@ pub fn create_renderer()! {
 
 		time.sleep(1 * time.millisecond)
 	}
-}
-
-fn (renderer Renderer) create_pipeline() {
-
-	// position_attribute := C.WGPUVertexAttribute {
-	// 	format: .float32x2,
-	// 	offset: 0,
-	// 	shaderLocation: 0
-	// }
-
-	// color_attribute := C.WGPUVertexAttribute {
-	// 	format: .float32x4,
-	// 	offset: sizeof(float) * 2,
-	// 	shaderLocation: 1
-	// }
-
-	// attributes := [
-	// 	position_attribute,
-	// 	color_attribute
-	// ]
-
-	// vertex_buffer_layout := C.WGPUVertexBufferLayout {
-	// 	arrayStride: sizeof(float) * 6,
-	// 	stepMode: .vertex,
-	// 	attributeCount: attributes.len,
-	// 	attributes: &attributes[0]
-	// }
 }
 
 fn (renderer Renderer) render() ! {
