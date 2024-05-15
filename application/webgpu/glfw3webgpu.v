@@ -10,5 +10,7 @@ fn C.glfwGetWGPUSurface(instance binding.WGPUInstance, window glfw.Window) bindi
 
 pub fn (instance Instance) get_surface(window glfw.Window) Surface {
 	surface := C.glfwGetWGPUSurface(instance.ptr, window)
-	return Surface { ptr : surface }
+	return Surface{
+		ptr: surface
+	}
 }

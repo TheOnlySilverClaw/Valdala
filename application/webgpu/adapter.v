@@ -3,25 +3,19 @@ module webgpu
 import binding
 
 pub struct Adapter {
-	ptr binding.WGPUAdapter 
+	ptr binding.WGPUAdapter
 }
 
 pub fn (adapter Adapter) request_device() !Device {
-
 	descriptor := C.WGPUDeviceDescriptor{
-		label: "device".str,
-		requiredFeatures: unsafe { nil },
+		label: 'device'.str
+		requiredFeatures: unsafe { nil }
 		requiredLimits: unsafe { nil }
 	}
 
 	channel := chan binding.WGPUDevice{cap: 1}
 
-	callback := fn [channel] (
-		status binding.WGPURequestDeviceStatus,
-		device binding.WGPUDevice,
-		message &char,
-		user_data voidptr) {
-		
+	callback := fn [channel] (status binding.WGPURequestDeviceStatus, device binding.WGPUDevice, message &char, user_data voidptr) {
 		if status == .success {
 			channel <- device
 		} else {
@@ -31,16 +25,18 @@ pub fn (adapter Adapter) request_device() !Device {
 
 	C.wgpuAdapterRequestDevice(adapter.ptr, &descriptor, callback, unsafe { nil })
 
-	device := <- channel ?
+	device := <-channel?
 
-	error_callback := fn(errorType binding.WGPUErrorType, message &char, user_data voidptr) {
+	error_callback := fn (errorType binding.WGPUErrorType, message &char, user_data voidptr) {
 		message_string := unsafe { message.vstring() }
-		println("device error ($errorType): $message_string")
+		println('device error (${errorType}): ${message_string}')
 	}
 
 	C.wgpuDeviceSetUncapturedErrorCallback(device, error_callback, unsafe { nil })
 
-	return Device { ptr: device }
+	return Device{
+		ptr: device
+	}
 }
 
 pub fn (adapter Adapter) release() {

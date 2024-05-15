@@ -74,7 +74,13 @@ pub fn create_renderer()! {
 		texture_format: texture_format
 	}
 
-	renderer.create_pipeline()
+	bindgroup_layout := device.create_bindgroup_layout()
+	defer { bindgroup_layout.release() }
+	println("created bindgroup layout")
+
+	pipeline_layout := device.create_pipeline_layout(bindgroup_layout)
+
+	device.create_render_pipeline("colored", pipeline_layout, shader_module, shader_module)
 
 	for !window.should_close() {
 

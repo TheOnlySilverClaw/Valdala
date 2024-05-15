@@ -408,3 +408,11 @@ pub enum WGPUStorageTextureAccess {
 	read_write = 3
 	// force32   = 0x7FFFFFFF
 }
+
+pub enum WGPUShaderStage {
+	@none    = 0
+	vertex   = 1
+	fragment = 2
+	compute  = 4
+	// force32   = 0x7FFFFFFF
+}

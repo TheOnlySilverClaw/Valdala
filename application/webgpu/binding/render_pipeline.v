@@ -9,7 +9,7 @@ pub:
 	primitive    C.WGPUPrimitiveState
 	depthStencil &C.WGPUDepthStencilState
 	multisample  C.WGPUMultisampleState
-	fragment     C.WGPUFragmentState
+	fragment     &C.WGPUFragmentState
 }
 
 pub struct C.WGPUDepthStencilState {
@@ -46,7 +46,7 @@ pub:
 pub struct C.WGPUVertexState {
 pub:
 	nextInChain   &C.WGPUChainedStruct = unsafe { nil }
-	shaderModule  WGPUShaderModule
+	@module       WGPUShaderModule
 	entryPoint    &char
 	constantCount usize
 	constants     &C.WGPUConstantEntry
@@ -81,7 +81,7 @@ pub:
 pub struct C.WGPUFragmentState {
 pub:
 	nextInChain   &C.WGPUChainedStruct = unsafe { nil }
-	module_       WGPUShaderModule
+	@module       WGPUShaderModule
 	entryPoint    &char
 	constantCount usize
 	constants     &C.WGPUConstantEntry
@@ -116,3 +116,5 @@ pub:
 	srcFactor WGPUBlendFactor
 	dstFactor WGPUBlendFactor
 }
+
+pub fn C.wgpuRenderPipelineRelease(pipeline WGPURenderPipeline)
