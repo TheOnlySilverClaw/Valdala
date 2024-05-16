@@ -24,35 +24,33 @@ pub fn (device Device) create_command_encoder(label string) CommandEncoder {
 	}
 }
 
-pub fn (device Device) create_pipeline_layout(bindgroupLayout ... BindGroupLayout) PipelineLayout {
-
+pub fn (device Device) create_pipeline_layout(bindgroupLayout ...BindGroupLayout) PipelineLayout {
 	bind_group_layout_pointers := bindgroupLayout.map(it.ptr)
 
-	descriptor := &C.WGPUPipelineLayoutDescriptor {
-		label: unsafe { nil },
-		bindGroupLayouts: &bind_group_layout_pointers[0],
+	descriptor := &C.WGPUPipelineLayoutDescriptor{
+		label: unsafe { nil }
+		bindGroupLayouts: bind_group_layout_pointers.data
 		bindGroupLayoutCount: usize(bind_group_layout_pointers.len)
 	}
 
 	layout := C.wgpuDeviceCreatePipelineLayout(device.ptr, descriptor)
-	return PipelineLayout { ptr : layout }
+	return PipelineLayout{
+		ptr: layout
+	}
 }
 
-pub fn (device Device) create_render_pipeline(
-	label string, layout PipelineLayout,
-	vertexShader ShaderModule, fragmentShader ShaderModule) RenderPipeline {
-	
+pub fn (device Device) create_render_pipeline(label string, layout PipelineLayout, vertexShader ShaderModule, fragmentShader ShaderModule) RenderPipeline {
 	vertex_attributes := [
-		C.WGPUVertexAttribute {
-			format: .float32x2,
-			offset: 0,
+		C.WGPUVertexAttribute{
+			format: .float32x2
+			offset: 0
 			shaderLocation: 0
 		},
-		C.WGPUVertexAttribute {
-			format: .float32x4,
-			offset: 2 * sizeof(f32),
+		C.WGPUVertexAttribute{
+			format: .float32x4
+			offset: 2 * sizeof(f32)
 			shaderLocation: 1
-		}
+		},
 	]
 
 	descriptor := &C.WGPURenderPipelineDescriptor{
@@ -62,12 +60,12 @@ pub fn (device Device) create_render_pipeline(
 			@module: vertexShader.ptr
 			entryPoint: c'vertex'
 			constants: unsafe { nil }
-			buffers: &C.WGPUVertexBufferLayout {
-				arrayStride: (2+4) * sizeof(f32),
-				stepMode: .vertex,
-				attributes: &vertex_attributes[0],
+			buffers: &C.WGPUVertexBufferLayout{
+				arrayStride: (2 + 4) * sizeof(f32)
+				stepMode: .vertex
+				attributes: vertex_attributes.data
 				attributeCount: usize(vertex_attributes.len)
-			},
+			}
 			bufferCount: 1
 		}
 		primitive: C.WGPUPrimitiveState{
@@ -88,11 +86,13 @@ pub fn (device Device) create_render_pipeline(
 	}
 
 	pipeline := C.wgpuDeviceCreateRenderPipeline(device.ptr, descriptor)
-	return RenderPipeline{ ptr: pipeline }
+	return RenderPipeline{
+		ptr: pipeline
+	}
 }
 
 pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
-	buffer_entry := &C.WGPUBindGroupLayoutEntry{
+	buffer_entry := C.WGPUBindGroupLayoutEntry{
 		binding: 0
 		visibility: int(ShaderStage.vertex)
 		buffer: C.WGPUBufferBindingLayout{
@@ -106,7 +106,7 @@ pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
 
 	descriptor := &C.WGPUBindGroupLayoutDescriptor{
 		label: unsafe { nil }
-		entries: entries[0]
+		entries: entries.data
 		entryCount: usize(entries.len)
 	}
 

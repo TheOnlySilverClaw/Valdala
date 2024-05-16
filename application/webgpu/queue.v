@@ -8,7 +8,7 @@ pub struct Queue {
 
 pub fn (queue Queue) submit(command ...CommandBuffer) {
 	pointers := command.map(it.ptr)
-	C.wgpuQueueSubmit(queue.ptr, pointers.len, &pointers[0])
+	C.wgpuQueueSubmit(queue.ptr, pointers.len, pointers.data)
 }
 
 pub fn (queue Queue) release() {
