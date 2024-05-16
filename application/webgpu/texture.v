@@ -2,6 +2,8 @@ module webgpu
 
 import webgpu.binding
 
+pub type TextureFormat = binding.WGPUTextureFormat
+
 pub struct Texture {
 	ptr binding.WGPUTexture
 }
@@ -9,8 +11,6 @@ pub struct Texture {
 pub struct TextureView {
 	ptr binding.WGPUTextureView
 }
-
-pub type TextureFormat = binding.WGPUTextureFormat
 
 pub fn (texture Texture) get_view(mip_levels u32) TextureView {
 	descriptor := C.WGPUTextureViewDescriptor{

@@ -15,6 +15,10 @@ tasks:
   start:
     desc: Start the application from an existing binary.
     cmd: build/vandala
+
+  format:
+    desc: Apply V code formatting.
+    cmd: v fmt -w webgpu graphics
     
   setup:
     desc: Setup development environment.

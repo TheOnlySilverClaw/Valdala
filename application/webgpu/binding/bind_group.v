@@ -1,52 +1,23 @@
 module binding
 
-pub struct C.WGPUBindGroupLayoutDescriptor {
+pub struct C.WGPUBindGroupDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
 	label       &char
+	layout      WGPUBindGroupLayout
 	entryCount  usize
-	entries     &C.WGPUBindGroupLayoutEntry
+	entries     &C.WGPUBindGroupEntry
 }
 
-pub struct C.WGPUBindGroupLayoutEntry {
-pub:
-	nextInChain    &C.WGPUChainedStruct = unsafe { nil }
-	binding        u32
-	visibility     WGPUFlags
-	buffer         C.WGPUBufferBindingLayout
-	sampler        C.WGPUSamplerBindingLayout
-	texture        C.WGPUTextureBindingLayout
-	storageTexture C.WGPUStorageTextureBindingLayout
-}
-
-pub struct C.WGPUBufferBindingLayout {
-pub:
-	nextInChain      &C.WGPUChainedStruct = unsafe { nil }
-	@type            WGPUBufferBindingType
-	hasDynamicOffset WGPUBool
-	minBindingSize   u64
-}
-
-pub struct C.WGPUSamplerBindingLayout {
+pub struct C.WGPUBindGroupEntry {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
-	@type       WGPUSamplerBindingType
+	binding     u32
+	buffer      WGPUBuffer
+	offset      u64
+	size        u64
+	sampler     WGPUSampler
+	textureView WGPUTextureView
 }
 
-pub struct C.WGPUTextureBindingLayout {
-pub:
-	nextInChain   &C.WGPUChainedStruct = unsafe { nil }
-	sampleType    WGPUTextureSampleType
-	viewDimension WGPUTextureViewDimension
-	multisampled  WGPUBool
-}
-
-pub struct C.WGPUStorageTextureBindingLayout {
-pub:
-	nextInChain   &C.WGPUChainedStruct = unsafe { nil }
-	access        WGPUStorageTextureAccess
-	format        WGPUTextureFormat
-	viewDimension WGPUTextureViewDimension
-}
-
-pub fn C.wgpuBindGroupLayoutRelease(layout WGPUBindGroupLayout)
+pub fn C.wgpuBindGroupRelease(bindGroup WGPUBindGroup)

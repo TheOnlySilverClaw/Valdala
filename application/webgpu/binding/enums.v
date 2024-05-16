@@ -416,3 +416,28 @@ pub enum WGPUShaderStage {
 	compute  = 4
 	// force32   = 0x7FFFFFFF
 }
+
+pub enum WGPUBufferUsage {
+	@none         = 0
+	map_read      = 1
+	map_write     = 2
+	copy_src      = 4
+	copy_dst      = 8
+	index         = 16
+	vertex        = 32
+	uniform       = 64
+	storage       = 128
+	indirect      = 256
+	query_resolve = 512
+	// force32   = 0x7FFFFFFF
+}
+
+enum WGPUColorWriteMask {
+	@none = 0
+	red   = 1
+	green = 2
+	blue  = 4
+	alpha = 8
+	all   = 15
+	// force32   = 0x7FFFFFFF
+}

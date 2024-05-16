@@ -3,6 +3,8 @@ module webgpu
 import os
 import webgpu.binding
 
+type ColorWriteMask = binding.WGPUColorWriteMask
+
 pub struct Device {
 	ptr binding.WGPUDevice
 }
@@ -39,7 +41,22 @@ pub fn (device Device) create_pipeline_layout(bindgroupLayout ...BindGroupLayout
 	}
 }
 
-pub fn (device Device) create_render_pipeline(label string, layout PipelineLayout, vertexShader ShaderModule, fragmentShader ShaderModule) RenderPipeline {
+pub fn (device Device) create_buffer(label string, size u32) Buffer {
+	descriptor := &C.WGPUBufferDescriptor{
+		label: label.str
+		usage: int(BufferUsage.vertex) | int(BufferUsage.copy_dst)
+		mappedAtCreation: 1
+		size: size
+	}
+
+	buffer := C.wgpuDeviceCreateBuffer(device.ptr, descriptor)
+	return Buffer{
+		ptr: buffer
+		size: size
+	}
+}
+
+pub fn (device Device) create_render_pipeline(label string, layout PipelineLayout, vertexShader ShaderModule, fragmentShader ShaderModule, textureFormat TextureFormat) RenderPipeline {
 	vertex_attributes := [
 		C.WGPUVertexAttribute{
 			format: .float32x2
@@ -50,6 +67,25 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			format: .float32x4
 			offset: 2 * sizeof(f32)
 			shaderLocation: 1
+		},
+	]
+
+	targets := [
+		C.WGPUColorTargetState{
+			format: textureFormat
+			blend: &C.WGPUBlendState{
+				color: C.WGPUBlendComponent{
+					srcFactor: .src_alpha
+					dstFactor: .one_minus_src_alpha
+					operation: .add
+				}
+				alpha: C.WGPUBlendComponent{
+					srcFactor: .zero
+					dstFactor: .one
+					operation: .add
+				}
+			}
+			writeMask: u32(ColorWriteMask.all)
 		},
 	]
 
@@ -81,7 +117,8 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			@module: fragmentShader.ptr
 			entryPoint: c'fragment'
 			constants: unsafe { nil }
-			targets: unsafe { nil }
+			targets: targets.data
+			targetCount: usize(targets.len)
 		}
 	}
 
@@ -92,28 +129,52 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 }
 
 pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
-	buffer_entry := C.WGPUBindGroupLayoutEntry{
-		binding: 0
-		visibility: int(ShaderStage.vertex)
-		buffer: C.WGPUBufferBindingLayout{
-			@type: .uniform
-		}
-	}
+	// buffer_entry := C.WGPUBindGroupLayoutEntry{
+	// 	binding: 0
+	// 	visibility: int(ShaderStage.vertex)
+	// 	buffer: C.WGPUBufferBindingLayout{
+	// 		@type: .uniform
+	// 	}
+	// }
 
-	entries := [
-		buffer_entry,
-	]
+	// entries := [
+	// 	buffer_entry,
+	// ]
 
 	descriptor := &C.WGPUBindGroupLayoutDescriptor{
 		label: unsafe { nil }
-		entries: entries.data
-		entryCount: usize(entries.len)
+		entries: unsafe { nil } // entries.data
+		entryCount: 0 // usize(entries.len)
 	}
 
 	layout := C.wgpuDeviceCreateBindGroupLayout(device.ptr, descriptor)
 
 	return BindGroupLayout{
 		ptr: layout
+	}
+}
+
+pub fn (device Device) create_bindgroup(label string, layout BindGroupLayout, buffer Buffer) BindGroup {
+	// buffer_entry := C.WGPUBindGroupEntry{
+	// 	binding: 0
+	// 	buffer: buffer.ptr
+	// 	size: buffer.size
+	// }
+
+	// entries := [
+	// 	buffer_entry,
+	// ]
+
+	descriptor := &C.WGPUBindGroupDescriptor{
+		label: label.str
+		layout: layout.ptr
+		entries: unsafe { nil } // entries.data
+		entryCount: 0 // usize(entries.len)
+	}
+
+	bind_group := C.wgpuDeviceCreateBindGroup(device.ptr, descriptor)
+	return BindGroup{
+		ptr: bind_group
 	}
 }
 

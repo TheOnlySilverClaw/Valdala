@@ -60,7 +60,11 @@ pub fn C.wgpuDeviceCreateCommandEncoder(device WGPUDevice, descriptor &C.WGPUCom
 
 pub fn C.wgpuDeviceCreateBindGroupLayout(device WGPUDevice, descriptor &C.WGPUBindGroupLayoutDescriptor) WGPUBindGroupLayout
 
+pub fn C.wgpuDeviceCreateBindGroup(device WGPUDevice, descriptor &C.WGPUBindGroupDescriptor) WGPUBindGroup
+
 pub fn C.wgpuDeviceCreatePipelineLayout(device WGPUDevice, descriptor &C.WGPUPipelineLayoutDescriptor) WGPUPipelineLayout
+
+pub fn C.wgpuDeviceCreateBuffer(device WGPUDevice, descriptor &C.WGPUBufferDescriptor) WGPUBuffer
 
 pub fn C.wgpuDeviceCreateRenderPipeline(device WGPUDevice, descriptor &C.WGPURenderPipelineDescriptor) WGPURenderPipeline
 
