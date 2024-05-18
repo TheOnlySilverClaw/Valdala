@@ -117,6 +117,7 @@ pub fn create_renderer() ! {
 		0, 0,				1, 0, 0, 1,
 		0, size,			1, 0, 0, 1,
 	]
+	// vfmt on
 
 	vertex_buffer := device.create_buffer('vertices', u32(vertex_data.len) * sizeof(f32))
 	defer {
