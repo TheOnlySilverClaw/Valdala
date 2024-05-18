@@ -13,12 +13,13 @@ pub struct TextureView {
 }
 
 pub fn (texture Texture) get_view(mip_levels u32) TextureView {
-	descriptor := C.WGPUTextureViewDescriptor{
+	descriptor := &C.WGPUTextureViewDescriptor{
 		label: unsafe { nil }
-		mipLevelCount: mip_levels
-		arrayLayerCount: 1
+		mipLevelCount: mip_levels,
+		arrayLayerCount: 1,
+		aspect: .all
 	}
-	view := C.wgpuTextureCreateView(texture.ptr, &descriptor)
+	view := C.wgpuTextureCreateView(texture.ptr, descriptor)
 	return TextureView{
 		ptr: view
 	}

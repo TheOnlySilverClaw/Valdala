@@ -98,29 +98,20 @@ pub fn create_renderer() ! {
 	}
 	log.info('created render pipeline')
 
+	size := f32(0.5)
 	// vfmt off
 	vertex_data := [
-		f32(-0.5),
-		0.5,
-		1,
-		0,
-		1,
-		1,
-		-0.5,
-		-0.5,
-		0,
-		1,
-		1,
-		1,
-		0.5,
-		-0.5,
-		0,
-		0,
-		1,
-		1,
+		// x	y			color	opacity
+		-size, size,		1, 0, 0, 1,
+		-size, 0,			0, 1, 0, 1,
+		0, 0,				0, 0, 1, 1,
+
+		-size, size,		1, 0, 0, 1,
+		0, 0,				1, 0, 0, 1,
+		0, size,			1, 0, 0, 1,
 	]
 
-	vertex_buffer := device.create_buffer('vertices', 3 * (2 + 4) * sizeof(f32))
+	vertex_buffer := device.create_buffer('vertices', u32(vertex_data.len) * sizeof(f32))
 	defer {
 		vertex_buffer.destroy()
 	}
@@ -146,10 +137,12 @@ pub fn create_renderer() ! {
 	}
 
 	for !window.should_close() {
+		
+		glfw.poll_events()
+
 		renderer.render()!
 
-		window.swap_buffers()
-		glfw.poll_events()
+		// window.swap_buffers()
 
 		time.sleep(1 * time.millisecond)
 	}
@@ -183,7 +176,7 @@ fn (renderer Renderer) render() ! {
 	render_pass_encoder.set_pipeline(renderer.pipeline)
 	render_pass_encoder.set_bindgroup(0, renderer.bind_group)
 	render_pass_encoder.set_vertex_buffer(0, renderer.vertex_buffer, 0)
-	render_pass_encoder.draw(3, 1, 0, 0)
+	render_pass_encoder.draw(6, 1, 0, 0)
 
 	render_pass_encoder.end()
 	log.debug('render pass ended')

@@ -111,7 +111,8 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 		}
 		depthStencil: unsafe { nil }
 		multisample: C.WGPUMultisampleState{
-			count: 1
+			count: 1,
+			mask: ~u32(0)
 		}
 		fragment: &C.WGPUFragmentState{
 			@module: fragmentShader.ptr

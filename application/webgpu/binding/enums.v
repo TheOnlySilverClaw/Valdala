@@ -432,12 +432,20 @@ pub enum WGPUBufferUsage {
 	// force32   = 0x7FFFFFFF
 }
 
-enum WGPUColorWriteMask {
+pub enum WGPUColorWriteMask {
 	@none = 0
 	red   = 1
 	green = 2
 	blue  = 4
 	alpha = 8
 	all   = 15
+	// force32   = 0x7FFFFFFF
+}
+
+pub enum WGPUQueueWorkDoneStatus {
+    success = 0
+    error = 1
+    unknown = 2
+    device_lost = 3
 	// force32   = 0x7FFFFFFF
 }
