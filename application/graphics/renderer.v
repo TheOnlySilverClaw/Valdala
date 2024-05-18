@@ -110,33 +110,29 @@ pub fn create_renderer() ! {
 	log.info('created render pipeline')
 
 	texture_image := vpng.read('textures/testing/texture_1.png')!
-	// pixels := texture_image.pixels
+	mut pixels := []u8{cap: texture_image.pixels.len * 4}
 
-	red := [u8(200), 0, 0, 255]
-	green := [u8(0), 200, 0, 255]
-	blue := [u8(0), 0, 200, 255]
+	for pixel in texture_image.pixels {
+		match pixel {
+			vpng.TrueColorAlpha {
+				pixels << pixel.red
+				pixels << pixel.green
+				pixels << pixel.blue
+				pixels << pixel.alpha
+			}
+			else {
+				log.error('unsupported pixel type: ${pixel}')
+			}
+		}
+	}
 
-	mut pixels := []u8{cap: 4 * 9}
-	pixels << red
-	pixels << green
-	pixels << red
+	texture_width := u32(texture_image.width)
+	texture_height := u32(texture_image.height)
 
-	pixels << blue
-	pixels << red
-	pixels << blue
-
-	pixels << green
-	pixels << blue
-	pixels << green
-
-	// texture_image.pixels
-	texture_width := u32(3) // u32(texture_image.width)
-	texture_height := u32(3) // u32(texture_image.height)
-
-	log.info('loaded texture with ${pixels.len} (${texture_width} * ${texture_height}) pixels')
+	log.info('loaded texture with ${pixels.len / 4} (${texture_width} * ${texture_height}) pixels')
 
 	color_texture := device.create_texture(
-		label: 'test_texture_1'
+		label: 'test_texture'
 		width: texture_width
 		height: texture_height
 		usage: .texture_binding | .copy_dst

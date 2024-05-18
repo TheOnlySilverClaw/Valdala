@@ -3,7 +3,7 @@
 Not much to look at, yet.
 But the WebGPU bindings are working!
 
-Textures work. Loading from PNG is... quirky.
+Textures loading works, but colors look washed out?
 
 ![Screenshot of current development state](screenshot.png)
 

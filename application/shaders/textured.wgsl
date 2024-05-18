@@ -35,6 +35,5 @@ fn fragment(
   // TODO figure out how to send mixed types
   // var i: u32 = u32(vertex.textureIndex);
   let textureColor = textureSample(colorTexture, textureSampler, vertex.uv);
-  // textureLoad(texture, vec2i(vertex.uv), 0).rgb;;
-  return vec4<f32>(textureColor.rgb, 1); 
+  return vec4<f32>(textureColor); 
 }

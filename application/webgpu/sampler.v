@@ -11,6 +11,7 @@ pub struct Sampler {
 
 @[params]
 pub struct SamplerOptions {
+pub:
 	label          string
 	address_mode_u AddressMode
 	address_mode_v AddressMode
