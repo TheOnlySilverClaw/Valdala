@@ -14,6 +14,7 @@ struct Renderer {
 	bind_group     webgpu.BindGroup
 	vertex_buffer  webgpu.Buffer
 	pipeline       webgpu.RenderPipeline
+	mesh_size      u32
 mut:
 	depth_texture webgpu.Texture
 }
@@ -109,13 +110,13 @@ pub fn create_renderer() ! {
 	// vfmt off
 	vertex_data := [
 		// x	y			color	opacity
-		-size, size,		1, 0, 0, 1,
-		-size, 0,			0, 1, 0, 1,
-		0, 0,				0, 0, 1, 1,
+		f32(0),	size		1, 0, 0, 1,
+		-size, -size,		0, 1, 0, 1,
+		size, -size,		0, 0, 1, 1,
 
-		-size, size,		1, 0, 0, 1,
-		0, 0,				1, 0, 0, 1,
-		0, size,			1, 0, 0, 1,
+		// -size, size,		1, 0, 0, 1,
+		// 0, 0,				1, 0, 0, 1,
+		// 0, size,			1, 0, 0, 1,
 	]
 	// vfmt on
 
@@ -125,7 +126,6 @@ pub fn create_renderer() ! {
 	}
 	log.info('created vertex buffer of size ${vertex_buffer.size}')
 	queue.write_buffer(vertex_buffer, 0, vertex_data)
-	vertex_buffer.unmap()
 
 	bind_group := device.create_bindgroup('colored', bindgroup_layout, vertex_buffer)
 	defer {
@@ -143,6 +143,7 @@ pub fn create_renderer() ! {
 		bind_group: bind_group
 		pipeline: render_pipeline
 		depth_texture: depth_texture
+		mesh_size: u32(vertex_data.len) / (2+4)
 	}
 
 	window.on_resize(fn [mut renderer, adapter] (width int, height int) {
@@ -203,7 +204,7 @@ fn (renderer &Renderer) render() ! {
 	render_pass_encoder.set_pipeline(renderer.pipeline)
 	render_pass_encoder.set_bindgroup(0, renderer.bind_group)
 	render_pass_encoder.set_vertex_buffer(0, renderer.vertex_buffer, 0)
-	render_pass_encoder.draw(6, 1, 0, 0)
+	render_pass_encoder.draw(renderer.mesh_size, 1, 0, 0)
 
 	render_pass_encoder.end()
 	log.debug('render pass ended')

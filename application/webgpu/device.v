@@ -45,7 +45,7 @@ pub fn (device Device) create_buffer(label string, size u32) Buffer {
 	descriptor := &C.WGPUBufferDescriptor{
 		label: label.str
 		usage: .vertex | .copy_dst
-		mappedAtCreation: 1
+		mappedAtCreation: 0
 		size: size
 	}
 
