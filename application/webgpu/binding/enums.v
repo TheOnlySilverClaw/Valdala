@@ -220,8 +220,8 @@ pub enum WGPUTextureUsage {
 
 pub enum WGPUTextureViewDimension {
 	undefined  = 0
-	single_1d  = 1
-	single_2d  = 2
+	_1d  = 1
+	_2d  = 2
 	array_2d   = 3
 	cube       = 4
 	array_cube = 5

@@ -155,7 +155,7 @@ fn (renderer Renderer) render() ! {
 	}
 	log.debug('got current surface texture')
 
-	frame := surface_texture.get_view(1)
+	frame := surface_texture.get_view()
 	defer {
 		frame.release()
 	}
