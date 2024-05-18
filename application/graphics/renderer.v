@@ -64,7 +64,7 @@ pub fn create_renderer() ! {
 	}
 	log.info('created device')
 
-	shader_module := device.create_shader('shaders/colored.wgsl', 'colored') or {
+	shader_module := device.create_shader('shaders/textured.wgsl', 'textured') or {
 		return error('failed to load shader_module')
 	}
 	defer {
@@ -102,7 +102,7 @@ pub fn create_renderer() ! {
 
 	pipeline_layout := device.create_pipeline_layout(bindgroup_layout)
 
-	render_pipeline := device.create_render_pipeline('colored', pipeline_layout, shader_module,
+	render_pipeline := device.create_render_pipeline('textured', pipeline_layout, shader_module,
 		shader_module, texture_format)
 	defer {
 		render_pipeline.release()
@@ -110,9 +110,28 @@ pub fn create_renderer() ! {
 	log.info('created render pipeline')
 
 	texture_image := vpng.read('textures/testing/texture_1.png')!
-	pixels := texture_image.pixels
-	texture_width := u32(texture_image.width)
-	texture_height := u32(texture_image.height)
+	// pixels := texture_image.pixels
+
+	red := [u8(200), 0, 0, 255]
+	green := [u8(0), 200, 0, 255]
+	blue := [u8(0), 0, 200, 255]
+
+	mut pixels := []u8{cap: 4 * 9}
+	pixels << red
+	pixels << green
+	pixels << red
+
+	pixels << blue
+	pixels << red
+	pixels << blue
+
+	pixels << green
+	pixels << blue
+	pixels << green
+
+	// texture_image.pixels
+	texture_width := u32(3) // u32(texture_image.width)
+	texture_height := u32(3) // u32(texture_image.height)
 
 	log.info('loaded texture with ${pixels.len} (${texture_width} * ${texture_height}) pixels')
 
@@ -134,17 +153,27 @@ pub fn create_renderer() ! {
 		}
 	)
 
+	texture_view := color_texture.get_view()
+	defer {
+		texture_view.release()
+	}
+
+	sampler := device.create_sampler()
+	defer {
+		sampler.release()
+	}
+
 	size := f32(0.5)
 	// vfmt off
 	vertex_data := [
-		// x	y			color	opacity
-		-size,	size		1, 0, 0, 1,
-		-size, -size,		0, 1, 0, 1,
-		size, -size,		0, 0, 1, 1,
+		// x	y			u  v  texture index
+		-size,	size		0, 0, 0,
+		-size, -size,		0, 1, 0,
+		size, -size,		1, 1, 0,
 
-		size, -size,		0, 0, 1, 1,
-		size, size,			1, 1, 1, 1,
-		-size, size,		1, 0, 0, 1,
+		size, -size,		1, 1, 0,
+		size, size,			1, 0, 0,
+		-size, size,		0, 0, 0,
 	]
 	// vfmt on
 
@@ -155,7 +184,8 @@ pub fn create_renderer() ! {
 	log.info('created vertex buffer of size ${vertex_buffer.size}')
 	queue.write_buffer(vertex_buffer, 0, vertex_data)
 
-	bind_group := device.create_bindgroup('colored', bindgroup_layout, vertex_buffer)
+	bind_group := device.create_bindgroup('textured', bindgroup_layout, vertex_buffer,
+		sampler, texture_view)
 	defer {
 		bind_group.release()
 	}
@@ -171,7 +201,7 @@ pub fn create_renderer() ! {
 		bind_group: bind_group
 		pipeline: render_pipeline
 		depth_texture: depth_texture
-		mesh_size: u32(vertex_data.len) / (2 + 4)
+		mesh_size: u32(vertex_data.len) / (2 + 2 + 1)
 	}
 
 	window.on_resize(fn [mut renderer, adapter] (width int, height int) {

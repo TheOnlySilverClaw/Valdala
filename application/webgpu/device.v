@@ -64,9 +64,14 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			shaderLocation: 0
 		},
 		C.WGPUVertexAttribute{
-			format: .float32x4
+			format: .float32x2
 			offset: 2 * sizeof(f32)
 			shaderLocation: 1
+		},
+		C.WGPUVertexAttribute{
+			format: .float32
+			offset: (2 + 2) * sizeof(f32)
+			shaderLocation: 2
 		},
 	]
 
@@ -97,7 +102,7 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			entryPoint: c'vertex'
 			constants: unsafe { nil }
 			buffers: &C.WGPUVertexBufferLayout{
-				arrayStride: (2 + 4) * sizeof(f32)
+				arrayStride: (2 + 2 + 1) * sizeof(f32)
 				stepMode: .vertex
 				attributes: vertex_attributes.data
 				attributeCount: usize(vertex_attributes.len)
@@ -151,6 +156,24 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 }
 
 pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
+	sampler_entry := C.WGPUBindGroupLayoutEntry{
+		binding: 0
+		visibility: .fragment
+		sampler: C.WGPUSamplerBindingLayout{
+			@type: .filtering
+		}
+	}
+
+	texture_entry := C.WGPUBindGroupLayoutEntry{
+		binding: 1
+		visibility: .fragment
+		texture: C.WGPUTextureBindingLayout{
+			sampleType: .float
+			viewDimension: ._2d
+			multisampled: 0
+		}
+	}
+
 	// buffer_entry := C.WGPUBindGroupLayoutEntry{
 	// 	binding: 0
 	// 	visibility: int(ShaderStage.vertex)
@@ -159,14 +182,15 @@ pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
 	// 	}
 	// }
 
-	// entries := [
-	// 	buffer_entry,
-	// ]
+	entries := [
+		sampler_entry,
+		texture_entry,
+	]
 
 	descriptor := &C.WGPUBindGroupLayoutDescriptor{
 		label: unsafe { nil }
-		entries: unsafe { nil } // entries.data
-		entryCount: 0 // usize(entries.len)
+		entries: entries.data
+		entryCount: usize(entries.len)
 	}
 
 	layout := C.wgpuDeviceCreateBindGroupLayout(device.ptr, descriptor)
@@ -176,22 +200,27 @@ pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
 	}
 }
 
-pub fn (device Device) create_bindgroup(label string, layout BindGroupLayout, buffer Buffer) BindGroup {
-	// buffer_entry := C.WGPUBindGroupEntry{
-	// 	binding: 0
-	// 	buffer: buffer.ptr
-	// 	size: buffer.size
-	// }
+pub fn (device Device) create_bindgroup(label string, layout BindGroupLayout, buffer Buffer, sampler Sampler, texture_view TextureView) BindGroup {
+	sampler_entry := C.WGPUBindGroupEntry{
+		binding: 0
+		sampler: sampler.ptr
+	}
 
-	// entries := [
-	// 	buffer_entry,
-	// ]
+	texture_entry := C.WGPUBindGroupEntry{
+		binding: 1
+		textureView: texture_view.ptr
+	}
+
+	entries := [
+		sampler_entry,
+		texture_entry,
+	]
 
 	descriptor := &C.WGPUBindGroupDescriptor{
 		label: label.str
 		layout: layout.ptr
-		entries: unsafe { nil } // entries.data
-		entryCount: 0 // usize(entries.len)
+		entries: entries.data
+		entryCount: usize(entries.len)
 	}
 
 	bind_group := C.wgpuDeviceCreateBindGroup(device.ptr, descriptor)

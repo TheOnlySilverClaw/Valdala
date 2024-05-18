@@ -44,3 +44,7 @@ pub fn (device Device) create_sampler(options SamplerOptions) Sampler {
 		ptr: sampler
 	}
 }
+
+pub fn (sampler Sampler) release() {
+	C.wgpuSamplerRelease(sampler.ptr)
+}

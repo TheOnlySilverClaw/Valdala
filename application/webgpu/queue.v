@@ -22,7 +22,7 @@ pub:
 	offset    u32
 	width     u32
 	height    u32
-	layers    u32
+	layers    u32 = 1
 	layout    TextureDataLayout
 }
 

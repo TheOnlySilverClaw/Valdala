@@ -26,3 +26,5 @@ pub enum WGPUFilterMode {
 	nearest = 0
 	linear  = 1
 }
+
+pub fn C.wgpuSamplerRelease(sampler WGPUSampler)
