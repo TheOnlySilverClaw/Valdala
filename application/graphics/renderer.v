@@ -110,13 +110,13 @@ pub fn create_renderer() ! {
 	// vfmt off
 	vertex_data := [
 		// x	y			color	opacity
-		f32(0),	size		1, 0, 0, 1,
+		-size,	size		1, 0, 0, 1,
 		-size, -size,		0, 1, 0, 1,
 		size, -size,		0, 0, 1, 1,
 
-		// -size, size,		1, 0, 0, 1,
-		// 0, 0,				1, 0, 0, 1,
-		// 0, size,			1, 0, 0, 1,
+		size, -size,		0, 0, 1, 1,
+		size, size,			1, 1, 1, 1,
+		-size, size,		1, 0, 0, 1,
 	]
 	// vfmt on
 
