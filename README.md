@@ -1,3 +1,10 @@
+# Current state
+
+Not much to look at, yet.
+But the WebGPU bindings are working!
+
+![Screenshot of current development state](screenshot.png)
+
 
 # Setup
 
