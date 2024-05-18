@@ -109,11 +109,17 @@ pub fn create_renderer() ! {
 	}
 	log.info('created render pipeline')
 
-	texture_image := vpng.read('textures/testing/texture_1.png')!
+	texture_image := vpng.read('textures/terrain/water.png')!
 	mut pixels := []u8{cap: texture_image.pixels.len * 4}
 
 	for pixel in texture_image.pixels {
 		match pixel {
+			vpng.TrueColor {
+				pixels << pixel.red
+				pixels << pixel.green
+				pixels << pixel.blue
+				pixels << 255
+			}
 			vpng.TrueColorAlpha {
 				pixels << pixel.red
 				pixels << pixel.green
