@@ -14,8 +14,8 @@ struct Renderer {
 	bind_group     webgpu.BindGroup
 	vertex_buffer  webgpu.Buffer
 	pipeline       webgpu.RenderPipeline
-	mut:
-	depth_texture  webgpu.Texture
+mut:
+	depth_texture webgpu.Texture
 }
 
 pub fn create_renderer() ! {
@@ -147,7 +147,7 @@ pub fn create_renderer() ! {
 	window.on_resize(fn [mut renderer, adapter] (width int, height int) {
 		renderer.surface.configure(adapter, renderer.device, u32(width), u32(height))
 		renderer.depth_texture.release()
-		log.debug("create resized depth texture")
+		log.debug('create resized depth texture')
 		renderer.depth_texture = renderer.device.create_texture(
 			label: 'depth'
 			width: u32(width)

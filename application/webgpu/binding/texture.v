@@ -4,7 +4,7 @@ pub struct C.WGPUTextureDescriptor {
 pub:
 	nextInChain     &C.WGPUChainedStruct = unsafe { nil }
 	label           &char
-	usage           WGPUFlags
+	usage           WGPUTextureUsage
 	dimension       WGPUTextureDimension
 	size            C.WGPUExtent3D
 	format          WGPUTextureFormat

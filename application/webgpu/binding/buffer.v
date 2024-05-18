@@ -4,7 +4,7 @@ pub struct C.WGPUBufferDescriptor {
 pub:
 	nextInChain      &C.WGPUChainedStruct = unsafe { nil }
 	label            &char
-	usage            WGPUFlags
+	usage            WGPUBufferUsage
 	size             u64
 	mappedAtCreation WGPUBool
 }

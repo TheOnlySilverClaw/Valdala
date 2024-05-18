@@ -44,7 +44,7 @@ pub fn (device Device) create_pipeline_layout(bindgroupLayout ...BindGroupLayout
 pub fn (device Device) create_buffer(label string, size u32) Buffer {
 	descriptor := &C.WGPUBufferDescriptor{
 		label: label.str
-		usage: int(BufferUsage.vertex) | int(BufferUsage.copy_dst)
+		usage: .vertex | .copy_dst
 		mappedAtCreation: 1
 		size: size
 	}
@@ -85,7 +85,7 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 					operation: .add
 				}
 			}
-			writeMask: u32(ColorWriteMask.all)
+			writeMask: .red | .green | .blue | .alpha
 		},
 	]
 
@@ -242,7 +242,7 @@ pub:
 pub fn (device Device) create_texture(options TextureOptions) Texture {
 	descriptor := &C.WGPUTextureDescriptor{
 		label: options.label.str
-		usage: int(options.usage)
+		usage: options.usage
 		dimension: options.dimension
 		size: C.WGPUExtent3D{
 			width: options.width

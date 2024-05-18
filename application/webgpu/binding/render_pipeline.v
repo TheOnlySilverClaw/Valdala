@@ -101,7 +101,7 @@ pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
 	format      WGPUTextureFormat
 	blend       &C.WGPUBlendState
-	writeMask   u32
+	writeMask   WGPUColorWriteMask
 }
 
 pub struct C.WGPUBlendState {

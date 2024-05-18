@@ -9,7 +9,8 @@ pub struct Queue {
 }
 
 pub fn (queue Queue) write_buffer[T](buffer Buffer, offset u64, entries []T) {
-	C.wgpuQueueWriteBuffer(queue.ptr, buffer.ptr, offset, entries.data, entries.len * sizeof(T))
+	size := (usize(entries.len) - offset) * sizeof(T)
+	C.wgpuQueueWriteBuffer(queue.ptr, buffer.ptr, offset, entries.data, size)
 }
 
 pub fn (queue Queue) submit(command ...CommandBuffer) {

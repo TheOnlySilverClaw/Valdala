@@ -408,37 +408,33 @@ pub enum WGPUStorageTextureAccess {
 	// force32   = 0x7FFFFFFF
 }
 
+@[flag]
 pub enum WGPUShaderStage {
-	@none    = 0
-	vertex   = 1
-	fragment = 2
-	compute  = 4
-	// force32   = 0x7FFFFFFF
+	vertex
+	fragment
+	compute
 }
 
+@[flag]
 pub enum WGPUBufferUsage {
-	@none         = 0
-	map_read      = 1
-	map_write     = 2
-	copy_src      = 4
-	copy_dst      = 8
-	index         = 16
-	vertex        = 32
-	uniform       = 64
-	storage       = 128
-	indirect      = 256
-	query_resolve = 512
-	// force32   = 0x7FFFFFFF
+	map_read
+	map_write
+	copy_src
+	copy_dst
+	index
+	vertex
+	uniform
+	storage
+	indirect
+	query_resolve
 }
 
+@[flag]
 pub enum WGPUColorWriteMask {
-	@none = 0
-	red   = 1
-	green = 2
-	blue  = 4
-	alpha = 8
-	all   = 15
-	// force32   = 0x7FFFFFFF
+	red
+	green
+	blue
+	alpha
 }
 
 pub enum WGPUQueueWorkDoneStatus {

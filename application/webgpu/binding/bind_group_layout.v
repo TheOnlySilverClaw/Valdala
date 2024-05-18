@@ -12,7 +12,7 @@ pub struct C.WGPUBindGroupLayoutEntry {
 pub:
 	nextInChain    &C.WGPUChainedStruct = unsafe { nil }
 	binding        u32
-	visibility     WGPUFlags
+	visibility     WGPUShaderStage
 	buffer         C.WGPUBufferBindingLayout
 	sampler        C.WGPUSamplerBindingLayout
 	texture        C.WGPUTextureBindingLayout
