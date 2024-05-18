@@ -4,17 +4,20 @@ import log
 import time
 import glfw
 import webgpu
+import henrixounez.vpng
 
 struct Renderer {
-	device         webgpu.Device
-	surface        webgpu.Surface
-	queue          webgpu.Queue
-	texture_format webgpu.TextureFormat
-	shader_module  webgpu.ShaderModule
-	bind_group     webgpu.BindGroup
-	vertex_buffer  webgpu.Buffer
-	pipeline       webgpu.RenderPipeline
-	mesh_size      u32
+	device          webgpu.Device
+	surface         webgpu.Surface
+	queue           webgpu.Queue
+	texture_format  webgpu.TextureFormat
+	shader_module   webgpu.ShaderModule
+	bind_group      webgpu.BindGroup
+	vertex_buffer   webgpu.Buffer
+	pipeline        webgpu.RenderPipeline
+	mesh_size       u32
+	color_texture   webgpu.Texture
+	texture_sampler webgpu.Sampler
 mut:
 	depth_texture webgpu.Texture
 }
@@ -106,6 +109,31 @@ pub fn create_renderer() ! {
 	}
 	log.info('created render pipeline')
 
+	texture_image := vpng.read('textures/testing/texture_1.png')!
+	pixels := texture_image.pixels
+	texture_width := u32(texture_image.width)
+	texture_height := u32(texture_image.height)
+
+	log.info('loaded texture with ${pixels.len} (${texture_width} * ${texture_height}) pixels')
+
+	color_texture := device.create_texture(
+		label: 'test_texture_1'
+		width: texture_width
+		height: texture_height
+		usage: .texture_binding | .copy_dst
+		format: .rgba8unorm
+	)
+
+	queue.write_texture(color_texture, pixels,
+		width: texture_width
+		height: texture_height
+		// TODO calculate from image
+		layout: webgpu.TextureDataLayout{
+			bytesPerRow: 4 * texture_width
+			rowsPerImage: texture_height
+		}
+	)
+
 	size := f32(0.5)
 	// vfmt off
 	vertex_data := [
@@ -143,7 +171,7 @@ pub fn create_renderer() ! {
 		bind_group: bind_group
 		pipeline: render_pipeline
 		depth_texture: depth_texture
-		mesh_size: u32(vertex_data.len) / (2+4)
+		mesh_size: u32(vertex_data.len) / (2 + 4)
 	}
 
 	window.on_resize(fn [mut renderer, adapter] (width int, height int) {

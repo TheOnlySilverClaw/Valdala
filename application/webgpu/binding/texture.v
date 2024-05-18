@@ -34,6 +34,30 @@ pub:
 	aspect          WGPUTextureAspect
 }
 
+pub struct C.WGPUImageCopyTexture {
+pub:
+	nextInChain &C.WGPUChainedStruct = unsafe { nil }
+	texture     WGPUTexture
+	mipLevel    u32
+	origin      C.WGPUOrigin3D
+	aspect      WGPUTextureAspect
+}
+
+pub struct C.WGPUOrigin3D {
+pub:
+	x u32
+	y u32
+	z u32
+}
+
+pub struct C.WGPUTextureDataLayout {
+pub:
+	nextInChain  &C.WGPUChainedStruct = unsafe { nil }
+	offset       u64
+	bytesPerRow  u32
+	rowsPerImage u32
+}
+
 pub fn C.wgpuTextureCreateView(texture WGPUTexture, descriptor &C.WGPUTextureViewDescriptor) WGPUTextureView
 
 pub fn C.wgpuTextureRelease(texture WGPUTexture)

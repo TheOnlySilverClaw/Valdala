@@ -227,8 +227,9 @@ pub fn (device Device) create_shader(path string, label string) !ShaderModule {
 @[params]
 pub struct TextureOptions {
 pub:
-	label        string
-	usage        TextureUsage
+	label string
+	// TODO clarify why redeclared types don't work as flag?
+	usage        binding.WGPUTextureUsage
 	dimension    TextureDimension = ._2d
 	width        u32
 	height       u32

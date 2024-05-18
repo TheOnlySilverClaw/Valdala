@@ -68,6 +68,8 @@ pub fn C.wgpuDeviceCreateBuffer(device WGPUDevice, descriptor &C.WGPUBufferDescr
 
 pub fn C.wgpuDeviceCreateTexture(device WGPUDevice, descriptor &C.WGPUTextureDescriptor) WGPUTexture
 
+pub fn C.wgpuDeviceCreateSampler(device WGPUDevice, descriptor &C.WGPUSamplerDescriptor) WGPUSampler
+
 pub fn C.wgpuDeviceCreateRenderPipeline(device WGPUDevice, descriptor &C.WGPURenderPipelineDescriptor) WGPURenderPipeline
 
 pub fn C.wgpuDeviceSetUncapturedErrorCallback(device WGPUDevice, callback WGPUErrorCallback, userdata voidptr)
