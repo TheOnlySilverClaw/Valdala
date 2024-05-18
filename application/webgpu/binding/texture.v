@@ -1,5 +1,26 @@
 module binding
 
+pub struct C.WGPUTextureDescriptor {
+pub:
+	nextInChain     &C.WGPUChainedStruct = unsafe { nil }
+	label           &char
+	usage           WGPUFlags
+	dimension       WGPUTextureDimension
+	size            C.WGPUExtent3D
+	format          WGPUTextureFormat
+	mipLevelCount   u32
+	sampleCount     u32
+	viewFormatCount usize
+	viewFormats     &WGPUTextureFormat
+}
+
+pub struct C.WGPUExtent3D {
+pub:
+	width              u32
+	height             u32
+	depthOrArrayLayers u32
+}
+
 pub struct C.WGPUTextureViewDescriptor {
 pub:
 	nextInChain     &C.WGPUChainedStruct = unsafe { nil }

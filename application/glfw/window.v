@@ -26,7 +26,6 @@ pub type ResizeListener = fn(int, int)
 pub fn (window Window) on_resize(listener ResizeListener) {
 	
 	callback := fn[listener](window Window, width int, height int) {
-		println("resize width $width, height: $height")
 		listener(width, height)
 	}
 

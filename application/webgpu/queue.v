@@ -17,11 +17,10 @@ pub fn (queue Queue) submit(command ...CommandBuffer) {
 	C.wgpuQueueSubmit(queue.ptr, pointers.len, pointers.data)
 }
 
-pub type WorkDoneListener = fn(status WorkDoneStatus)
+pub type WorkDoneListener = fn (status WorkDoneStatus)
 
 pub fn (queue Queue) on_work_done(listener WorkDoneListener) {
-
-	callback := fn[listener](status binding.WGPUQueueWorkDoneStatus, userdata voidptr) {
+	callback := fn [listener] (status binding.WGPUQueueWorkDoneStatus, userdata voidptr) {
 		listener(status)
 	}
 

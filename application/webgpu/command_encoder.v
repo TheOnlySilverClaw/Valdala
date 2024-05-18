@@ -6,7 +6,7 @@ pub struct CommandEncoder {
 	ptr binding.WGPUCommandEncoder
 }
 
-pub fn (encoder CommandEncoder) begin_render_pass(frame TextureView) RenderPassEncoder {
+pub fn (encoder CommandEncoder) begin_render_pass(frame TextureView, depthTexture TextureView) RenderPassEncoder {
 	descriptor := &C.WGPURenderPassDescriptor{
 		label: unsafe { nil }
 		colorAttachmentCount: 1
@@ -22,7 +22,16 @@ pub fn (encoder CommandEncoder) begin_render_pass(frame TextureView) RenderPassE
 			loadOp: .clear
 			storeOp: .store
 		}
-		depthStencilAttachment: unsafe { nil }
+		depthStencilAttachment: &C.WGPURenderPassDepthStencilAttachment{
+			view: depthTexture.ptr
+			depthLoadOp: .clear
+			depthStoreOp: .store
+			depthClearValue: 1.0
+			stencilLoadOp: .clear
+			stencilStoreOp: .store
+			stencilClearValue: 0
+			stencilReadOnly: 1
+		}
 		timestampWrites: unsafe { nil }
 	}
 

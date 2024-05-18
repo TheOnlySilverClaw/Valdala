@@ -1,6 +1,6 @@
 module binding
 
-pub type WGPUQueueOnSubmittedWorkDoneCallback = fn(status WGPUQueueWorkDoneStatus, userdata voidptr)
+pub type WGPUQueueOnSubmittedWorkDoneCallback = fn (status WGPUQueueWorkDoneStatus, userdata voidptr)
 
 pub struct C.WGPUQueueDescriptor {
 pub:

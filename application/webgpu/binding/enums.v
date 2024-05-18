@@ -208,20 +208,19 @@ pub enum WGPUTextureFormat {
 	// force32   = 0x7FFFFFFF
 }
 
+@[flag]
 pub enum WGPUTextureUsage {
-	@none             = 0
-	copy_src          = 1
-	copy_dst          = 2
-	texture_binding   = 4
-	storage_binding   = 8
-	render_attachment = 16
-	// force32   = 0x7FFFFFFF
+	copy_src
+	copy_dst
+	texture_binding
+	storage_binding
+	render_attachment
 }
 
 pub enum WGPUTextureViewDimension {
 	undefined  = 0
-	_1d  = 1
-	_2d  = 2
+	_1d        = 1
+	_2d        = 2
 	array_2d   = 3
 	cube       = 4
 	array_cube = 5
@@ -443,9 +442,16 @@ pub enum WGPUColorWriteMask {
 }
 
 pub enum WGPUQueueWorkDoneStatus {
-    success = 0
-    error = 1
-    unknown = 2
-    device_lost = 3
+	success     = 0
+	error       = 1
+	unknown     = 2
+	device_lost = 3
+	// force32   = 0x7FFFFFFF
+}
+
+pub enum WGPUTextureDimension {
+	_1d = 0
+	_2d = 1
+	_3d = 2
 	// force32   = 0x7FFFFFFF
 }

@@ -109,9 +109,30 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			frontFace: .ccw
 			cullMode: .@none
 		}
-		depthStencil: unsafe { nil }
+		depthStencil: &C.WGPUDepthStencilState{
+			format: .depth24plus
+			depthWriteEnabled: 1
+			depthCompare: .less
+			stencilReadMask: 0xFFFFFFFF
+			stencilWriteMask: 0xFFFFFFFF
+			stencilFront: C.WGPUStencilFaceState{
+				compare: .always
+				failOp: .keep
+				depthFailOp: .keep
+				passOp: .keep
+			}
+			stencilBack: C.WGPUStencilFaceState{
+				compare: .always
+				failOp: .keep
+				depthFailOp: .keep
+				passOp: .keep
+			}
+			depthBias: 1
+			depthBiasSlopeScale: 0
+			depthBiasClamp: 0
+		}
 		multisample: C.WGPUMultisampleState{
-			count: 1,
+			count: 1
 			mask: ~u32(0)
 		}
 		fragment: &C.WGPUFragmentState{
@@ -200,6 +221,44 @@ pub fn (device Device) create_shader(path string, label string) !ShaderModule {
 	shader_module := C.wgpuDeviceCreateShaderModule(device.ptr, module_descriptor)
 	return ShaderModule{
 		ptr: shader_module
+	}
+}
+
+@[params]
+pub struct TextureOptions {
+pub:
+	label        string
+	usage        TextureUsage
+	dimension    TextureDimension = ._2d
+	width        u32
+	height       u32
+	layers       u32 = 1
+	format       TextureFormat
+	mip_levels   u32 = 1
+	samples      u32 = 1
+	view_formats []TextureFormat
+}
+
+pub fn (device Device) create_texture(options TextureOptions) Texture {
+	descriptor := &C.WGPUTextureDescriptor{
+		label: options.label.str
+		usage: int(options.usage)
+		dimension: options.dimension
+		size: C.WGPUExtent3D{
+			width: options.width
+			height: options.height
+			depthOrArrayLayers: options.layers
+		}
+		format: options.format
+		mipLevelCount: options.mip_levels
+		sampleCount: options.samples
+		viewFormats: options.view_formats.data
+		viewFormatCount: usize(options.view_formats.len)
+	}
+
+	texture := C.wgpuDeviceCreateTexture(device.ptr, descriptor)
+	return Texture{
+		ptr: texture
 	}
 }
 

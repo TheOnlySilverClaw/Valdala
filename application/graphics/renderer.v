@@ -14,6 +14,8 @@ struct Renderer {
 	bind_group     webgpu.BindGroup
 	vertex_buffer  webgpu.Buffer
 	pipeline       webgpu.RenderPipeline
+	mut:
+	depth_texture  webgpu.Texture
 }
 
 pub fn create_renderer() ! {
@@ -74,14 +76,19 @@ pub fn create_renderer() ! {
 
 	surface.configure(adapter, device, 1200, 1000)
 
-	window.on_resize(fn [surface, adapter, device] (width int, height int) {
-		surface.configure(adapter, device, u32(width), u32(height))
-	})
-
 	log.info('surface configured')
 
 	texture_format := surface.get_preferred_format(adapter)
 	log.info('preferred texture format: ${texture_format}')
+
+	depth_texture := device.create_texture(
+		label: 'depth'
+		width: 1200
+		height: 1000
+		format: .depth24plus
+		usage: .render_attachment
+	)
+	log.info('created depth texture')
 
 	bindgroup_layout := device.create_bindgroup_layout()
 	defer {
@@ -125,7 +132,7 @@ pub fn create_renderer() ! {
 	}
 	log.info('created bindgroup')
 
-	mut renderer := Renderer{
+	mut renderer := &Renderer{
 		device: device
 		surface: surface
 		queue: queue
@@ -134,10 +141,23 @@ pub fn create_renderer() ! {
 		vertex_buffer: vertex_buffer
 		bind_group: bind_group
 		pipeline: render_pipeline
+		depth_texture: depth_texture
 	}
 
+	window.on_resize(fn [mut renderer, adapter] (width int, height int) {
+		renderer.surface.configure(adapter, renderer.device, u32(width), u32(height))
+		renderer.depth_texture.release()
+		log.debug("create resized depth texture")
+		renderer.depth_texture = renderer.device.create_texture(
+			label: 'depth'
+			width: u32(width)
+			height: u32(height)
+			format: .depth24plus
+			usage: .render_attachment
+		)
+	})
+
 	for !window.should_close() {
-		
 		glfw.poll_events()
 
 		renderer.render()!
@@ -148,7 +168,7 @@ pub fn create_renderer() ! {
 	}
 }
 
-fn (renderer Renderer) render() ! {
+fn (renderer &Renderer) render() ! {
 	surface_texture := renderer.surface.get_current_texture()!
 	defer {
 		surface_texture.release()
@@ -159,7 +179,13 @@ fn (renderer Renderer) render() ! {
 	defer {
 		frame.release()
 	}
-	log.debug('got current frame texture')
+	log.debug('got current frame texture view')
+
+	depth_frame := renderer.depth_texture.get_view(aspect: .depth_only)
+	defer {
+		depth_frame.release()
+	}
+	log.debug('got current depth texture view')
 
 	command_encoder := renderer.device.create_command_encoder('encoder')
 	defer {
@@ -167,7 +193,7 @@ fn (renderer Renderer) render() ! {
 	}
 	log.debug('command encoder created')
 
-	render_pass_encoder := command_encoder.begin_render_pass(frame)
+	render_pass_encoder := command_encoder.begin_render_pass(frame, depth_frame)
 	defer {
 		render_pass_encoder.release()
 	}
