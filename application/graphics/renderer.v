@@ -28,7 +28,7 @@ pub fn create_renderer() ! {
 	}
 	log.info('created instance')
 
-	window := glfw.open_window(1200, 1000, 'Vandala')!
+	window := glfw.open_window(1200, 1000, 'Valdala')!
 	defer {
 		glfw.terminate()
 	}
