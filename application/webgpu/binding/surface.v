@@ -32,6 +32,30 @@ pub:
 	status     WGPUSurfaceGetCurrentTextureStatus
 }
 
+pub enum WGPUSurfaceGetCurrentTextureStatus {
+	success       = 0
+	timeout       = 1
+	outdated      = 2
+	lost          = 3
+	out_of_memory = 4
+	device_lost   = 5
+}
+
+pub enum WGPUCompositeAlphaMode {
+	auto            = 0
+	opaque          = 1
+	premultiplied   = 2
+	unpremultiplied = 3
+	inherit         = 4
+}
+
+pub enum WGPUPresentMode {
+	fifo         = 0
+	fifo_relaxed = 1
+	immediate    = 2
+	mailbox      = 3
+}
+
 pub fn C.wgpuSurfaceGetCapabilities(surface WGPUSurface, adapter WGPUAdapter, &C.WGPUSurfaceCapabilities)
 
 pub fn C.wgpuSurfaceConfigure(surface WGPUSurface, configuration &C.WGPUSurfaceConfiguration)

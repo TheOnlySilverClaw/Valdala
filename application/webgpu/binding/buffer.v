@@ -9,6 +9,20 @@ pub:
 	mappedAtCreation WGPUBool
 }
 
+@[flag]
+pub enum WGPUBufferUsage {
+	map_read
+	map_write
+	copy_src
+	copy_dst
+	index
+	vertex
+	uniform
+	storage
+	indirect
+	query_resolve
+}
+
 pub fn C.wgpuBufferGetSize(buffer WGPUBuffer) u64
 
 pub fn C.wgpuBufferUnmap(buffer WGPUBuffer)

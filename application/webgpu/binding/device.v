@@ -54,6 +54,41 @@ pub:
 	maxComputeWorkgroupsPerDimension          u32
 }
 
+pub enum WGPUFeatureName {
+	undefined                 = 0
+	depth_clip_control        = 1
+	depth32_floatstencil8     = 2
+	timestamp_query           = 3
+	texture_compression_bc    = 4
+	texture_compression_etc2  = 5
+	texture_compression_astc  = 6
+	indirect_first_instance   = 7
+	shader_f16                = 8
+	rg11b10_ufloat_renderable = 9
+	bgra8_unorm_storage       = 10
+	float32_filterable        = 11
+}
+
+pub enum WGPURequestDeviceStatus {
+	success = 0
+	error   = 1
+	unknown = 2
+}
+
+pub enum WGPUDeviceLostReason {
+	undefined = 0
+	destroyed = 1
+}
+
+pub enum WGPUErrorType {
+	no_error      = 0
+	validation    = 1
+	out_of_memory = 2
+	internal      = 3
+	unknown       = 4
+	device_lost   = 5
+}
+
 pub fn C.wgpuDeviceGetQueue(device WGPUDevice) WGPUQueue
 
 pub fn C.wgpuDeviceCreateCommandEncoder(device WGPUDevice, descriptor &C.WGPUCommandEncoderDescriptor) WGPUCommandEncoder
