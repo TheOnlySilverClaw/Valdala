@@ -2,6 +2,8 @@ module binding
 
 pub fn C.wgpuBindGroupLayoutRelease(layout WGPUBindGroupLayout)
 
+pub type WGPUBindGroupLayout = voidptr
+
 pub struct C.WGPUBindGroupLayoutDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }

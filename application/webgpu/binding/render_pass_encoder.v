@@ -12,6 +12,8 @@ pub fn C.wgpuRenderPassEncoderDraw(encoder WGPURenderPassEncoder, vertexCount u3
 
 pub fn C.wgpuRenderPassEncoderRelease(encoder WGPURenderPassEncoder)
 
+pub type WGPURenderPassEncoder = voidptr
+
 pub struct C.WGPURenderPassDescriptor {
 pub:
 	nextInChain            &C.WGPUChainedStruct = unsafe { nil }

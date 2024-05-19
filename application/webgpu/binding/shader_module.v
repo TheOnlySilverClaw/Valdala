@@ -2,6 +2,8 @@ module binding
 
 pub fn C.wgpuShaderModuleRelease(shader WGPUShaderModule)
 
+pub type WGPUShaderModule = voidptr
+
 pub struct C.WGPUShaderModuleDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct

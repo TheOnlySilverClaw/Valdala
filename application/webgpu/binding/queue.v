@@ -10,6 +10,8 @@ pub fn C.wgpuQueueOnSubmittedWorkDone(queue WGPUQueue, callback WGPUQueueOnSubmi
 
 pub fn C.wgpuQueueRelease(queue WGPUQueue)
 
+pub type WGPUQueue = voidptr
+
 pub type WGPUQueueOnSubmittedWorkDoneCallback = fn (status WGPUQueueWorkDoneStatus, userdata voidptr)
 
 pub struct C.WGPUQueueDescriptor {

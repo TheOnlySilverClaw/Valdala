@@ -6,6 +6,8 @@ pub fn C.wgpuInstanceRequestAdapter(instance WGPUInstance, options &C.WGPUReques
 
 pub fn C.wgpuInstanceRelease(instance WGPUInstance)
 
+pub type WGPUInstance = voidptr
+
 pub struct C.WGPUInstanceDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }

@@ -2,6 +2,8 @@ module binding
 
 pub fn C.wgpuRenderPipelineRelease(pipeline WGPURenderPipeline)
 
+pub type WGPURenderPipeline = voidptr
+
 pub struct C.WGPURenderPipelineDescriptor {
 pub:
 	nextInChain  &C.WGPUChainedStruct = unsafe { nil }

@@ -2,6 +2,8 @@ module binding
 
 pub fn C.wgpuSamplerRelease(sampler WGPUSampler)
 
+pub type WGPUSampler = voidptr
+
 pub struct C.WGPUSamplerDescriptor {
 pub:
 	nextInChain   &C.WGPUChainedStruct = unsafe { nil }

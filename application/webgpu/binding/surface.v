@@ -12,6 +12,8 @@ pub fn C.wgpuSurfaceGetCurrentTexture(surface WGPUSurface, surfaceTexture &C.WGP
 
 pub fn C.wgpuSurfaceRelease(adapter WGPUSurface)
 
+pub type WGPUSurface = voidptr
+
 pub struct C.WGPUSurfaceConfiguration {
 pub:
 	nextInChain     &C.WGPUChainedStruct = unsafe { nil }

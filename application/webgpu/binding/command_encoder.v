@@ -6,6 +6,8 @@ pub fn C.wgpuCommandEncoderFinish(encoder WGPUCommandEncoder, descriptor &C.WGPU
 
 pub fn C.wgpuCommandEncoderRelease(encoder WGPUCommandEncoder)
 
+pub type WGPUCommandEncoder = voidptr
+
 pub struct C.WGPUCommandEncoderDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }

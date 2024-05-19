@@ -6,6 +6,8 @@ pub fn C.wgpuBufferUnmap(buffer WGPUBuffer)
 
 pub fn C.wgpuBufferDestroy(buffer WGPUBuffer)
 
+pub type WGPUBuffer = voidptr
+
 pub struct C.WGPUBufferDescriptor {
 pub:
 	nextInChain      &C.WGPUChainedStruct = unsafe { nil }

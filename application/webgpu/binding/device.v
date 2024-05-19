@@ -24,6 +24,8 @@ pub fn C.wgpuDeviceSetUncapturedErrorCallback(device WGPUDevice, callback WGPUEr
 
 pub fn C.wgpuDeviceRelease(device WGPUDevice)
 
+pub type WGPUDevice = voidptr
+
 pub type WGPURequestDeviceCallback = fn (status WGPURequestDeviceStatus, device WGPUDevice, message &char, user_data voidptr)
 
 pub type WGPUErrorCallback = fn (errorType WGPUErrorType, message &char, user_data voidptr)

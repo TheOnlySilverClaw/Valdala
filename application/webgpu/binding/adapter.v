@@ -4,6 +4,8 @@ pub fn C.wgpuAdapterRequestDevice(adapter WGPUAdapter, descriptor &C.WGPUDeviceD
 
 pub fn C.wgpuAdapterRelease(adapter WGPUAdapter)
 
+pub type WGPUAdapter = voidptr
+
 pub type WGPURequestAdapterCallback = fn (status WGPURequestAdapterStatus, adapter WGPUAdapter, message &char, user_data voidptr)
 
 pub struct C.WGPURequestAdapterOptions {

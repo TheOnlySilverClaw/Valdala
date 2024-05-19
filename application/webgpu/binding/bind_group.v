@@ -2,6 +2,8 @@ module binding
 
 pub fn C.wgpuBindGroupRelease(bindGroup WGPUBindGroup)
 
+pub type WGPUBindGroup = voidptr
+
 pub struct C.WGPUBindGroupDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
