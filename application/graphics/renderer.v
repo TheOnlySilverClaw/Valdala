@@ -89,7 +89,7 @@ pub fn create_renderer() ! {
 		label: 'depth'
 		width: 1200
 		height: 1000
-		format: .depth24plus
+		format: .depth24_plus
 		usage: .render_attachment
 	)
 	log.info('created depth texture')
@@ -142,7 +142,7 @@ pub fn create_renderer() ! {
 		width: texture_width
 		height: texture_height
 		usage: .texture_binding | .copy_dst
-		format: .rgba8unorm
+		format: .rgba8_unorm
 	)
 
 	queue.write_texture(color_texture, pixels,
@@ -214,7 +214,7 @@ pub fn create_renderer() ! {
 			label: 'depth'
 			width: u32(width)
 			height: u32(height)
-			format: .depth24plus
+			format: .depth24_plus
 			usage: .render_attachment
 		)
 	})

@@ -35,7 +35,7 @@ pub fn (surface Surface) configure(adapter Adapter, device Device, width u32, he
 		usage: .render_attachment
 		// TODO figure out why preferred texture format shows waashed out colors
 		// https://github.com/gfx-rs/wgpu-native/issues/386
-		format: .bgra8unorm
+		format: .bgra8_unorm
 		presentMode: .fifo
 		alphaMode: unsafe { capabilities.alphaModes[0] }
 		viewFormats: capabilities.formats

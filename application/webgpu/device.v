@@ -79,7 +79,7 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 		C.WGPUColorTargetState{
 			// TODO figure out why preferred texture format shows waashed out colors
 			// https://github.com/gfx-rs/wgpu-native/issues/386
-			format: .bgra8unorm
+			format: .bgra8_unorm
 			blend: &C.WGPUBlendState{
 				color: C.WGPUBlendComponent{
 					srcFactor: .src_alpha
@@ -117,7 +117,7 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 			cullMode: .@none
 		}
 		depthStencil: &C.WGPUDepthStencilState{
-			format: .depth24plus
+			format: .depth24_plus
 			depthWriteEnabled: 1
 			depthCompare: .less
 			stencilReadMask: 0xFFFFFFFF
