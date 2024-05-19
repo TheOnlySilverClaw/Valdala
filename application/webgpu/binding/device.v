@@ -24,6 +24,12 @@ pub fn C.wgpuDeviceSetUncapturedErrorCallback(device WGPUDevice, callback WGPUEr
 
 pub fn C.wgpuDeviceRelease(device WGPUDevice)
 
+pub type WGPURequestDeviceCallback = fn (status WGPURequestDeviceStatus, device WGPUDevice, message &char, user_data voidptr)
+
+pub type WGPUErrorCallback = fn (errorType WGPUErrorType, message &char, user_data voidptr)
+
+pub type WGPUDeviceLostCallback = fn (reason WGPUDeviceLostReason, message &char, user_data voidptr)
+
 pub struct C.WGPUDeviceDescriptor {
 pub:
 	nextInChain          &C.WGPUChainedStruct = unsafe { nil }
