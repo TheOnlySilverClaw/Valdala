@@ -77,7 +77,9 @@ pub fn (device Device) create_render_pipeline(label string, layout PipelineLayou
 
 	targets := [
 		C.WGPUColorTargetState{
-			format: textureFormat
+			// TODO figure out why preferred texture format shows waashed out colors
+			// https://github.com/gfx-rs/wgpu-native/issues/386
+			format: .bgra8unorm
 			blend: &C.WGPUBlendState{
 				color: C.WGPUBlendComponent{
 					srcFactor: .src_alpha

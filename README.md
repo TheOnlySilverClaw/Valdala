@@ -3,7 +3,7 @@
 Not much to look at, yet.
 But the WebGPU bindings are working!
 
-Textures loading works, but colors look washed out?
+After working around color space issues, textures look as intended.
 
 ![Screenshot of current development state](screenshot.png)
 

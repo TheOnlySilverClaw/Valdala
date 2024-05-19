@@ -109,7 +109,7 @@ pub fn create_renderer() ! {
 	}
 	log.info('created render pipeline')
 
-	texture_image := vpng.read('textures/terrain/water.png')!
+	texture_image := vpng.read('textures/testing/texture_1.png')!
 	mut pixels := []u8{cap: texture_image.pixels.len * 4}
 
 	for pixel in texture_image.pixels {
