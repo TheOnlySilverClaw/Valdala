@@ -1,5 +1,11 @@
 module binding
 
+pub fn C.wgpuTextureCreateView(texture WGPUTexture, descriptor &C.WGPUTextureViewDescriptor) WGPUTextureView
+
+pub fn C.wgpuTextureRelease(texture WGPUTexture)
+
+pub fn C.wgpuTextureViewRelease(view WGPUTextureView)
+
 pub struct C.WGPUTextureDescriptor {
 pub:
 	nextInChain     &C.WGPUChainedStruct = unsafe { nil }
@@ -187,9 +193,3 @@ pub enum WGPUTextureAspect {
 	stencil_only = 1
 	depth_only   = 2
 }
-
-pub fn C.wgpuTextureCreateView(texture WGPUTexture, descriptor &C.WGPUTextureViewDescriptor) WGPUTextureView
-
-pub fn C.wgpuTextureRelease(texture WGPUTexture)
-
-pub fn C.wgpuTextureViewRelease(view WGPUTextureView)

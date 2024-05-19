@@ -1,5 +1,9 @@
 module binding
 
+pub fn C.wgpuAdapterRequestDevice(adapter WGPUAdapter, descriptor &C.WGPUDeviceDescriptor, callback WGPURequestDeviceCallback, user_data voidptr)
+
+pub fn C.wgpuAdapterRelease(adapter WGPUAdapter)
+
 pub struct C.WGPURequestAdapterOptions {
 pub:
 	nextInChain          &C.WGPUChainedStruct = unsafe { nil }
@@ -33,7 +37,3 @@ pub enum WGPURequestAdapterStatus {
 	error       = 2
 	unknown     = 3
 }
-
-pub fn C.wgpuAdapterRequestDevice(adapter WGPUAdapter, descriptor &C.WGPUDeviceDescriptor, callback WGPURequestDeviceCallback, user_data voidptr)
-
-pub fn C.wgpuAdapterRelease(adapter WGPUAdapter)

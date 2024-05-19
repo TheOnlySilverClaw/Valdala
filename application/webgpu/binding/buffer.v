@@ -1,5 +1,11 @@
 module binding
 
+pub fn C.wgpuBufferGetSize(buffer WGPUBuffer) u64
+
+pub fn C.wgpuBufferUnmap(buffer WGPUBuffer)
+
+pub fn C.wgpuBufferDestroy(buffer WGPUBuffer)
+
 pub struct C.WGPUBufferDescriptor {
 pub:
 	nextInChain      &C.WGPUChainedStruct = unsafe { nil }
@@ -22,9 +28,3 @@ pub enum WGPUBufferUsage {
 	indirect
 	query_resolve
 }
-
-pub fn C.wgpuBufferGetSize(buffer WGPUBuffer) u64
-
-pub fn C.wgpuBufferUnmap(buffer WGPUBuffer)
-
-pub fn C.wgpuBufferDestroy(buffer WGPUBuffer)

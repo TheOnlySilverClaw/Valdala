@@ -1,5 +1,7 @@
 module binding
 
+pub fn C.wgpuBindGroupLayoutRelease(layout WGPUBindGroupLayout)
+
 pub struct C.WGPUBindGroupLayoutDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
@@ -85,5 +87,3 @@ pub enum WGPUShaderStage {
 	fragment
 	compute
 }
-
-pub fn C.wgpuBindGroupLayoutRelease(layout WGPUBindGroupLayout)

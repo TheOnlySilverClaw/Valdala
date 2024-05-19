@@ -1,5 +1,7 @@
 module binding
 
+pub fn C.wgpuBindGroupRelease(bindGroup WGPUBindGroup)
+
 pub struct C.WGPUBindGroupDescriptor {
 pub:
 	nextInChain &C.WGPUChainedStruct = unsafe { nil }
@@ -19,5 +21,3 @@ pub:
 	sampler     WGPUSampler
 	textureView WGPUTextureView
 }
-
-pub fn C.wgpuBindGroupRelease(bindGroup WGPUBindGroup)

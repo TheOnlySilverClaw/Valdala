@@ -1,5 +1,7 @@
 module binding
 
+pub fn C.wgpuRenderPipelineRelease(pipeline WGPURenderPipeline)
+
 pub struct C.WGPURenderPipelineDescriptor {
 pub:
 	nextInChain  &C.WGPUChainedStruct = unsafe { nil }
@@ -236,5 +238,3 @@ pub enum WGPUColorWriteMask {
 	blue
 	alpha
 }
-
-pub fn C.wgpuRenderPipelineRelease(pipeline WGPURenderPipeline)

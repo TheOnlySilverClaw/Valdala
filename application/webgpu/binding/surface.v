@@ -1,5 +1,17 @@
 module binding
 
+pub fn C.wgpuSurfaceGetCapabilities(surface WGPUSurface, adapter WGPUAdapter, &C.WGPUSurfaceCapabilities)
+
+pub fn C.wgpuSurfaceConfigure(surface WGPUSurface, configuration &C.WGPUSurfaceConfiguration)
+
+pub fn C.wgpuSurfaceGetPreferredFormat(surface WGPUSurface, adapter WGPUAdapter) WGPUTextureFormat
+
+pub fn C.wgpuSurfacePresent(surface WGPUSurface)
+
+pub fn C.wgpuSurfaceGetCurrentTexture(surface WGPUSurface, surfaceTexture &C.WGPUSurfaceTexture)
+
+pub fn C.wgpuSurfaceRelease(adapter WGPUSurface)
+
 pub struct C.WGPUSurfaceConfiguration {
 pub:
 	nextInChain     &C.WGPUChainedStruct = unsafe { nil }
@@ -55,15 +67,3 @@ pub enum WGPUPresentMode {
 	immediate    = 2
 	mailbox      = 3
 }
-
-pub fn C.wgpuSurfaceGetCapabilities(surface WGPUSurface, adapter WGPUAdapter, &C.WGPUSurfaceCapabilities)
-
-pub fn C.wgpuSurfaceConfigure(surface WGPUSurface, configuration &C.WGPUSurfaceConfiguration)
-
-pub fn C.wgpuSurfaceGetPreferredFormat(surface WGPUSurface, adapter WGPUAdapter) WGPUTextureFormat
-
-pub fn C.wgpuSurfacePresent(surface WGPUSurface)
-
-pub fn C.wgpuSurfaceGetCurrentTexture(surface WGPUSurface, surfaceTexture &C.WGPUSurfaceTexture)
-
-pub fn C.wgpuSurfaceRelease(adapter WGPUSurface)

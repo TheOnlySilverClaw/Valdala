@@ -1,5 +1,7 @@
 module binding
 
+pub fn C.wgpuPipelineLayoutRelease(layout WGPUPipelineLayout)
+
 pub struct C.WGPUPipelineLayoutDescriptor {
 pub:
 	nextInChain          &C.WGPUChainedStruct = unsafe { nil }
@@ -7,5 +9,3 @@ pub:
 	bindGroupLayoutCount usize
 	bindGroupLayouts     &WGPUBindGroupLayout
 }
-
-pub fn C.wgpuPipelineLayoutRelease(layout WGPUPipelineLayout)
