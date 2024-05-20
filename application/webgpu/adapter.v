@@ -6,36 +6,28 @@ pub struct Adapter {
 	ptr binding.WGPUAdapter
 }
 
-pub fn (adapter Adapter) request_device() !Device {
-	descriptor := C.WGPUDeviceDescriptor{
-		label: 'device'.str
-		requiredFeatures: unsafe { nil }
-		requiredLimits: unsafe { nil }
+pub fn (instance Instance) request_adapter(surface Surface) !Adapter {
+	options := C.WGPURequestAdapterOptions{
+		powerPreference: .high_performance
+		compatibleSurface: surface.ptr
 	}
 
-	channel := chan binding.WGPUDevice{cap: 1}
+	channel := chan binding.WGPUAdapter{cap: 1}
 
-	callback := fn [channel] (status binding.WGPURequestDeviceStatus, device binding.WGPUDevice, message &char, user_data voidptr) {
+	callback := fn [channel] (status binding.WGPURequestAdapterStatus, adapter binding.WGPUAdapter, message &char, user_data voidptr) {
 		if status == .success {
-			channel <- device
+			channel <- adapter
 		} else {
 			channel.close()
 		}
 	}
 
-	C.wgpuAdapterRequestDevice(adapter.ptr, &descriptor, callback, unsafe { nil })
+	C.wgpuInstanceRequestAdapter(instance.ptr, &options, callback, unsafe { nil })
 
-	device := <-channel?
+	adapter := <-channel?
 
-	error_callback := fn (errorType binding.WGPUErrorType, message &char, user_data voidptr) {
-		message_string := unsafe { message.vstring() }
-		println('device error (${errorType}): ${message_string}')
-	}
-
-	C.wgpuDeviceSetUncapturedErrorCallback(device, error_callback, unsafe { nil })
-
-	return Device{
-		ptr: device
+	return Adapter{
+		ptr: adapter
 	}
 }
 

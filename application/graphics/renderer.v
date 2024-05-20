@@ -2,6 +2,7 @@ module graphics
 
 import log
 import time
+import os
 import glfw
 import webgpu
 import henrixounez.vpng
@@ -64,7 +65,11 @@ pub fn create_renderer() ! {
 	}
 	log.info('created device')
 
-	shader_module := device.create_shader('shaders/textured.wgsl', 'textured') or {
+	shader_source := os.read_file('shaders/textured.wgsl') or {
+		return error('failed to load shader')
+	}
+
+	shader_module := device.create_shader(shader_source, 'textured') or {
 		return error('failed to load shader_module')
 	}
 	defer {

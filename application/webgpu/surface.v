@@ -21,6 +21,10 @@ pub fn (surface Surface) get_current_texture() !Texture {
 	}
 }
 
+pub fn (surface Surface) get_preferred_format(adapter Adapter) TextureFormat {
+	return C.wgpuSurfaceGetPreferredFormat(surface.ptr, adapter.ptr)
+}
+
 pub fn (surface Surface) configure(adapter Adapter, device Device, width u32, height u32) {
 	capabilities := C.WGPUSurfaceCapabilities{
 		formats: unsafe { nil }
@@ -45,10 +49,6 @@ pub fn (surface Surface) configure(adapter Adapter, device Device, width u32, he
 	}
 
 	C.wgpuSurfaceConfigure(surface.ptr, &configuration)
-}
-
-pub fn (surface Surface) get_preferred_format(adapter Adapter) TextureFormat {
-	return C.wgpuSurfaceGetPreferredFormat(surface.ptr, adapter.ptr)
 }
 
 pub fn (surface Surface) present() {

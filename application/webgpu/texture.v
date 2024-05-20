@@ -12,42 +12,43 @@ pub struct Texture {
 	ptr binding.WGPUTexture
 }
 
-pub struct TextureView {
-	ptr binding.WGPUTextureView
-}
-
 @[params]
-pub struct TextureViewOptions {
+pub struct TextureOptions {
 pub:
-	label            string
-	format           TextureFormat
-	dimension        TextureViewDimension = ._2d
-	base_mip_level   u32
-	mip_levels       u32 = 1
-	base_array_layer u32
-	array_layers     u32 = 1
-	aspect           TextureAspect = .all
+	label string
+	// TODO clarify why redeclared types don't work as flag?
+	usage        binding.WGPUTextureUsage
+	dimension    TextureDimension = ._2d
+	width        u32
+	height       u32
+	layers       u32 = 1
+	format       TextureFormat
+	mip_levels   u32 = 1
+	samples      u32 = 1
+	view_formats []TextureFormat
 }
 
-pub fn (texture Texture) get_view(options TextureViewOptions) TextureView {
-	descriptor := &C.WGPUTextureViewDescriptor{
+pub fn (device Device) create_texture(options TextureOptions) Texture {
+	descriptor := &C.WGPUTextureDescriptor{
 		label: options.label.str
-		format: options.format
+		usage: options.usage
 		dimension: options.dimension
-		baseMipLevel: options.base_mip_level
+		size: C.WGPUExtent3D{
+			width: options.width
+			height: options.height
+			depthOrArrayLayers: options.layers
+		}
+		format: options.format
 		mipLevelCount: options.mip_levels
-		baseArrayLayer: options.base_array_layer
-		arrayLayerCount: options.array_layers
-		aspect: options.aspect
+		sampleCount: options.samples
+		viewFormats: options.view_formats.data
+		viewFormatCount: usize(options.view_formats.len)
 	}
-	view := C.wgpuTextureCreateView(texture.ptr, descriptor)
-	return TextureView{
-		ptr: view
-	}
-}
 
-pub fn (view TextureView) release() {
-	C.wgpuTextureViewRelease(view.ptr)
+	texture := C.wgpuDeviceCreateTexture(device.ptr, descriptor)
+	return Texture{
+		ptr: texture
+	}
 }
 
 pub fn (texture Texture) release() {

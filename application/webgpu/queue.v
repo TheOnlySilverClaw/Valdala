@@ -8,6 +8,13 @@ pub struct Queue {
 	ptr binding.WGPUQueue
 }
 
+pub fn (device Device) get_queue() Queue {
+	queue := C.wgpuDeviceGetQueue(device.ptr)
+	return Queue{
+		ptr: queue
+	}
+}
+
 pub fn (queue Queue) write_buffer[T](buffer Buffer, offset u64, data []T) {
 	size := (usize(data.len) - offset) * sizeof(T)
 	C.wgpuQueueWriteBuffer(queue.ptr, buffer.ptr, offset, data.data, size)
