@@ -12,7 +12,7 @@ After working around color space issues, textures look as intended.
 
 ## V
 
-The 0.4.5 version of [V](https://vlang.io/) is used to compile the project.
+The 0.4.6 version of [V](https://vlang.io/) is used to compile the project.
 
 ## Compiler
 
