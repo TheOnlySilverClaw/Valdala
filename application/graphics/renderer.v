@@ -27,42 +27,32 @@ pub fn create_renderer() ! {
 	log.info('launch')
 
 	instance := webgpu.create_instance()!
-	defer {
-		instance.release()
-	}
+	defer { instance.release() }
 	log.info('created instance')
 
 	window := glfw.open_window(1200, 1000, 'Valdala')!
-	defer {
-		glfw.terminate()
-	}
+	defer { glfw.terminate() }
 	defer {
 		window.destroy()
 	}
 	log.info('created window')
 
 	surface := instance.get_surface(window)
-	defer {
-		surface.release()
-	}
+	defer { surface.release() }
 	log.info('created surface')
 
 	adapter := instance.request_adapter(surface) or {
 		log.info('failed to get adapter')
 		return
 	}
-	defer {
-		adapter.release()
-	}
+	defer { adapter.release() }
 	log.info('created adapter')
 
 	device := adapter.request_device() or {
 		log.info('failed to get device')
 		return
 	}
-	defer {
-		device.release()
-	}
+	defer { device.release() }
 	log.info('created device')
 
 	shader_source := os.read_file('shaders/textured.wgsl') or {
@@ -72,15 +62,11 @@ pub fn create_renderer() ! {
 	shader_module := device.create_shader(shader_source, 'textured') or {
 		return error('failed to load shader_module')
 	}
-	defer {
-		shader_module.release()
-	}
+	defer { shader_module.release() }
 	log.info('shader_module loaded')
 
 	queue := device.get_queue()
-	defer {
-		queue.release()
-	}
+	defer { queue.release() }
 	log.info('created queue')
 
 	surface.configure(adapter, device, 1200, 1000)
@@ -100,18 +86,14 @@ pub fn create_renderer() ! {
 	log.info('created depth texture')
 
 	bindgroup_layout := device.create_bindgroup_layout()
-	defer {
-		bindgroup_layout.release()
-	}
+	defer { bindgroup_layout.release() }
 	log.info('created bindgroup layout')
 
 	pipeline_layout := device.create_pipeline_layout(bindgroup_layout)
 
 	render_pipeline := device.create_render_pipeline('textured', pipeline_layout, shader_module,
 		shader_module, texture_format)
-	defer {
-		render_pipeline.release()
-	}
+	defer { render_pipeline.release() }
 	log.info('created render pipeline')
 
 	texture_image := vpng.read('textures/testing/texture_1.png')!
@@ -161,14 +143,10 @@ pub fn create_renderer() ! {
 	)
 
 	texture_view := color_texture.get_view()
-	defer {
-		texture_view.release()
-	}
+	defer { texture_view.release() }
 
 	sampler := device.create_sampler()
-	defer {
-		sampler.release()
-	}
+	defer { sampler.release() }
 
 	size := f32(0.5)
 	// vfmt off
@@ -185,17 +163,13 @@ pub fn create_renderer() ! {
 	// vfmt on
 
 	vertex_buffer := device.create_buffer('vertices', u32(vertex_data.len) * sizeof(f32))
-	defer {
-		vertex_buffer.destroy()
-	}
+	defer { vertex_buffer.destroy() }
 	log.info('created vertex buffer of size ${vertex_buffer.size}')
 	queue.write_buffer(vertex_buffer, 0, vertex_data)
 
 	bind_group := device.create_bindgroup('textured', bindgroup_layout, vertex_buffer,
 		sampler, texture_view)
-	defer {
-		bind_group.release()
-	}
+	defer { bind_group.release() }
 	log.info('created bindgroup')
 
 	mut renderer := &Renderer{
@@ -237,33 +211,23 @@ pub fn create_renderer() ! {
 
 fn (renderer &Renderer) render() ! {
 	surface_texture := renderer.surface.get_current_texture()!
-	defer {
-		surface_texture.release()
-	}
+	defer { surface_texture.release() }
 	log.debug('got current surface texture')
 
 	frame := surface_texture.get_view()
-	defer {
-		frame.release()
-	}
+	defer { frame.release() }
 	log.debug('got current frame texture view')
 
 	depth_frame := renderer.depth_texture.get_view(aspect: .depth_only)
-	defer {
-		depth_frame.release()
-	}
+	defer { depth_frame.release() }
 	log.debug('got current depth texture view')
 
 	command_encoder := renderer.device.create_command_encoder('encoder')
-	defer {
-		command_encoder.release()
-	}
+	defer { command_encoder.release() }
 	log.debug('command encoder created')
 
 	render_pass_encoder := command_encoder.begin_render_pass(frame, depth_frame)
-	defer {
-		render_pass_encoder.release()
-	}
+	defer { render_pass_encoder.release() }
 	log.debug('pass encoder created')
 
 	render_pass_encoder.set_pipeline(renderer.pipeline)
@@ -275,9 +239,7 @@ fn (renderer &Renderer) render() ! {
 	log.debug('render pass ended')
 
 	command_buffer := command_encoder.finish()
-	defer {
-		command_buffer.release()
-	}
+	defer { command_buffer.release() }
 	log.debug('command buffer created')
 
 	renderer.queue.submit(command_buffer)

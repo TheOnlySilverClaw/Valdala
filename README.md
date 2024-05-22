@@ -13,6 +13,7 @@ After working around color space issues, textures look as intended.
 ## V
 
 The 0.4.6 version of [V](https://vlang.io/) is used to compile the project.
+Currently commit [1b5af1f](https://github.com/vlang/v/commit/1b5af1f9894d9619888c6e4875111d78555d92ca) is required for formatting.
 
 ## Compiler
 
