@@ -4,8 +4,6 @@ module glfw
 #flag -l glfw
 #include "glfw3.h"
 
-pub type Window = voidptr
-
 fn C.glfwInit() int
 
 fn C.glfwWindowHint(hint int value int)

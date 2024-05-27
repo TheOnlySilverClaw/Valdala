@@ -1,7 +1,8 @@
 module glfw
 
+pub type Window = voidptr
 
-fn initialize() bool {
+pub fn initialize() bool {
 	return C.glfwInit() == C.GLFW_TRUE
 }
 
