@@ -12,6 +12,12 @@ tasks:
       - mkdir -p build
       - v -g -cc clang -o build/valdala .
 
+  check:
+    desc: Check V syntax
+    cmds:
+      - mkdir -p build
+      - v -check .
+
   start:
     desc: Start the application from an existing binary.
     cmd: build/valdala
