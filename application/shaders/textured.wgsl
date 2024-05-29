@@ -5,7 +5,7 @@ struct Vertex {
   @location(2) textureIndex: f32
 }
 
-// @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
+@group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
 
 @vertex
 fn vertex(
@@ -14,18 +14,19 @@ fn vertex(
   @location(2) textureIndex: f32
 ) -> Vertex {
 
+
   var vertex: Vertex;
   // vertex.position = projection * vec4<f32>(position.x, position.y, position.z, 1.0);
-  vertex.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
+  vertex.position = projection * vec4<f32>(position.x, position.y, 0.0, 1.0);
   vertex.uv = uv;
   vertex.textureIndex = textureIndex;
   
   return vertex;
 }
 
-@group(0) @binding(0) var textureSampler: sampler;
+@group(0) @binding(1) var textureSampler: sampler;
 // @group(0) @binding(1) var textureArray: texture_2d_array<f32>;
-@group(0) @binding(1) var colorTexture: texture_2d<f32>;
+@group(0) @binding(2) var colorTexture: texture_2d<f32>;
 
 @fragment
 fn fragment(

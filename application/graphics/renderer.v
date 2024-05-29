@@ -134,12 +134,33 @@ pub fn create_renderer() ! {
 	]
 	// vfmt on
 
-	vertex_buffer := window.device.create_buffer('vertices', u32(vertex_data.len) * sizeof(f32))
+	vertex_buffer := window.device.create_buffer(
+		label: 'vertices'
+		size: u32(vertex_data.len) * sizeof(f32)
+		usage: .vertex | .copy_dst
+	)
 	defer { vertex_buffer.destroy() }
 	log.info('created vertex buffer of size ${vertex_buffer.size}')
 	queue.write_buffer(vertex_buffer, 0, vertex_data)
 
-	bind_group := window.device.create_bindgroup('textured', bindgroup_layout, vertex_buffer,
+	projection_buffer := window.device.create_buffer(
+		label: 'projection'
+		size: 4 * 4 * sizeof(f32)
+		usage: .uniform | .copy_dst
+	)
+	defer { projection_buffer.destroy() }
+
+	// vfmt off
+	projection := [
+		f32(1), 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	]
+	// vfmt on
+	queue.write_buffer(projection_buffer, 0, projection)
+
+	bind_group := window.device.create_bindgroup('textured', bindgroup_layout, projection_buffer,
 		sampler, texture_view)
 	defer { bind_group.release() }
 	log.info('created bindgroup')

@@ -7,8 +7,16 @@ pub struct BindGroupLayout {
 }
 
 pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
-	sampler_entry := C.WGPUBindGroupLayoutEntry{
+	buffer_entry := C.WGPUBindGroupLayoutEntry{
 		binding: 0
+		visibility: .vertex
+		buffer: C.WGPUBufferBindingLayout{
+			@type: .uniform
+		}
+	}
+
+	sampler_entry := C.WGPUBindGroupLayoutEntry{
+		binding: 1
 		visibility: .fragment
 		sampler: C.WGPUSamplerBindingLayout{
 			@type: .filtering
@@ -16,7 +24,7 @@ pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
 	}
 
 	texture_entry := C.WGPUBindGroupLayoutEntry{
-		binding: 1
+		binding: 2
 		visibility: .fragment
 		texture: C.WGPUTextureBindingLayout{
 			sampleType: .float
@@ -25,15 +33,8 @@ pub fn (device Device) create_bindgroup_layout() BindGroupLayout {
 		}
 	}
 
-	// buffer_entry := C.WGPUBindGroupLayoutEntry{
-	// 	binding: 0
-	// 	visibility: int(ShaderStage.vertex)
-	// 	buffer: C.WGPUBufferBindingLayout{
-	// 		@type: .uniform
-	// 	}
-	// }
-
 	entries := [
+		buffer_entry,
 		sampler_entry,
 		texture_entry,
 	]
