@@ -19,6 +19,7 @@ struct Renderer {
 	mesh_size       u32
 	color_texture   webgpu.Texture
 	texture_sampler webgpu.Sampler
+	projection_buffer webgpu.Buffer
 }
 
 pub fn create_renderer() ! {
@@ -150,16 +151,6 @@ pub fn create_renderer() ! {
 	)
 	defer { projection_buffer.destroy() }
 
-	// vfmt off
-	projection := [
-		f32(1), 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
-	]
-	// vfmt on
-	queue.write_buffer(projection_buffer, 0, projection)
-
 	bind_group := window.device.create_bindgroup('textured', bindgroup_layout, projection_buffer,
 		sampler, texture_view)
 	defer { bind_group.release() }
@@ -175,6 +166,7 @@ pub fn create_renderer() ! {
 		bind_group: bind_group
 		pipeline: render_pipeline
 		mesh_size: u32(vertex_data.len) / (2 + 2 + 1)
+		projection_buffer: projection_buffer
 	}
 
 	for !window.should_close() {
@@ -189,6 +181,10 @@ pub fn create_renderer() ! {
 }
 
 fn (renderer &Renderer) render(window &Window) ! {
+
+	projection := window.view_matrix()
+	renderer.queue.write_buffer(renderer.projection_buffer, 0, projection)
+
 	surface_texture := renderer.surface.get_current_texture()!
 	defer { surface_texture.release() }
 	log.debug('got current surface texture')

@@ -91,7 +91,6 @@ pub fn (window Window) should_close() bool {
 }
 
 pub fn (window Window) update() {
-	C.glfwSwapBuffers(window.ptr)
 }
 
 pub fn (window Window) destroy() {
@@ -101,6 +100,6 @@ pub fn (window Window) destroy() {
 	window.device.release()
 }
 
-pub fn (window Window) swap_buffers() {
-	C.glfwSwapBuffers(window.ptr)
+pub fn (window Window) view_matrix() []f32 {
+	return projection(100, window.aspect_ratio, 1000.0)
 }

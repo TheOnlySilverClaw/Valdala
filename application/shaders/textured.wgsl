@@ -17,7 +17,7 @@ fn vertex(
 
   var vertex: Vertex;
   // vertex.position = projection * vec4<f32>(position.x, position.y, position.z, 1.0);
-  vertex.position = projection * vec4<f32>(position.x, position.y, 0.0, 1.0);
+  vertex.position = projection * vec4<f32>(position.x, position.y, 0.3, 1.0);
   vertex.uv = uv;
   vertex.textureIndex = textureIndex;
   

@@ -24,7 +24,7 @@ tasks:
 
   format:
     desc: Apply V code formatting.
-    cmd: v fmt -w webgpu graphics
+    cmd: v fmt -w webgpu graphics geometry
     
   setup:
     desc: Setup development environment.
