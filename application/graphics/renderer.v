@@ -3,7 +3,7 @@ module graphics
 import log
 import time
 import os
-import glfw
+import glfw3_webgpu
 import webgpu
 import henrixounez.vpng
 
@@ -29,13 +29,13 @@ pub fn create_renderer() ! {
 	defer { instance.release() }
 	log.info('created instance')
 
-	if !glfw.initialize() {
+	if !glfw3_webgpu.initialize() {
 		return error('GLFW could not be initialized!')
 	}
 
 	window := Window.new(instance, width: 1200, height: 1000, title: 'Valdala')!
 
-	defer { glfw.terminate() }
+	defer { glfw3_webgpu.terminate() }
 	defer {
 		window.destroy()
 	}
@@ -170,7 +170,7 @@ pub fn create_renderer() ! {
 	}
 
 	for !window.should_close() {
-		glfw.poll_events()
+		glfw3_webgpu.poll_events()
 
 		renderer.render(window)!
 

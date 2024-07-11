@@ -1,12 +1,12 @@
 module graphics
 
-import glfw
+import glfw3_webgpu
 import webgpu
 
 pub struct Window {
 	resize_listener ResizeListener = fn (width u32, height u32) {}
 pub:
-	ptr      glfw.Window
+	ptr      glfw3_webgpu.Window
 	instance webgpu.Instance
 	surface  webgpu.Surface
 	adapter  webgpu.Adapter
@@ -34,7 +34,7 @@ pub fn Window.new(instance webgpu.Instance, options WindowOptions) !&Window {
 	ptr := C.glfwCreateWindow(options.width, options.height, options.title.str, C.NULL,
 		C.NULL)
 
-	surface := instance.get_surface(ptr)
+	surface := glfw3_webgpu.get_surface(instance, ptr)
 
 	adapter := instance.request_adapter(surface) or { return error('adapter error') }
 
@@ -57,7 +57,7 @@ pub fn Window.new(instance webgpu.Instance, options WindowOptions) !&Window {
 		depth_texture: depth_texture
 	}
 
-	resize_callback := fn [mut window] (_ glfw.Window, width int, height int) {
+	resize_callback := fn [mut window] (_ glfw3_webgpu.Window, width int, height int) {
 		window.set_size(u32(width), u32(height))
 	}
 
