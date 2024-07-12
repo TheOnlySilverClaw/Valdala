@@ -4,13 +4,13 @@ tasks:
 
   run:
     desc: Build and run the application.
-    cmd: v -cc clang run main.v
+    cmd: v -cc clang run source/main.v
 
   build:
     desc: Build the application in debug mode.
     cmds:
       - mkdir -p build
-      - v -g -cc clang -o build/valdala .
+      - v -g -cc clang -o build/valdala source
 
   check:
     desc: Check V syntax
