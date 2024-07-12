@@ -21,10 +21,6 @@ tasks:
   start:
     desc: Start the application from an existing binary.
     cmd: build/valdala
-
-  format:
-    desc: Apply V code formatting.
-    cmd: v fmt -w webgpu graphics geometry
     
   setup:
     desc: Setup development environment.
