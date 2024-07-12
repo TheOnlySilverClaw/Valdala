@@ -4,31 +4,32 @@ import glfw3_webgpu
 import webgpu
 
 pub struct Window {
-	resize_listener ResizeListener = fn (width u32, height u32) {}
+	resize_listener	ResizeListener = fn (width u32, height u32) {}
 pub:
-	ptr      glfw3_webgpu.Window
+	ptr glfw3_webgpu.Window
 	instance webgpu.Instance
-	surface  webgpu.Surface
-	adapter  webgpu.Adapter
-	device   webgpu.Device
+	surface webgpu.Surface
+	adapter webgpu.Adapter
+	device webgpu.Device
 pub mut:
-	width         u32
-	height        u32
-	aspect_ratio  f32
+	width u32
+	height u32
+	aspect_ratio f32
 	depth_texture webgpu.Texture
 }
 
-pub type ResizeListener = fn (u32, u32)
+pub type ResizeListener = fn (width u32, height u32)
 
 @[param]
 pub struct WindowOptions {
-	title           string
-	width           u32            @[required]
-	height          u32            @[required]
+	title string
+	width u32 @[required]
+	height u32 @[required]
 	resize_listener ResizeListener = fn (width u32, height u32) {}
 }
 
 pub fn Window.new(instance webgpu.Instance, options WindowOptions) !&Window {
+
 	C.glfwWindowHint(C.GLFW_CLIENT_API, C.GLFW_NO_API)
 
 	ptr := C.glfwCreateWindow(options.width, options.height, options.title.str, C.NULL,
@@ -67,13 +68,14 @@ pub fn Window.new(instance webgpu.Instance, options WindowOptions) !&Window {
 }
 
 pub fn (mut window Window) set_size(width u32, height u32) {
+
 	window.width = width
 	window.height = height
 	window.aspect_ratio = f32(width) / f32(height)
-	window.resize_listener(width, height)
 	window.surface.configure(window.adapter, window.device, u32(width), u32(height))
 	window.depth_texture.release()
 	window.depth_texture = create_depth_texture(window.device, width, height)
+	window.resize_listener(width, height)
 }
 
 fn create_depth_texture(device webgpu.Device, width u32, height u32) webgpu.Texture {

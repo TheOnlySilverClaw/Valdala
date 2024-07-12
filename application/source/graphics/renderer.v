@@ -5,7 +5,7 @@ import time
 import os
 import glfw3_webgpu
 import webgpu
-import henrixounez.vpng
+import asset
 
 struct Renderer {
 	device          webgpu.Device
@@ -69,51 +69,10 @@ pub fn create_renderer() ! {
 	defer { render_pipeline.release() }
 	log.info('created render pipeline')
 
-	texture_image := vpng.read('textures/testing/texture_1.png')!
-	mut pixels := []u8{cap: texture_image.pixels.len * 4}
-
-	for pixel in texture_image.pixels {
-		match pixel {
-			vpng.TrueColor {
-				pixels << pixel.red
-				pixels << pixel.green
-				pixels << pixel.blue
-				pixels << 255
-			}
-			vpng.TrueColorAlpha {
-				pixels << pixel.red
-				pixels << pixel.green
-				pixels << pixel.blue
-				pixels << pixel.alpha
-			}
-			else {
-				log.error('unsupported pixel type: ${pixel}')
-			}
-		}
-	}
-
-	texture_width := u32(texture_image.width)
-	texture_height := u32(texture_image.height)
-
-	log.info('loaded texture with ${pixels.len / 4} (${texture_width} * ${texture_height}) pixels')
-
-	color_texture := window.device.create_texture(
-		label: 'test_texture'
-		width: texture_width
-		height: texture_height
-		usage: .texture_binding | .copy_dst
-		format: .rgba8_unorm
-	)
-
-	queue.write_texture(color_texture, pixels,
-		width: texture_width
-		height: texture_height
-		// TODO calculate from image
-		layout: webgpu.TextureDataLayout{
-			bytesPerRow: 4 * texture_width
-			rowsPerImage: texture_height
-		}
-	)
+	color_texture := asset.load_texture_png(
+		'textures/testing/texture_1.png', window.device, queue)!
+	defer { color_texture.release() }
+	log.info('loaded color texture ${color_texture}')
 
 	texture_view := color_texture.get_view()
 	defer { texture_view.release() }
