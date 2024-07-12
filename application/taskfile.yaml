@@ -14,9 +14,7 @@ tasks:
 
   check:
     desc: Check V syntax
-    cmds:
-      - mkdir -p build
-      - v -check .
+    cmd: v -check source
 
   start:
     desc: Start the application from an existing binary.
