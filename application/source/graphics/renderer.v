@@ -3,9 +3,9 @@ module graphics
 import log
 import time
 import os
-import glfw3_webgpu
 import webgpu
 import asset
+import glfw
 
 struct Renderer {
 	device          webgpu.Device
@@ -29,16 +29,14 @@ pub fn create_renderer() ! {
 	defer { instance.release() }
 	log.info('created instance')
 
-	if !glfw3_webgpu.initialize() {
+	if !glfw.initialize() {
 		return error('GLFW could not be initialized!')
 	}
+	defer { glfw.terminate() }
 
 	window := Window.new(instance, width: 1200, height: 1000, title: 'Valdala')!
 
-	defer { glfw3_webgpu.terminate() }
-	defer {
-		window.destroy()
-	}
+	defer { window.destroy()}
 	log.info('created window')
 
 	shader_source := os.read_file('shaders/textured.wgsl') or {
@@ -129,11 +127,10 @@ pub fn create_renderer() ! {
 	}
 
 	for !window.should_close() {
-		glfw3_webgpu.poll_events()
+
+		glfw.poll_events()
 
 		renderer.render(window)!
-
-		// window.swap_buffers()
 
 		time.sleep(1 * time.millisecond)
 	}
