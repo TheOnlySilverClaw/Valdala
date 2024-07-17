@@ -39,60 +39,82 @@ pub fn create_renderer() ! {
 	defer { window.destroy()}
 	log.info('created window')
 
+	device := window.device
+	surface := window.surface
+
 	shader_source := os.read_file('shaders/textured.wgsl') or {
 		return error('failed to load shader')
 	}
 
-	shader_module := window.device.create_shader(shader_source, 'textured') or {
+	shader_module := device.create_shader(shader_source, 'textured') or {
 		return error('failed to load shader_module')
 	}
 	defer { shader_module.release() }
 	log.info('shader_module loaded')
 
-	queue := window.device.get_queue()
+	queue := device.get_queue()
 	defer { queue.release() }
 	log.info('created queue')
 
-	texture_format := window.surface.get_preferred_format(window.adapter)
+	texture_format := surface.get_preferred_format(window.adapter)
 	log.info('preferred texture format: ${texture_format}')
 
-	bindgroup_layout := window.device.create_bindgroup_layout()
+	projection_buffer_entry := webgpu.BindGroupLayoutEntry(
+			webgpu.BufferBindingLayoutEntry {
+			binding: 0
+			visibility: .vertex
+			@type: .uniform
+		}
+	)
+
+	sampler_entry := webgpu.BindGroupLayoutEntry(
+			webgpu.SamplerBindingLayoutEntry {
+			binding: 1
+			@type: .filtering
+		}
+	)
+
+	texture_layout_entry := webgpu.BindGroupLayoutEntry(
+			webgpu.TextureBindingLayoutEntry {
+			binding: 2
+			sample_type: .float
+		}
+	)
+
+	bindgroup_layout_entries := [
+		projection_buffer_entry,
+		texture_layout_entry,
+		sampler_entry,
+	]
+
+	dump(bindgroup_layout_entries)
+
+	bindgroup_layout := device.create_bindgroup_layout(bindgroup_layout_entries)
+
 	defer { bindgroup_layout.release() }
 	log.info('created bindgroup layout')
 
-	pipeline_layout := window.device.create_pipeline_layout(bindgroup_layout)
+	pipeline_layout := device.create_pipeline_layout(bindgroup_layout)
 
-	render_pipeline := window.device.create_render_pipeline('textured', pipeline_layout,
+	render_pipeline := device.create_render_pipeline('textured', pipeline_layout,
 		shader_module, shader_module, texture_format)
 	defer { render_pipeline.release() }
 	log.info('created render pipeline')
 
 	color_texture := asset.load_texture_png(
-		'textures/testing/texture_1.png', window.device, queue)!
+		'textures/testing/texture_1.png', device, queue)!
 	defer { color_texture.release() }
 	log.info('loaded color texture ${color_texture}')
 
 	texture_view := color_texture.get_view()
 	defer { texture_view.release() }
 
-	sampler := window.device.create_sampler()
+	sampler := device.create_sampler()
 	defer { sampler.release() }
 
-	size := f32(0.5)
-	// vfmt off
-	vertex_data := [
-		// x	y			u  v  texture index
-		-size,	size		0, 0, 0,
-		-size, -size,		0, 1, 0,
-		size, -size,		1, 1, 0,
+	vertex_data := square(0.5)
 
-		size, -size,		1, 1, 0,
-		size, size,			1, 0, 0,
-		-size, size,		0, 0, 0,
-	]
-	// vfmt on
-
-	vertex_buffer := window.device.create_buffer(
+	vertex_buffer := device.create_buffer(
 		label: 'vertices'
 		size: u32(vertex_data.len) * sizeof(f32)
 		usage: .vertex | .copy_dst
@@ -101,28 +123,28 @@ pub fn create_renderer() ! {
 	log.info('created vertex buffer of size ${vertex_buffer.size}')
 	queue.write_buffer(vertex_buffer, 0, vertex_data)
 
-	projection_buffer := window.device.create_buffer(
+	projection_buffer := device.create_buffer(
 		label: 'projection'
-		size: 4 * 4 * sizeof(f32)
+		size: (3+2) * 4 * sizeof(f32)
 		usage: .uniform | .copy_dst
 	)
 	defer { projection_buffer.destroy() }
 
-	bind_group := window.device.create_bindgroup('textured', bindgroup_layout, projection_buffer,
+	bind_group := device.create_bindgroup('textured', bindgroup_layout, projection_buffer,
 		sampler, texture_view)
 	defer { bind_group.release() }
 	log.info('created bindgroup')
 
 	mut renderer := &Renderer{
-		device: window.device
-		surface: window.surface
+		device: device
+		surface: surface
 		queue: queue
 		shader_module: shader_module
 		texture_format: texture_format
 		vertex_buffer: vertex_buffer
 		bind_group: bind_group
 		pipeline: render_pipeline
-		mesh_size: u32(vertex_data.len) / (2 + 2 + 1)
+		mesh_size: u32(vertex_data.len) / (3 + 2 + 1)
 		projection_buffer: projection_buffer
 	}
 
