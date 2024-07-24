@@ -9,7 +9,7 @@ struct Vertex {
 
 @vertex
 fn vertex(
-  @location(0) position: vec2<f32>,
+  @location(0) position: vec3<f32>,
   @location(1) uv: vec2<f32>,
   @location(2) textureIndex: f32
 ) -> Vertex {
@@ -17,7 +17,7 @@ fn vertex(
 
   var vertex: Vertex;
   // vertex.position = projection * vec4<f32>(position.x, position.y, position.z, 1.0);
-  vertex.position = projection * vec4<f32>(position.x, position.y, 0.3, 1.0);
+  vertex.position = projection * vec4<f32>(position.x, position.y, position.z, 1.0);
   vertex.uv = uv;
   vertex.textureIndex = textureIndex;
   

@@ -125,7 +125,7 @@ pub fn create_renderer() ! {
 
 	projection_buffer := device.create_buffer(
 		label: 'projection'
-		size: (3+2) * 4 * sizeof(f32)
+		size: 4 * 4 * sizeof(f32)
 		usage: .uniform | .copy_dst
 	)
 	defer { projection_buffer.destroy() }
