@@ -2,7 +2,7 @@
   "provides" : "glfw",
   "targets" : {
     "linux-x64" : {
-      "linked-libraries" : ["glfw4"]
+      "linked-libraries" : ["glfw"]
     }
   }
 }

@@ -1,0 +1,10 @@
+{
+  "provides" : "glfw_webgpu",
+  "targets" : {
+    "linux-x64" : {}
+  },
+  "dependencies" : [
+    "glfw",
+    "webgpu"
+  ]
+}

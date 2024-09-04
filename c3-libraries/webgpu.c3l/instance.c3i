@@ -1,0 +1,10 @@
+module webgpu;
+
+distinct Instance = void*;
+
+struct InstanceDescriptor {
+    ChainedStruct* nextInChain;
+}
+
+extern fn Instance createInstance(InstanceDescriptor* descriptor = null) @extern("wgpuCreateInstance");
+

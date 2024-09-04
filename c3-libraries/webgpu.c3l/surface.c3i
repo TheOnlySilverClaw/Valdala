@@ -1,0 +1,19 @@
+module webgpu;
+
+distinct Surface = void*;
+
+struct SurfaceDescriptor {
+    ChainedStruct* nextInChain;
+    ZString label;
+}
+
+distinct X11Display = void*;
+distinct X11Window = CULong;
+
+struct SurfaceDescriptorFromXlibWindow {
+    ChainedStruct chain;
+    X11Display display;
+    X11Window window;
+}
+
+extern fn Surface Instance.createSurface(Instance instance, SurfaceDescriptor* descriptor) @extern("wgpuInstanceCreateSurface");

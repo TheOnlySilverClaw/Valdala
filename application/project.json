@@ -3,7 +3,8 @@
   "warnings": [ "no-unused" ],
   "dependency-search-paths": [ "../c3-libraries" ],
   "dependencies": [
-    "glfw"
+    "glfw",
+    "glfw_webgpu"
   ],
   "authors": [ "Joel Lacour" ],
   "version": "0.0.1",
