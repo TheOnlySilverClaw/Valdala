@@ -4,38 +4,38 @@ tasks:
 
   run:
     desc: Build and run the application.
-    cmd: v -cc clang run source/main.v
+    cmd: v -cc clang run src/main.v
 
   build:
     desc: Build the application in debug mode.
     cmds:
       - mkdir -p build
-      - v -g -cc clang -o build/valdala source
+      - v -g -cc clang -o build/valdala src
 
   check:
     desc: Check V syntax
-    cmd: v -check source
+    cmd: v -check src
 
   start:
     desc: Start the application from an existing binary.
     cmd: build/valdala
-    
+
   setup:
     desc: Setup development environment.
     cmds:
       - task: init-submodules
       - task: build-wgpu
-  
+
   init-submodules:
     desc: Initialize all git submodules.
     cmd: git submodule update --init --recursive
-  
+
   update-submodules:
     desc: Update all git submodules.
-    cmd: git submodule update --recursive --remote
+    cmd: git submodule update --recursive
 
   build-wgpu:
     desc: Build the wgpu-native submodule into a static library.
     cmds:
       - make -C submodules/wgpu-native lib-native
-      - cp submodules/wgpu-native/target/debug/libwgpu_native.a libraries
+      - cp submodules/wgpu-native/target/debug/libwgpu_native.a lib

@@ -1,0 +1,43 @@
+module glfw;
+
+distinct Window = void*;
+
+distinct Monitor = void*;
+
+def KeyCallback = fn void(Window window, CInt key, CInt scancode, KeyAction action, CInt mods);
+
+def WindowSizeCallback = fn void(Window window, CInt width, CInt height);
+
+def CharCallback = fn void(Window window, CUInt codepoint);
+
+enum KeyAction : CInt {
+    RELEASE,
+    PRESS,
+    REPEAT
+}
+
+extern fn ZString versionString() @extern("glfwGetVersionString");
+
+extern fn int glfwInit() @private;
+
+extern fn void terminate() @extern("glfwTerminate");
+
+extern fn Window createWindow(CInt width, CInt height, ZString title, Monitor monitor = null, Window share = null) @extern("glfwCreateWindow");
+
+extern fn void Window.destroy(Window window) @extern("glfwDestroyWindow");
+
+extern fn int glfwWindowShouldClose(Window window) @private;
+
+extern fn void pollEvents() @extern("glfwPollEvents");
+
+extern fn KeyCallback Window.setKeyCallback(Window window, KeyCallback callback) @extern("glfwSetKeyCallback");
+
+extern fn WindowSizeCallback Window.setWindowSizeCallback(Window window, WindowSizeCallback callback) @extern("glfwSetWindowSizeCallback");
+
+extern fn CharCallback Window.setCharCallback(Window window, CharCallback callback) @extern("glfwSetCharCallback");
+
+extern fn void* Window.setUserPointer(Window window, void* pointer) @extern("glfwSetWindowUserPointer");
+
+extern fn void* Window.getUserPointer(Window window) @extern("glfwGetWindowUserPointer");
+
+extern fn ZString getKeyName(CInt key, CInt scancode) @extern("glfwGetKeyName");
