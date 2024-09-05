@@ -1,0 +1,26 @@
+module webgpu;
+
+distinct Sampler = inline void*;
+
+fn void Sampler.setLabel(Sampler sampler,
+    ZString label) @extern("wgpuSamplerSetLabel");
+
+fn void Sampler.reference(Sampler sampler) @extern("wgpuSamplerReference");
+
+fn void Sampler.release(Sampler sampler) @extern("wgpuSamplerRelease");
+
+
+struct SamplerDescriptor {
+    ChainedStruct* next;
+    ZString label;
+    AddressMode addressModeU;
+    AddressMode addressModeV;
+    AddressMode addressModeW;
+    FilterMode magFilter;
+    FilterMode minFilter;
+    MipmapFilterMode mipmapFilter;
+    float lodMinClamp;
+    float lodMaxClamp;
+    CompareFunction compare;
+    CUShort maxAnisotropy;
+}

@@ -1,19 +1,73 @@
 module webgpu;
 
-distinct Surface = void*;
+distinct Surface = inline void*;
+
+fn void Surface.configure(Surface surface,
+    SurfaceConfiguration* configuration) @extern("wgpuSurfaceConfigure");
+
+fn void Surface.getCapabilities(Surface surface,
+    Adapter adapter, SurfaceCapabilities* capabilities) @extern("wgpuSurfaceGetCapabilities");
+
+fn void Surface.getCurrentTexture(Surface surface,
+    Adapter adapter, SurfaceTexture* texture) @extern("wgpuSurfaceGetCurrentTexture");
+
+fn void Surface.getPreferredFormat(Surface surface,
+    Adapter adapter) @extern("wgpuSurfaceGetPreferredFormat");
+
+fn void Surface.present(Surface surface) @extern("wgpuSurfacePresent");
+
+fn void Surface.setLabel(Surface surface,
+    ZString label) @extern("wgpuSurfaceSetLabel");
+
+fn void Surface.unconfigure(Surface surface) @extern("wgpuSurfaceUnconfigure");
+
+fn void Surface.reference(Surface surface) @extern("wgpuSurfaceReference");
+
+fn void Surface.release(Surface surface) @extern("wgpuSurfaceRelease");
+
+fn void SurfaceCapabilities.freeMembers(SurfaceCapabilities* capabilities)
+    @extern("wgpuSurfaceCapabilitiesFreeMembers");
+
 
 struct SurfaceDescriptor {
-    ChainedStruct* nextInChain;
+    ChainedStruct* next;
     ZString label;
 }
 
-distinct X11Display = void*;
-distinct X11Window = CULong;
-
-struct SurfaceDescriptorFromXlibWindow {
-    ChainedStruct chain;
-    X11Display display;
-    X11Window window;
+struct SurfaceCapabilities {
+    ChainedStructOut* next;
+    usz formatCount;
+    TextureFormat* formats;
+    usz presentModeCount;
+    PresentMode* presentModes;
+    usz alphaModeCount;
+    CompositeAlphaMode* alphaModes;
 }
 
-extern fn Surface Instance.createSurface(Instance instance, SurfaceDescriptor* descriptor) @extern("wgpuInstanceCreateSurface");
+struct SurfaceConfiguration {
+    ChainedStruct* next;
+    Device device;
+    TextureFormat format;
+    TextureUsageFlags usage;
+    usz viewFormatCount;
+    TextureFormat* viewFormats;
+    CompositeAlphaMode alphaMode;
+    CUInt width;
+    CUInt height;
+    PresentMode presentMode;
+}
+
+struct SurfaceTexture {
+    Texture texture;
+    Bool suboptimal;
+    CurrentTextureStatus status;
+}
+
+enum CurrentTextureStatus {
+    SUCCESS,
+    TIMEOUT,
+    OUTDATED,
+    LOST,
+    OUT_OF_MEMORY,
+    DEVICE_LOST
+}

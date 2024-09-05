@@ -1,0 +1,62 @@
+module webgpu;
+
+distinct Adapter = inline void*;
+
+def RequestAdapterInfoCallback = fn void(AdapterInfo info, UserData data);
+
+def RequestAdapterCallback = fn void(RequestAdapterStatus status,
+    Adapter adapter, ZString message, UserData data);
+
+
+fn usz Adapter.enumerateFeatures(Adapter adapter, FeatureName* features) @extern("wgpuAdapterEnumerateFeatures");
+
+fn Bool Adapter.getLimits(Adapter adapter, SupportedLimits* limits) @extern("wgpuAdapterGetLimits");
+
+fn void Adapter.getProperties(Adapter adapter, AdapterProperties* properties) @extern("wgpuAdapterGetProperties");
+
+fn Bool Adapter.hasFeature(Adapter adapter, FeatureName feature) @extern("wgpuAdapterHasFeature");
+
+fn void Adapter.requestAdapterInfo(Adapter adapter, RequestAdapterInfoCallback callback, UserData data) @extern("wgpuAdapterRequestAdapterInfo");
+
+fn void Adapter.requestDevice(Adapter adapter,
+    DeviceDescriptor* descriptor, RequestDeviceCallback callback,
+	UserData data) @extern("wgpuAdapterRequestDevice");
+
+fn void Adapter.reference(Adapter adapter) @extern("wgpuAdapterReference");
+
+fn void Adapter.release(Adapter adapter) @extern("wgpuAdapterRelease");
+
+
+enum AdapterType {
+    DISCRETE_GPU,
+    INTEGRATED_GPU,
+    CPU,
+    UNKNOWN
+}
+
+struct AdapterInfo {
+    ZString vendor;
+    ZString architecture;
+    ZString device;
+    ZString description;
+}
+
+struct AdapterProperties {
+    ChainedStructOut* next;
+    CUInt vendorID;
+    ZString vendorName;
+    ZString architecture;
+    CUInt deviceID;
+    ZString name;
+    ZString driverDescription;
+    AdapterType adapterType;
+    BackendType backendType;
+}
+
+struct RequestAdapterOptions {
+    ChainedStruct* next;
+    Surface compatibleSurface;
+    PowerPreference powerPreference;
+    BackendType backendType;
+    Bool forceFallbackAdapter;
+}

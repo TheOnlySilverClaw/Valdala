@@ -1,10 +1,26 @@
 module webgpu;
 
-distinct Instance = void*;
+distinct Instance = inline void*;
+
+fn Surface Instance.createSurface(Instance instance,
+    SurfaceDescriptor* descriptor) @extern("wgpuInstanceCreateSurface");
+
+fn Instance createInstance(InstanceDescriptor* descriptor = null) @extern("wgpuCreateInstance");
+
+fn void Instance.hasWGSLLanguageFeature(Instance instance, WgslFeatureName feature) @extern("wgpuInstanceHasWGSLLanguageFeature");
+
+fn void Instance.processEvents(Instance instance) @extern("wgpuInstanceProcessEvents");
+
+fn void Instance.requestAdapter(Instance instance, RequestAdapterOptions* options,
+    RequestAdapterCallback callback, UserData data) @extern("wgpuInstanceRequestAdapter");
+
+fn void Instance.reference(Instance instance) @extern("wgpuInstanceReference");
+
+fn void Instance.release(Instance instance) @extern("wgpuInstanceRelease");
+
 
 struct InstanceDescriptor {
-    ChainedStruct* nextInChain;
+    ChainedStruct* next;
 }
 
-extern fn Instance createInstance(InstanceDescriptor* descriptor = null) @extern("wgpuCreateInstance");
 

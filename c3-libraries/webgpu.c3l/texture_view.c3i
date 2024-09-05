@@ -1,0 +1,40 @@
+module webgpu;
+
+distinct TextureView = inline void*;
+
+
+fn void TextureView.setLabel(TextureView texture, ZString label) @extern("wgpuTextureViewSetLabel");
+
+fn void TextureView.reference(TextureView texture) @extern("wgpuTextureViewReference");
+
+fn void TextureView.release(TextureView texture) @extern("wgpuTextureViewRelease");
+
+
+struct TextureViewDescriptor {
+    ChainedStruct* next;
+    ZString label;
+    TextureFormat format;
+    TextureViewDimension dimension;
+    CUInt baseMipLevel;
+    CUInt mipLevelCount;
+    CUInt baseArrayLayer;
+    CUInt arrayLayerCount;
+    TextureAspect aspect;
+}
+
+enum TextureViewDimension {
+    UNDEFINED,
+    ONE,
+    TWO,
+    TWO_ARRAY,
+    CUBE,
+    CUBE_ARRAY,
+    THREE
+}
+
+struct StorageTextureBindingLayout {
+    ChainedStruct* next;
+    StorageTextureAccess access;
+    TextureFormat format;
+    TextureViewDimension viewDimension;
+}

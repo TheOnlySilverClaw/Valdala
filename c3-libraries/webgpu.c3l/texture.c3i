@@ -1,0 +1,65 @@
+module webgpu;
+
+distinct Texture = inline void*;
+
+fn TextureView Texture.createView(Texture texture, TextureViewDescriptor* descroptor) @extern("wgpuTextureCreateView");
+
+fn void Texture.destroy(Texture texture, ZString label) @extern("wgpuTextureDestroy");
+
+fn CUInt Texture.getDepthOrArrayLayers(Texture texture) @extern("wgpuTextureGetDepthOrArrayLayers");
+
+fn TextureDimension Texture.getDimension(Texture texture) @extern("wgpuTextureGetDimension");
+
+fn TextureFormat Texture.getFormat(Texture texture) @extern("wgpuTextureGetFormat");
+
+fn CUInt Texture.getHeight(Texture texture) @extern("wgpuTextureGetHeight");
+
+fn CUInt Texture.getMipLevelCount(Texture texture) @extern("wgpuTextureGetMipLevelCount");
+
+fn CUInt Texture.getSampleCount(Texture texture) @extern("wgpuTextureGetSampleCount");
+
+fn CUInt Texture.getWidth(Texture texture) @extern("wgpuTextureGetWidth");
+
+fn void Texture.setLabel(Texture texture, ZString label) @extern("wgpuTextureSetLabel");
+
+fn void Texture.reference(Texture texture) @extern("wgpuTextureReference");
+
+fn void Texture.release(Texture texture) @extern("wgpuTextureRelease");
+
+
+def TextureUsageFlags = TextureUsage;
+
+struct TextureDescriptor {
+    ChainedStruct* next;
+    ZString label;
+    TextureUsageFlags usage;
+    TextureDimension dimension;
+    Extent3D size;
+    TextureFormat format;
+    CUInt mipLevelCount;
+    CUInt sampleCount;
+    usz viewFormatCount;
+    TextureFormat* viewFormats;
+}
+
+struct TextureDataLayout {
+    ChainedStruct* next;
+    CULong offset;
+    CUInt bytesPerRow;
+    CUInt rowsPerImage;
+}
+
+// TODO enum naming
+enum TextureDimension {
+    ONE,
+    TWO,
+    THREE
+}
+
+struct ImageCopyTexture {
+    ChainedStruct* next;
+    Texture texture;
+    CUInt mipLevel;
+    Origin3D origin;
+    TextureAspect aspect;
+}
