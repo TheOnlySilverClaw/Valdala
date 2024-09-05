@@ -2,6 +2,9 @@ module webgpu;
 
 distinct Adapter = inline void*;
 
+fault AdapterError {
+    REQUEST_FAILED
+}
 
 fn usz Adapter.enumerateFeatures(Adapter adapter, FeatureName* features) @extern("wgpuAdapterEnumerateFeatures");
 
@@ -13,7 +16,7 @@ fn Bool Adapter.hasFeature(Adapter adapter, FeatureName feature) @extern("wgpuAd
 
 fn void Adapter.requestAdapterInfo(Adapter adapter, RequestAdapterInfoCallback callback, UserData data) @extern("wgpuAdapterRequestAdapterInfo");
 
-fn void Adapter.requestDevice(Adapter adapter,
+fn void Adapter.requestDeviceAsync(Adapter adapter,
     DeviceDescriptor* descriptor, RequestDeviceCallback callback,
 	UserData data) @extern("wgpuAdapterRequestDevice");
 
@@ -24,6 +27,8 @@ fn void Adapter.release(Adapter adapter) @extern("wgpuAdapterRelease");
 
 def RequestAdapterInfoCallback = fn void(AdapterInfo info, UserData data);
 
+def RequestDeviceCallback = fn void (RequestDeviceStatus status,
+	Device device, ZString message, UserData data);
 
 enum AdapterType {
     DISCRETE_GPU,

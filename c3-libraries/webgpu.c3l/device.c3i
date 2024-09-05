@@ -2,6 +2,10 @@ module webgpu;
 
 distinct Device = inline void*;
 
+fault DeviceError {
+    REQUEST_FAILED
+}
+
 fn void* getProcAddress(Device device, ZString name) @extern("wgpuGetProcAddress");
 
 fn BindGroup Device.createBindGroup(Device device, BindGroupDescriptor* descriptor)
@@ -51,16 +55,15 @@ fn usz Device.enumerateFeatures(Device device, FeatureName* features) @extern("w
 
 fn Bool Device.getLimits(Device device, SupportedLimits* limits) @extern("wgpuDeviceGetLimits");
 
-fn Queue Device.getQueue(Device device) @extern("wgpuDeviceQueue");
+fn Queue Device.getQueue(Device device) @extern("wgpuDeviceGetQueue");
 
-fn Bool Device.hasFeature(Device device, FeatureName feature) @extern("wgpuDeviceGetQueue");
+fn Bool Device.hasFeature(Device device, FeatureName feature) @extern("wgpuDeviceHasFeature");
 
 fn void Device.popErrorScope(Device device, ErrorCallback callback) @extern("wgpuDevicePopErrorScope");
 
 fn void Device.pushErrorScope(Device device, ErrorFilter filter) @extern("wgpuDevicePushErrorScope");
 
-fn void Device.setLabel(Device device, ZString label)
-    @extern("wgpuDeviceSetLabel");
+fn void Device.setLabel(Device device, ZString label) @extern("wgpuDeviceSetLabel");
 
 fn void Device.setUncapturedErrorCallback(Device device, ErrorCallback callback)
     @extern("wgpuDeviceSetUncapturedErrorCallback");
@@ -70,12 +73,7 @@ fn void Device.reference(Device device) @extern("wgpuDeviceReference");
 fn void Device.release(Device device) @extern("wgpuDeviceRelease");
 
 
-
-
 def DeviceLostCallback = fn void (DeviceLostReason reason, ZString message, UserData data);
-
-def RequestDeviceCallback = fn void (RequestDeviceStatus status,
-	Device device, ZString message, UserData data);
 
 def ErrorCallback = fn void(ErrorType type, ZString message, UserData data);
 

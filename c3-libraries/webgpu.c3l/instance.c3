@@ -1,19 +1,9 @@
 module webgpu;
 import std::io;
 
-fault InstanceError {
-    ADAPTER_REQUEST_FAILED
-}
-
-fn Adapter! Instance.awaitAdapter(Instance instance, Surface surface, bool highPerformance = true) {
+fn Adapter! Instance.requestAdapter(Instance instance, RequestAdapterOptions* options) {
 
     Adapter adapter = null;
-
-    RequestAdapterOptions options;
-    options.compatibleSurface = surface;
-    if(highPerformance) {
-        options.powerPreference = HIGH_PERFORMANCE;
-    }
 
     RequestAdapterCallback callback = fn void(RequestAdapterStatus status,
         Adapter adapter, ZString message, UserData result) {
@@ -23,10 +13,10 @@ fn Adapter! Instance.awaitAdapter(Instance instance, Surface surface, bool highP
         }
     };
 
-    instance.requestAdapter(&options, callback, &adapter);
+    instance.requestAdapterAsync(options, callback, &adapter);
 
     if(adapter == null) {
-        return InstanceError.ADAPTER_REQUEST_FAILED?;
+        return AdapterError.REQUEST_FAILED?;
     } else {
         return adapter;
     }

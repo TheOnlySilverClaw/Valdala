@@ -13,12 +13,10 @@ fn void main() {
 
 fn void! start() {
 
-    io::printn("Start");
-
     glfw::init()!;
     defer glfw::terminate();
 
-    glfw::Window window = glfw::createWindow(1000, 800, "Valdala");
+    Window window = glfw::createWindow(1000, 800, "Valdala");
     defer window.destroy();
 
     Instance instance = webgpu::createInstance();
@@ -27,12 +25,24 @@ fn void! start() {
     Surface surface = glfw_webgpu::createSurface(instance, window);
     defer surface.release();
 
-    Adapter adapter = instance.awaitAdapter(surface)!;
+    RequestAdapterOptions options;
+    options.compatibleSurface = surface;
+    options.powerPreference = HIGH_PERFORMANCE;
+
+    Adapter adapter = instance.requestAdapter(&options)!;
     defer adapter.release();
 
     TextureFormat surfaceFormat = surface.getPreferredFormat(adapter);
     io::printfn("preferred surface texture format: %s", surfaceFormat);
 
+    Device device = adapter.requestDevice()!;
+    defer {
+        device.destroy();
+        device.release();
+    }
+
+    Queue queue = device.getQueue();
+    defer queue.release();
 
     while(!window.shouldClose()) {
         glfw::pollEvents();

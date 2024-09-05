@@ -11,7 +11,7 @@ fn void Instance.hasWGSLLanguageFeature(Instance instance, WgslFeatureName featu
 
 fn void Instance.processEvents(Instance instance) @extern("wgpuInstanceProcessEvents");
 
-fn void Instance.requestAdapter(Instance instance, RequestAdapterOptions* options,
+fn void Instance.requestAdapterAsync(Instance instance, RequestAdapterOptions* options,
     RequestAdapterCallback callback, UserData data) @extern("wgpuInstanceRequestAdapter");
 
 fn void Instance.reference(Instance instance) @extern("wgpuInstanceReference");
