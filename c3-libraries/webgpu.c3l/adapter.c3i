@@ -2,11 +2,6 @@ module webgpu;
 
 distinct Adapter = inline void*;
 
-def RequestAdapterInfoCallback = fn void(AdapterInfo info, UserData data);
-
-def RequestAdapterCallback = fn void(RequestAdapterStatus status,
-    Adapter adapter, ZString message, UserData data);
-
 
 fn usz Adapter.enumerateFeatures(Adapter adapter, FeatureName* features) @extern("wgpuAdapterEnumerateFeatures");
 
@@ -25,6 +20,9 @@ fn void Adapter.requestDevice(Adapter adapter,
 fn void Adapter.reference(Adapter adapter) @extern("wgpuAdapterReference");
 
 fn void Adapter.release(Adapter adapter) @extern("wgpuAdapterRelease");
+
+
+def RequestAdapterInfoCallback = fn void(AdapterInfo info, UserData data);
 
 
 enum AdapterType {

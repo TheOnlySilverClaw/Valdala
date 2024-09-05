@@ -166,13 +166,6 @@ enum QueueWorkDoneStatus {
     DEVICE_LOST
 }
 
-enum RequestAdapterStatus {
-    SUCCESS,
-    UNAVAILABLE,
-    ERROR,
-    UNKNOWN
-}
-
 enum SamplerBindingType {
     UNDEFINED,
     FILTERING,

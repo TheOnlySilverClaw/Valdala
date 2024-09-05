@@ -19,8 +19,18 @@ fn void Instance.reference(Instance instance) @extern("wgpuInstanceReference");
 fn void Instance.release(Instance instance) @extern("wgpuInstanceRelease");
 
 
+def RequestAdapterCallback = fn void(RequestAdapterStatus status,
+    Adapter adapter, ZString message, UserData result);
+
+
 struct InstanceDescriptor {
     ChainedStruct* next;
 }
 
 
+enum RequestAdapterStatus {
+    SUCCESS,
+    UNAVAILABLE,
+    ERROR,
+    UNKNOWN
+}

@@ -22,8 +22,19 @@ fn void! start() {
     defer window.destroy();
 
     Instance instance = webgpu::createInstance();
+    defer instance.release();
 
     Surface surface = glfw_webgpu::createSurface(instance, window);
+    defer surface.release();
+
+    Adapter adapter = instance.awaitAdapter(surface)!;
+    defer adapter.release();
+
+    foreach (FeatureName feature : FeatureName.values) {
+        bool available = adapter.hasFeature(feature) == 1;
+        io::printfn("feature %s %s", feature, available);
+    }
+
 
     while(!window.shouldClose()) {
         glfw::pollEvents();
