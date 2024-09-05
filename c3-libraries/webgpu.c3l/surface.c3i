@@ -8,10 +8,10 @@ fn void Surface.configure(Surface surface,
 fn void Surface.getCapabilities(Surface surface,
     Adapter adapter, SurfaceCapabilities* capabilities) @extern("wgpuSurfaceGetCapabilities");
 
-fn void Surface.getCurrentTexture(Surface surface,
+fn Texture Surface.getCurrentTexture(Surface surface,
     Adapter adapter, SurfaceTexture* texture) @extern("wgpuSurfaceGetCurrentTexture");
 
-fn void Surface.getPreferredFormat(Surface surface,
+fn TextureFormat Surface.getPreferredFormat(Surface surface,
     Adapter adapter) @extern("wgpuSurfaceGetPreferredFormat");
 
 fn void Surface.present(Surface surface) @extern("wgpuSurfacePresent");

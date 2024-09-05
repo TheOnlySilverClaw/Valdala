@@ -30,10 +30,8 @@ fn void! start() {
     Adapter adapter = instance.awaitAdapter(surface)!;
     defer adapter.release();
 
-    foreach (FeatureName feature : FeatureName.values) {
-        bool available = adapter.hasFeature(feature) == 1;
-        io::printfn("feature %s %s", feature, available);
-    }
+    TextureFormat surfaceFormat = surface.getPreferredFormat(adapter);
+    io::printfn("preferred surface texture format: %s", surfaceFormat);
 
 
     while(!window.shouldClose()) {
