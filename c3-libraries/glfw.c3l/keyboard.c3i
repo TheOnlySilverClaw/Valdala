@@ -8,6 +8,9 @@ fn ZString getKeyName(Key key, Scancode scancode) @extern("glfwGetKeyName");
 
 fn Scancode getScanCode(Key key) @extern("glfwGetKeyScancode");
 
+
+module glfw::keyboard::key;
+
 const Key UNKNOWN = -1;
 
 const Key SPACE = 32;

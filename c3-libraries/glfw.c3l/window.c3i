@@ -49,7 +49,7 @@ fn void Window.destroy(Window window) @extern("glfwDestroyWindow");
 
 fn CInt Window.shouldClose(Window window) @extern("glfwWindowShouldClose");
 
-fn void Window.setShouldClose(Window window, CBool close) @extern("glfwWindowShouldClose");
+fn void Window.setShouldClose(Window window, CBool close) @extern("glfwSetWindowShouldClose");
 
 fn ZString Window.getTitle(Window window) @extern("glfwGetWindowTitle");
 

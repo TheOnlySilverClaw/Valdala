@@ -8,7 +8,7 @@ fn Monitor* getMonitors(CInt* count) @extern("glfwGetMonitors");
 
 fn Monitor getPrimaryMonitor() @extern("glfwGetPrimaryMonitor");
 
-fn void Monitor.getPosition(Monitor monitor, CInt* x, CInt* y) @extern("glfwGetPrimaryMonitor");
+fn void Monitor.getPosition(Monitor monitor, CInt* x, CInt* y) @extern("glfwGetMonitorPos");
 
 fn void Monitor.getWorkarea(Monitor monitor, CInt* x, CInt* y, CInt* width, CInt* height) @extern("glfwGetMonitorWorkarea");
 
@@ -16,7 +16,7 @@ fn void Monitor.getPhysicalSize(Monitor monitor, CInt* width, CInt* height) @ext
 
 fn void Monitor.getContentScale(Monitor monitor, float* x, float* height) @extern("glfwGetMonitorContentScale");
 
-fn ZString Monitor.getName(Monitor monitor, float* x, float* height) @extern("glfwGetMonitorName");
+fn ZString Monitor.getName(Monitor monitor) @extern("glfwGetMonitorName");
 
 fn void Monitor.setUserPointer(Monitor monitor, UserPointer pointer) @extern("glfwSetMonitorUserPointer");
 
