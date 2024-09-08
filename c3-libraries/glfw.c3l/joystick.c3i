@@ -1,0 +1,93 @@
+module glfw::joystick;
+
+distinct Joystick = inline CInt;
+
+def JoystickCallback = fn void(Joystick joystick, ConnectionState event);
+
+fn CBool Joystick.present(Joystick joystick) @extern("glfwJoystickPresent");
+
+fn float* Joystick.getAxes(Joystick joystick, CInt* count) @extern("glfwGetJoystickAxes");
+
+fn CUChar* Joystick.getButtons(Joystick joystick, CInt* count) @extern("glfwGetJoystickAxes");
+
+fn CUChar* Joystick.getHats(Joystick joystick, CInt* count) @extern("glfwGetJoystickHats");
+
+fn ZString Joystick.getName(Joystick joystick) @extern("glfwGetJoystickName");
+
+fn ZString Joystick.getGUID(Joystick joystick) @extern("glfwGetJoystickGUID");
+
+fn void Joystick.setUserPointer(Joystick joystick, UserPointer pointer) @extern("glfwSetJoystickUserPointer");
+
+fn UserPointer Joystick.getUserPointer(Joystick joystick, UserPointer pointer) @extern("glfwGetJoystickUserPointer");
+
+fn CBool Joystick.isGamepad(Joystick joystick) @extern("glfwJoystickIsGamepad");
+
+fn JoystickCallback Joystick.setCallback(Joystick joystick, JoystickCallback callback) @extern("glfwSetJoystickCallback");
+
+fn CBool updateGamepadMappings(ZString mapping) @extern("glfwUpdateGamepadMappings");
+
+fn ZString Joystick.getGamepadName(Joystick joystick) @extern("glfwGetGamepadName");
+
+fn CBool Joystick.getGamepadState(Joystick joystick, GamepadState* state) @extern("glfwGetGamepadState");
+
+
+const Joystick JOYSTICK_1 = 0;
+const Joystick JOYSTICK_2 = 1;
+const Joystick JOYSTICK_3 = 2;
+const Joystick JOYSTICK_4 = 3;
+const Joystick JOYSTICK_5 = 4;
+const Joystick JOYSTICK_6 = 5;
+const Joystick JOYSTICK_7 = 6;
+const Joystick JOYSTICK_8 = 7;
+const Joystick JOYSTICK_9 = 8;
+const Joystick JOYSTICK_10 = 9;
+const Joystick JOYSTICK_11 = 10;
+const Joystick JOYSTICK_12 = 11;
+const Joystick JOYSTICK_13 = 12;
+const Joystick JOYSTICK_14 = 13;
+const Joystick JOYSTICK_15 = 14;
+const Joystick JOYSTICK_16 = 15;
+
+const Joystick JOYSTICK_LAST = JOYSTICK_16;
+
+
+struct GamepadState {
+    CUChar[15] buttons;
+    float[6] axes;
+}
+
+enum Button : CInt {
+    A,
+    B,
+    X,
+    Y,
+    LEFT_BUMPER,
+    RIGHT_BUMPER,
+    BACK,
+    START,
+    GUIDE,
+    LEFT_THUMB,
+    RIGHT_THUMB,
+    DPAD_UP,
+    DPAD_RIGHT,
+    DPAD_DOWN,
+    DPAD_LEFT,
+}
+
+
+const Button BUTTON_LAST = Button.DPAD_LEFT;
+const Button BUTTON_CROSS = Button.A;
+const Button BUTTON_CIRCLE = Button.B;
+const Button BUTTON_SQUARE = Button.X;
+const Button BUTTON_TRIANGLE = Button.Y;
+
+enum Axis : CInt {
+    LEFT_X,
+    LEFT_Y,
+    RIGHT_X,
+    RIGHT_Y,
+    LEFT_TRIGGER,
+    RIGHT_TRIGGER
+}
+
+const AXIS_LAST = Axis.RIGHT_TRIGGER;

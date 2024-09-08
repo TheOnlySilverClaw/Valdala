@@ -1,0 +1,55 @@
+module glfw;
+
+distinct InitHint = CInt;
+
+fn void initHint(InitHint hint, CInt value) @extern("glfwInitHint");
+
+
+module glfw::joystick;
+
+const InitHint JOYSTICK_HAT_BUTTONS = 0x00050001;
+
+
+module glfw::angle;
+
+const ANGLE_PLATFORM_TYPE = 0x00050002;
+
+const NONE = 0x00037001;
+const OPENGL = 0x00037002;
+const OPENGLES = 0x00037003;
+const D3D9 = 0x00037004;
+const D3D11 = 0x00037005;
+const VULKAN = 0x00037007;
+const METAL = 0x00037008;
+
+
+module glfw::platform;
+
+distinct Platform = CInt;
+
+const InitHint PLATFORM = 0x00050003;
+
+const Platform ANY_PLATFORM = 0x00060000;
+const Platform WIN32 = 0x00060001;
+const Platform COCOA = 0x00060002;
+const Platform WAYLAND = 0x00060003;
+const Platform X11 = 0x00060004;
+const Platform NULL = 0x00060005;
+
+
+module glfw::cocoa;
+
+const InitHint CHDIR_RESOURCES = 0x00051001;
+const InitHint MENUBAR = 0x00051002;
+
+module glfw::vulkan;
+
+const InitHint X11_XCB_VULKAN_SURFACE = 0x00052001;
+
+
+module glfw::wayland;
+
+const InitHint LIBDECOR = 0x00053001;
+
+const PREFER_LIBDECOR = 0x00038001;
+const DISABLE_LIBDECOR = 0x00038002;

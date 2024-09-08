@@ -1,0 +1,180 @@
+module glfw::window;
+
+import glfw::monitor;
+import glfw::input;
+import glfw::keyboard;
+import glfw::mouse;
+
+distinct Window = void*;
+
+def PositionCallback = fn void(Window window, CInt x, CInt y);
+
+def SizeCallback = fn void(Window window, CInt width, CInt height);
+
+def CloseCallback = fn void(Window window);
+
+def RefreshCallback = fn void(Window window);
+
+def FocusCallback = fn void(Window window, CBool focused);
+
+def IconifyCallback = fn void(Window window, CBool iconified);
+
+def MaximizedCallback = fn void(Window window, CBool maximized);
+
+def FramebufferSizeCallback = fn void(Window window, CInt width, CInt height);
+
+def ContentScaleCallback = fn void(Window window, float x, float y);
+
+def MouseButtonCallback = fn void(Window window, Button button, Action action, Modifiers modifiers);
+
+def CursorPositionCallback = fn void(Window window, double x, double y);
+
+def CursorEnterCallback = fn void(Window window, CBool entered);
+
+def ScrollCallback = fn void(Window window, double x, double y);
+
+def KeyCallback = fn void(Window window, Key key, Scancode scancode, Action action, Modifiers modifiers);
+
+def CharacterCallback = fn void(Window window, CodePoint codepoint);
+
+def CharacterModifiersCallback = fn void(Window window, CodePoint codepoint, Modifiers modifiers);
+
+def DropCallback = fn void(Window window, CInt pathCount, ZString* paths);
+
+
+fn Window create(CInt width, CInt height, ZString title,
+    monitor::Monitor monitor = null, Window share = null) @extern("glfwCreateWindow");
+
+fn void Window.destroy(Window window) @extern("glfwDestroyWindow");
+
+fn CInt Window.shouldClose(Window window) @extern("glfwWindowShouldClose");
+
+fn void Window.setShouldClose(Window window, CBool close) @extern("glfwWindowShouldClose");
+
+fn ZString Window.getTitle(Window window) @extern("glfwGetWindowTitle");
+
+fn void Window.setTitle(Window window, ZString title) @extern("glfwSetWindowTitle");
+
+fn void Window.setIcon(Window window, CInt count, Image* images) @extern("glfwSetWindowIcon");
+
+fn void Window.getPosition(Window window, CInt* x, CInt* y) @extern("glfwGetWindowPos");
+
+fn void Window.setPosition(Window window, CInt x, CInt y) @extern("glfwSetWindowPos");
+
+fn void Window.getSize(Window window, CInt* width, CInt* height) @extern("glfwGetWindowSize");
+
+fn void Window.setSizeLimits(Window window,
+    CInt minWidth, CInt minHeight, CInt maxWidth, CInt maxHeight) @extern("glfwSetWindowSizeLimits");
+
+fn void Window.setAspectRatio(Window window,
+    CInt numerator, CInt denominator) @extern("glfwSetWindowAspectRatio");
+
+fn void Window.setSize(Window window, CInt width, CInt height) @extern("glfwSetWindowSize");
+
+fn void Window.getFramebufferSize(Window window, CInt* width, CInt* height) @extern("glfwGetFramebufferSize");
+
+fn void Window.getFrameSize(Window window,
+    CInt* left, CInt* top, CInt* right, CInt* bottom) @extern("glfwGetFrameSize");
+
+fn void Window.getContentScale(Window window, float* x, float* y) @extern("glfwGetWindowContentScale");
+
+fn float Window.getOpacity(Window window) @extern("glfwGetWindowOpacity");
+
+fn void Window.setOpacity(Window window, float opacity) @extern("glfwSetWindowOpacity");
+
+fn float Window.iconify(Window window) @extern("glfwIconifyWindow");
+
+fn float Window.restore(Window window) @extern("glfwRestoreWindow");
+
+fn float Window.maximize(Window window) @extern("glfwMaximizeWindow");
+
+fn float Window.show(Window window) @extern("glfwShowWindow");
+
+fn float Window.hide(Window window) @extern("glfwHideWindow");
+
+fn float Window.focus(Window window) @extern("glfwFocusWindow");
+
+fn float Window.requestAttention(Window window) @extern("glfwRequestWindowAttention");
+
+fn Monitor Window.getMonitor(Window window) @extern("glfwGetWindowMonitor");
+
+fn void Window.setMonitor(Window window, Monitor monitor,
+    CInt x, CInt y, CInt width, CInt height, CInt refreshRate) @extern("glfwSetWindowMonitor");
+
+fn CBool Window.getAttribute(Window window, WindowAttribute attribute) @extern("glfwGetWindowAttrib");
+
+fn void Window.setAttribute(Window window,
+    WindowAttribute attribute, CBool value) @extern("glfwSetWindowAttrib");
+
+fn UserPointer Window.setUserPointer(Window window, UserPointer pointer) @extern("glfwSetWindowUserPointer");
+
+fn UserPointer Window.getUserPointer(Window window) @extern("glfwGetWindowUserPointer");
+
+fn PositionCallback Window.setPositionCallback(Window window,
+    PositionCallback callback) @extern("glfwSetWindowPosCallback");
+
+fn SizeCallback Window.setSizeCallback(Window window,
+    SizeCallback callback) @extern("glfwSetWindowSizeCallback");
+
+fn CloseCallback Window.setCloseCallback(Window window,
+    CloseCallback callback) @extern("glfwSetWindowCloseCallback");
+
+fn RefreshCallback Window.setRefreshCallback(Window window,
+    RefreshCallback callback) @extern("glfwSetWindowRefreshCallback");
+
+fn FocusCallback Window.setFocusCallback(Window window,
+    FocusCallback callback) @extern("glfwSetWindowFocusCallback");
+
+fn IconifyCallback Window.setIconifyCallback(Window window,
+    IconifyCallback callback) @extern("glfwSetWindowIconifyCallback");
+
+fn MaximizedCallback Window.setMaximizeCallback(Window window,
+    MaximizedCallback callback) @extern("glfwSetWindowMaximizeCallback");
+
+fn FramebufferSizeCallback Window.setFramebufferSizeCallback(Window window,
+    FramebufferSizeCallback callback) @extern("glfwSetFramebufferSizeCallback");
+
+fn ContentScaleCallback Window.setContentScaleCallback(Window window,
+    ContentScaleCallback callback) @extern("glfwSetWindowContentScaleCallback");
+
+fn CInt Window.getInputMode(Window window, InputMode mode) @extern("glfwGetInputMode");
+
+fn CBool Window.setInputMode(Window window, InputMode mode, CInt value) @extern("glfwSetInputMode");
+
+fn Action Window.getKey(Window window, Key key) @extern("glfwGetKey");
+
+fn Action Window.getMouseButton(Window window, Button button) @extern("glfwGetMouseButton");
+
+fn void Window.getCursorPosition(Window window, double* x, double* y) @extern("glfwGetCursorPos");
+
+fn void Window.setCursorPosition(Window window, double x, double y) @extern("glfwSetCursorPos");
+
+fn void Window.setCursor(Window window, Cursor cursor) @extern("glfwSetCursor");
+
+fn KeyCallback Window.setKeyCallback(Window window,
+    KeyCallback callback) @extern("glfwSetKeyCallback");
+
+fn CharacterCallback Window.setChararacterCallback(Window window,
+    CharacterCallback callback) @extern("glfwSetCharCallback");
+
+fn CharacterModifiersCallback Window.setChararacterModifiersCallback(Window window,
+    CharacterModifiersCallback callback) @extern("glfwSetCharModsCallback");
+
+fn MouseButtonCallback Window.setMouseButtonCallback(Window window,
+    MouseButtonCallback callback) @extern("glfwSetMouseButtonCallback");
+
+fn CursorPositionCallback Window.setCursorPositionCallback(Window window,
+    CursorPositionCallback callback) @extern("glfwSetCursorPosCallback");
+
+fn CursorEnterCallback Window.setCursorEnterCallback(Window window,
+    CursorEnterCallback callback) @extern("glfwSetCursorEnterCallback");
+
+fn ScrollCallback Window.setScrollCallback(Window window,
+    ScrollCallback callback) @extern("glfwSetScrollCallback");
+
+fn DropCallback Window.setDropCallback(Window window,
+    DropCallback callback) @extern("glfwSetDropCallback");
+
+fn void Window.setClipboardString(Window window, ZString string) @extern("glfwSetClipboardString");
+
+fn ZString Window.getClipboardString(Window window) @extern("glfwGetClipboardString");

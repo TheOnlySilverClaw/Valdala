@@ -1,0 +1,28 @@
+module glfw;
+
+def ErrorCallback = fn void(ErrorCode code, ZString description);
+
+fn ErrorCode getError(ZString* description) @extern("glfwGetError");
+
+fn void setErrorCallback(ErrorCallback callback) @extern("glfwSetErrorCallback");
+
+
+module glfw::error;
+
+distinct ErrorCode = CInt;
+
+const ErrorCode NO_ERROR = 0;
+const ErrorCode NOT_INITIALIZED = 0x00010001;
+const ErrorCode NO_CURRENT_CONTEXT = 0x00010002;
+const ErrorCode INVALID_ENUM = 0x00010003;
+const ErrorCode INVALID_VALUE = 0x00010004;
+const ErrorCode OUT_OF_MEMORY = 0x00010005;
+const ErrorCode API_UNAVAILABLE = 0x00010006;
+const ErrorCode VERSION_UNAVAILABLE = 0x00010007;
+const ErrorCode PLATFORM_ERROR = 0x00010008;
+const ErrorCode FORMAT_UNAVAILABLE = 0x00010009;
+const ErrorCode NO_WINDOW_CONTEXT = 0x0001000A;
+const ErrorCode CURSOR_UNAVAILABLE = 0x0001000B;
+const ErrorCode FEATURE_UNAVAILABLE = 0x0001000C;
+const ErrorCode FEATURE_UNIMPLEMENTED = 0x0001000D;
+const ErrorCode PLATFORM_UNAVAILABLE = 0x0001000E;

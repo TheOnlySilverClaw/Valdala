@@ -1,0 +1,52 @@
+module glfw::monitor;
+
+distinct Monitor = void*;
+
+def MonitorCallback = fn void(Monitor monitor, ConnectionState event);
+
+fn Monitor* getMonitors(CInt* count) @extern("glfwGetMonitors");
+
+fn Monitor getPrimaryMonitor() @extern("glfwGetPrimaryMonitor");
+
+fn void Monitor.getPosition(Monitor monitor, CInt* x, CInt* y) @extern("glfwGetPrimaryMonitor");
+
+fn void Monitor.getWorkarea(Monitor monitor, CInt* x, CInt* y, CInt* width, CInt* height) @extern("glfwGetMonitorWorkarea");
+
+fn void Monitor.getPhysicalSize(Monitor monitor, CInt* width, CInt* height) @extern("glfwGetMonitorPhysicalSize");
+
+fn void Monitor.getContentScale(Monitor monitor, float* x, float* height) @extern("glfwGetMonitorContentScale");
+
+fn ZString Monitor.getName(Monitor monitor, float* x, float* height) @extern("glfwGetMonitorName");
+
+fn void Monitor.setUserPointer(Monitor monitor, UserPointer pointer) @extern("glfwSetMonitorUserPointer");
+
+fn UserPointer Monitor.getUserPointer(Monitor monitor) @extern("glfwGetMonitorUserPointer");
+
+fn void Monitor.setMonitorCallback(Monitor monitor, MonitorCallback callback) @extern("glfwSetMonitorCallback");
+
+fn VideoMode* Monitor.getVideoModes(Monitor monitor, CInt* count) @extern("glfwGetVideoModes");
+
+fn VideoMode* Monitor.getVideoMode(Monitor monitor) @extern("glfwGetVideoMode");
+
+fn void Monitor.setGamma(Monitor monitor, float gamma) @extern("glfwSetGamma");
+
+fn GammaRamp Monitor.getGammaRamp(Monitor monitor) @extern("glfwGetGammaRamp");
+
+fn void Monitor.setGammaRamp(Monitor monitor, GammaRamp* ramp) @extern("glfwSetGammaRamp");
+
+
+struct VideoMode {
+    CInt width;
+    CInt height;
+    CInt redBits;
+    CInt greenBits;
+    CInt blueBits;
+    CInt refreshRate;
+}
+
+struct GammaRamp {
+    CUShort* red;
+    CUShort* green;
+    CUShort* blue;
+    CUInt size;
+}

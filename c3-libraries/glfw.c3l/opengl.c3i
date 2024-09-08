@@ -1,0 +1,17 @@
+module glfw::opengl;
+
+import glfw::window;
+
+distinct ProcAddress = void*;
+
+fn void Window.makeContextCurrent(Window window) @extern("glfwMakeContextCurrent");
+
+fn Window getCurrentContext(Window window) @extern("glfwGetCurrentContext");
+
+fn void Window.swapBuffers(Window window) @extern("glfwSwapBuffers");
+
+fn void swapBuffers(CInt interval) @extern("glfwSwapInterval");
+
+fn CBool extensionSupported(ZString extension) @extern("glfwExtensionSupported");
+
+fn ProcAddress getProcAddress(ZString name) @extern("glfwGetProcAddress");

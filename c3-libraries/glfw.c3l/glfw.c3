@@ -1,18 +1,12 @@
 module glfw;
 
-const TRUE = 1;
-
 fault GlfwError {
     INITIALIZE
 }
 
-fn void! init() {
+fn void! initialize() {
 
-    if(glfwInit() != TRUE) {
+    if(init() != TRUE) {
         return GlfwError.INITIALIZE?;
     }
-}
-
-fn bool Window.shouldClose(Window window) {
-    return glfwWindowShouldClose(window) == TRUE;
 }

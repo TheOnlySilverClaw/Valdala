@@ -1,0 +1,52 @@
+module glfw::input;
+
+def CodePoint = CUInt;
+
+bitstruct Modifiers: CInt {
+    bool shift;
+    bool control;
+    bool alt;
+    bool super;
+    bool capsLock;
+    bool numLock;
+}
+
+enum Action : CInt {
+    RELEASE,
+    PRESS,
+    REPEAT
+}
+bitstruct HatDirection : CInt {
+    bool up;
+    bool right;
+    bool down;
+    bool left;
+}
+
+enum HatState : CInt (HatDirection direction) {
+    CENTERED = {},
+    UP = {.up = true},
+    RIGHT = {.right = true },
+    DOWN = {.down = true},
+    LEFT = {.left = true },
+    RIGHT_UP = {.right = true, .up = true},
+    RIGHT_DOWN = {.right = true, .down = true},
+    LEFT_UP = {.left = true, .up = true},
+    LEFT_DOWN = {.left = true, .down = true}
+}
+
+distinct InputMode = CInt;
+
+const InputMode CURSOR = 0x00033001;
+const InputMode STICKY_KEYS = 0x00033002;
+const InputMode STICKY_MOUSE_BUTTONS = 0x00033003;
+const InputMode LOCK_KEY_MODS = 0x00033004;
+const InputMode RAW_MOUSE_MOTION = 0x00033005;
+const InputMode UNLIMITED_MOUSE_BUTTONS = 0x00033006;
+
+distinct CursorBehavior = CInt;
+
+const CursorBehavior NORMAL = 0x00034001;
+const CursorBehavior HIDDEN = 0x00034002;
+const CursorBehavior DISABLED = 0x00034003;
+const CursorBehavior CAPTURED = 0x00034004;
