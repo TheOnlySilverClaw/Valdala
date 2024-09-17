@@ -1,0 +1,9 @@
+[submodule "dependencies/webgpu.c3l"]
+	path = dependencies/webgpu.c3l
+	url = https://gitlab.com/Silverclaw/webgpu.c3l.git
+[submodule "dependencies/glfw-webgpu.c3l"]
+	path = dependencies/glfw-webgpu.c3l
+	url = https://gitlab.com/Silverclaw/glfw-webgpu.c3l.git
+[submodule "dependencies/glfw.c3l"]
+	path = dependencies/glfw.c3l
+	url = https://gitlab.com/Silverclaw/glfw.c3l.git
