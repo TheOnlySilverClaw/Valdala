@@ -1,8 +1,0 @@
-{
-  "provides" : "webgpu",
-  "targets" : {
-    "linux-x64" : {
-      "linked-libraries": ["wgpu_native"]
-    }
-  }
-}

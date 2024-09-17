@@ -1,7 +1,7 @@
 {
   "langrev": "1",
   "warnings": [ "no-unused" ],
-  "dependency-search-paths": [ "../c3-libraries" ],
+  "dependency-search-paths": [ "../dependencies" ],
   "dependencies": [
     "glfw",
     "glfw_webgpu"
