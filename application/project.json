@@ -12,7 +12,7 @@
   ],
   "authors": [ "Joel Lacour" ],
   "version": "0.0.1",
-  "sources": [ "src/**" ],
+  "sources": [ "source/**" ],
   "output": "build",
   "targets": {
     "valdala": {
