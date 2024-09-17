@@ -13,10 +13,10 @@ fn void main() {
 
 fn void! start() {
 
-    glfw::init()!;
+    glfw::initialize()!;
     defer glfw::terminate();
 
-    Window window = glfw::createWindow(1000, 800, "Valdala");
+    Window window = glfw::window::create(1000, 800, "Valdala");
     defer window.destroy();
 
     Instance instance = webgpu::createInstance();
