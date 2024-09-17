@@ -6,6 +6,11 @@
     "glfw",
     "glfw_webgpu"
   ],
+  "linker-search-paths": ["libraries"],
+  "linked-libraries": [
+    "glfw3",
+    "wgpu_native"
+  ],
   "authors": [ "Joel Lacour" ],
   "version": "0.0.1",
   "sources": [ "src/**" ],
