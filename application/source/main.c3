@@ -3,12 +3,20 @@ import std::io;
 import glfw;
 import webgpu;
 import glfw_webgpu;
+import log;
 
 fn void main() {
 
+
+    ConsoleLogger log = { DEBUG, io::stderr() };
+
+    log.info("launch");
+
     if(catch error = start()) {
-        io::printfn("Unhandled error: %s", error);
+        log.fatal("unexpected error", &error);
     }
+
+    log.info("shutdown");
 }
 
 fn void! start() {
