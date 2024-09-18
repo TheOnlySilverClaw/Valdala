@@ -2,47 +2,61 @@ module graphics;
 
 import glfw;
 import webgpu;
-import glfw_webgpu;
 
 def GlfwHandle = glfw::window::Window;
+def WebGPUInstance = webgpu::Instance;
 
 struct Window {
     GlfwHandle handle;
+    WebGPUInstance instance;
+    Surface surface;
+    int width;
+    int height;
 }
 
-fn void! showWindow(int width, int height, String title) {
-
-    glfw::initialize()!;
-    defer glfw::terminate();
+fn Window! createWindow(int width, int height, String title) {
 
     GlfwHandle handle = glfw::window::createWindow(width, height, title.zstr_tcopy());
-    defer handle.destroy();
 
-    Instance instance = webgpu::createInstance();
-    defer instance.release();
+    Window window;
+    window.handle = handle;
+    handle.setUserPointer(&window);
 
-    Surface surface = glfw_webgpu::createSurface(instance, handle);
-    defer surface.release();
+    handle.setSizeCallback(fn(GlfwHandle handle, int width, int height) {
+        Window* window = handle.getUserPointer();
+        window.resize(width, height);
+    });
 
-    RequestAdapterOptions options;
-    options.compatibleSurface = surface;
-    options.powerPreference = HIGH_PERFORMANCE;
+    WebGPUInstance instance = webgpu::createInstance();
+    Surface surface = createSurface(instance, handle)!;
 
-    Adapter adapter = instance.requestAdapter(&options)!;
-    defer adapter.release();
+    window.instance = instance;
+    window.surface = surface;
 
-    TextureFormat surfaceFormat = surface.getPreferredFormat(adapter);
+    window.width = width;
+    window.height = height;
 
-    Device device = adapter.requestDevice()!;
-    defer {
-        device.destroy();
-        device.release();
-    }
+    return window;
+}
 
-    Queue queue = device.getQueue();
-    defer queue.release();
+import std::io;
 
-    while(!handle.shouldClose()) {
+fn void Window.show(self) {
+
+    while(self.handle.shouldClose() != 1) {
         glfw::pollEvents();
     }
+}
+
+fn void Window.resize(&self, int width, int height) {
+
+    self.width = width;
+    self.height = height;
+}
+
+fn void Window.destroy(&self) {
+
+    self.surface.destroy();
+    self.instance.release();
+    self.handle.destroy();
 }
