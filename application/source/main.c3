@@ -26,7 +26,7 @@ fn void! start() {
 
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
-    Window window = graphics::createWindow(1000, 800, "Valdala")!;
+    Window* window = graphics::createWindow(1000, 800, "Valdala")!;
     defer window.destroy();
 
     window.show();
