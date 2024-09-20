@@ -8,7 +8,6 @@ def WebGPUInstance = webgpu::Instance;
 
 struct Window {
     GlfwHandle handle;
-    WebGPUInstance instance;
     Surface surface;
     int width;
     int height;
@@ -29,8 +28,8 @@ fn Window! createWindow(int width, int height, String title) {
 
     WebGPUInstance instance = webgpu::createInstance();
     Surface surface = createSurface(instance, handle)!;
+    instance.release();
 
-    window.instance = instance;
     window.surface = surface;
 
     window.width = width;
@@ -57,6 +56,5 @@ fn void Window.resize(&self, int width, int height) {
 fn void Window.destroy(&self) {
 
     self.surface.destroy();
-    self.instance.release();
     self.handle.destroy();
 }

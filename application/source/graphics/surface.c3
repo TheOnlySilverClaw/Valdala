@@ -9,7 +9,6 @@ struct Surface {
     WebGPUHandle handle;
     TextureFormat textureFormat;
     Color clearColor;
-    Adapter adapter;
     Device device;
     Queue queue;
 }
@@ -27,6 +26,7 @@ fn Surface! createSurface(Instance instance, GlfwHandle glfwWindow) {
     TextureFormat surfaceFormat = handle.getPreferredFormat(adapter);
 
     Device device = adapter.requestDevice()!;
+    adapter.release();
 
     Queue queue = device.getQueue();
 
@@ -40,7 +40,6 @@ fn Surface! createSurface(Instance instance, GlfwHandle glfwWindow) {
     surface.handle = handle;
     surface.textureFormat = surfaceFormat;
     surface.clearColor = clearColor;
-    surface.adapter = adapter;
     surface.device = device;
     surface.queue = queue;
 
@@ -52,6 +51,5 @@ fn void Surface.destroy(&self) {
     self.queue.release();
     self.device.destroy();
     self.device.release();
-    self.adapter.release();
     self.handle.release();
 }
