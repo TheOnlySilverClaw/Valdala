@@ -22,13 +22,18 @@ fn void main() {
 fn void! start() {
 
     glfw::initialize()!;
-    defer glfw::terminate();
-
-
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
-    Window* window = graphics::createWindow(1000, 800, "Valdala")!;
-    defer window.destroy();
+    TrackingAllocator allocator;
+    allocator.init(allocator::heap());
 
+    Window* window = graphics::createWindow(1000, 800, "Valdala", &allocator)!;
     window.show();
+
+    window.destroy();
+    allocator::free(&allocator, window);
+
+    glfw::terminate();
+
+    allocator.print_report();
 }

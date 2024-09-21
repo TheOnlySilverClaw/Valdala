@@ -6,18 +6,20 @@ import webgpu;
 
 struct Window {
     glfw::window::Window handle;
+    std::core::mem::allocator::Allocator allocator;
     Surface* surface;
     uint width;
     uint height;
 }
 
 fn Window*! createWindow(int width, int height, String title,
-    std::core::mem::allocator::Allocator allocator = allocator::heap()) {
+    std::core::mem::allocator::Allocator allocator) {
 
     glfw::window::Window handle = glfw::window::createWindow(width, height, title.zstr_tcopy());
 
     Window* window = allocator::alloc(allocator, Window);
     window.handle = handle;
+    window.allocator = allocator;
     window.width = width;
     window.height = height;
     handle.setUserPointer(window);
@@ -57,6 +59,8 @@ fn void Window.resize(&self, int width, int height) {
 fn void Window.destroy(&self) {
 
     self.surface.destroy();
+    allocator::free(self.allocator, self.surface);
+
     self.handle.destroy();
 }
 
