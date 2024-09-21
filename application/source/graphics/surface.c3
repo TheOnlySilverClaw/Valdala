@@ -9,8 +9,8 @@ import std::thread;
 struct Surface {
     webgpu::Surface handle;
     Allocator allocator;
-    SurfaceCapabilities* capabilities;
-    SurfaceConfiguration* configuration;
+    SurfaceCapabilities capabilities;
+    SurfaceConfiguration configuration;
     Color clearColor;
     Device device;
     Queue queue;
@@ -26,8 +26,8 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
     Adapter adapter = instance.requestAdapter(&options)!;
 
-    SurfaceCapabilities* capabilities = allocator::alloc(allocator, SurfaceCapabilities);
-    handle.getCapabilities(adapter, capabilities);
+    SurfaceCapabilities capabilities;
+    handle.getCapabilities(adapter, &capabilities);
 
     io::printfn("formats: %s", capabilities.formatCount);
 
@@ -42,7 +42,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
     Queue queue = device.getQueue();
 
-    SurfaceConfiguration* configuration = allocator::alloc(allocator, SurfaceConfiguration);
+    SurfaceConfiguration configuration;
     configuration.next = null;
     configuration.device = device;
     configuration.format = capabilities.formats[0];
@@ -69,9 +69,6 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
 fn void Surface.destroy(&self) {
 
-    allocator::free(self.allocator, self.configuration);
-    allocator::free(self.allocator, self.capabilities);
-
     self.queue.release();
 
     self.handle.unconfigure();
@@ -83,7 +80,7 @@ fn void Surface.destroy(&self) {
 
 
 fn void Surface.configure(&self) {
-    self.handle.configure(self.configuration);
+    self.handle.configure(&self.configuration);
 }
 
 fn void Surface.resize(&self, uint width, uint height) {
