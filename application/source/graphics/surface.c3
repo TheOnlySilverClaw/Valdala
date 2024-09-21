@@ -8,7 +8,6 @@ import std::thread;
 
 struct Surface {
     webgpu::Surface handle;
-    Allocator allocator;
     SurfaceCapabilities capabilities;
     SurfaceConfiguration configuration;
     Color clearColor;
@@ -16,7 +15,7 @@ struct Surface {
     Queue queue;
 }
 
-fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator = allocator::heap()) {
+fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
 
     webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle);
 
@@ -29,21 +28,12 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     SurfaceCapabilities capabilities;
     handle.getCapabilities(adapter, &capabilities);
 
-    io::printfn("formats: %s", capabilities.formatCount);
-
-    for(int i = 0; i < capabilities.formatCount; i++) {
-        TextureFormat format = capabilities.formats[i];
-        io::printfn("format: %s", format);
-    }
-    TextureFormat surfaceFormat = capabilities.formats[0];
-
     Device device = adapter.requestDevice()!;
     adapter.release();
 
     Queue queue = device.getQueue();
 
     SurfaceConfiguration configuration;
-    configuration.next = null;
     configuration.device = device;
     configuration.format = capabilities.formats[0];
     configuration.usage = { .renderAttachment = true };
@@ -54,7 +44,6 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     configuration.viewFormatCount = 0;
 
     Surface* surface = allocator::alloc(allocator, Surface);
-    surface.allocator = allocator;
     surface.handle = handle;
     surface.capabilities = capabilities;
     surface.configuration = configuration;
@@ -108,7 +97,6 @@ fn void Surface.render(&self) {
     colorAttachment.loadOperation = CLEAR;
     colorAttachment.storeOperation = STORE;
     colorAttachment.clearValue = self.clearColor;
-    // colorAttachment.depthSlice = 0;
 
     RenderPassDescriptor renderPassDescriptor;
     renderPassDescriptor.colorAttachmentCount = 1;
