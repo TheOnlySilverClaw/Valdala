@@ -1,0 +1,50 @@
+version: "3"
+
+tasks:
+
+  run:
+    desc: Build and run the application.
+    dir: application
+    cmd: c3c run
+
+  build:
+    desc: Build the application.
+    dir: application
+    cmd: c3c build
+
+  check:
+    desc: Check syntax
+    dir: application
+    cmd: c3c build -C
+
+  start:
+    desc: Start the application from an existing binary.
+    dir: application/build
+    cmd: ./valdala
+    
+  setup:
+    desc: Setup development environment.
+    cmds:
+      - task: init-submodules
+      - task: build-wgpu
+      # Only required if your current one is older than 3.4.
+      - task: build-glfw
+  
+  init-submodules:
+    desc: Initialize all git submodules.
+    cmd: git submodule update --init --recursive
+
+  build-wgpu:
+    desc: Build the wgpu-native submodule into a static library.
+    dir: application/libraries/wgpu-native
+    cmds:
+      - make lib-native
+      - cp ./target/debug/libwgpu_native.a ..
+  
+  build-glfw:
+    desc: Build GLFW. 
+    dir: application/libraries/glfw
+    cmds:
+      - cmake -S . -B build
+      - make -C build
+      - cp build/src/libglfw3.a ..
