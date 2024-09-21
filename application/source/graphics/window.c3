@@ -1,21 +1,21 @@
 module graphics;
 
-import glfw;
+import glfw::window;
 import webgpu;
 
 
 struct Window {
-    glfw::window::Window handle;
-    std::core::mem::allocator::Allocator allocator;
+    window::Window handle;
+    Allocator allocator;
     Surface* surface;
     uint width;
     uint height;
 }
 
 fn Window*! createWindow(int width, int height, String title,
-    std::core::mem::allocator::Allocator allocator) {
+    Allocator allocator) {
 
-    glfw::window::Window handle = glfw::window::createWindow(width, height, title.zstr_tcopy());
+    window::Window handle = window::createWindow(width, height, title.zstr_tcopy());
 
     Window* window = allocator::alloc(allocator, Window);
     window.handle = handle;
@@ -30,6 +30,7 @@ fn Window*! createWindow(int width, int height, String title,
     });
 
     webgpu::Instance instance = webgpu::createInstance();
+
     Surface* surface = createSurface(instance, window, allocator)!;
     instance.release();
 
