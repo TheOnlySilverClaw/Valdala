@@ -28,7 +28,12 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     SurfaceCapabilities capabilities;
     handle.getCapabilities(adapter, &capabilities);
 
-    Device device = adapter.requestDevice()!;
+    DeviceDescriptor deviceDescriptor;
+    deviceDescriptor.uncapturedErrorCallbackInfo.callback = fn void(ErrorType type, ZString message, UserData data) {
+        io::printfn("uncaptured WebGPU error: %s %s", type, message);
+    };
+
+    Device device = adapter.requestDevice(&deviceDescriptor)!;
     adapter.release();
 
     Queue queue = device.getQueue();
