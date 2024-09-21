@@ -21,13 +21,16 @@ fn void main() {
 
 fn void! start() {
 
-    glfw::initialize()!;
-    glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
-
     TrackingAllocator allocator;
     allocator.init(allocator::heap());
 
+    glfw::initialize()!;
+    glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
+
     Window* window = graphics::createWindow(1000, 800, "Valdala", &allocator)!;
+
+    graphics::loadShaderModule("./shaders/colored.wgsl", window.surface.device, &allocator)!;
+
     window.show();
 
     window.destroy();
