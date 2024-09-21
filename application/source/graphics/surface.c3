@@ -10,9 +10,9 @@ struct Surface {
     webgpu::Surface handle;
     SurfaceCapabilities capabilities;
     SurfaceConfiguration configuration;
-    Color clearColor;
     Device device;
     Queue queue;
+    Renderer renderer;
 }
 
 fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
@@ -36,8 +36,6 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     Device device = adapter.requestDevice(&deviceDescriptor)!;
     adapter.release();
 
-    Queue queue = device.getQueue();
-
     SurfaceConfiguration configuration;
     configuration.device = device;
     configuration.format = capabilities.formats[0];
@@ -48,13 +46,17 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     configuration.presentMode = FIFO;
     configuration.viewFormatCount = 0;
 
+    Renderer renderer;
+    renderer.clearColor = {0.9, 0.4, 0.1, 1.0};
+    renderer.init(device, allocator);
+
     Surface* surface = allocator::alloc(allocator, Surface);
     surface.handle = handle;
     surface.capabilities = capabilities;
     surface.configuration = configuration;
-    surface.clearColor = {0.9, 0.4, 0.1, 1.0};
+    surface.renderer = renderer;
     surface.device = device;
-    surface.queue = queue;
+    surface.queue = device.getQueue();
 
     surface.configure();
 
@@ -63,10 +65,12 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
 fn void Surface.destroy(&self) {
 
-    self.queue.release();
+    self.renderer.destroy();
 
     self.handle.unconfigure();
     self.handle.release();
+
+    self.queue.release();
 
     self.device.destroy();
     self.device.release();
@@ -93,33 +97,8 @@ fn void Surface.render(&self) {
     self.handle.getCurrentTexture(&surfaceTexture);
     Texture currentSurfaceTexture = surfaceTexture.texture;
 
-    TextureView surfaceTextureView = currentSurfaceTexture.createView();
+    self.renderer.render(currentSurfaceTexture, self.device, self.handle);
 
-    CommandEncoder commandEncoder = self.device.createCommandEncoder();
-
-    RenderPassColorAttachment colorAttachment;
-    colorAttachment.view = surfaceTextureView;
-    colorAttachment.loadOperation = CLEAR;
-    colorAttachment.storeOperation = STORE;
-    colorAttachment.clearValue = self.clearColor;
-
-    RenderPassDescriptor renderPassDescriptor;
-    renderPassDescriptor.colorAttachmentCount = 1;
-    renderPassDescriptor.colorAttachments = &colorAttachment;
-
-    RenderPassEncoder renderPassEncoder = commandEncoder.beginRenderPass(&renderPassDescriptor);
-    renderPassEncoder.end();
-    renderPassEncoder.release();
-
-    surfaceTextureView.release();
-
-    CommandBuffer commandBuffer = commandEncoder.finish();
-    commandEncoder.release();
-
-    self.queue.submit(1, &commandBuffer);
-    commandBuffer.release();
-
-    self.handle.present();
     currentSurfaceTexture.release();
 }
 
