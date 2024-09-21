@@ -24,6 +24,7 @@ fn void! start() {
     glfw::initialize()!;
     defer glfw::terminate();
 
+
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
     Window* window = graphics::createWindow(1000, 800, "Valdala")!;

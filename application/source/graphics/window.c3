@@ -28,7 +28,7 @@ fn Window*! createWindow(int width, int height, String title,
     });
 
     webgpu::Instance instance = webgpu::createInstance();
-    Surface* surface = createSurface(instance, window)!;
+    Surface* surface = createSurface(instance, window, allocator)!;
     instance.release();
 
     window.surface = surface;

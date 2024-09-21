@@ -8,15 +8,15 @@ import std::thread;
 
 struct Surface {
     webgpu::Surface handle;
-    TextureFormat textureFormat;
+    Allocator allocator;
+    SurfaceCapabilities* capabilities;
+    SurfaceConfiguration* configuration;
     Color clearColor;
     Device device;
     Queue queue;
-    uint width;
-    uint height;
 }
 
-fn Surface*! createSurface(Instance instance, Window* window) {
+fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator = allocator::heap()) {
 
     webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle);
 
@@ -26,8 +26,8 @@ fn Surface*! createSurface(Instance instance, Window* window) {
 
     Adapter adapter = instance.requestAdapter(&options)!;
 
-    SurfaceCapabilities capabilities;
-    handle.getCapabilities(adapter, &capabilities);
+    SurfaceCapabilities* capabilities = allocator::alloc(allocator, SurfaceCapabilities);
+    handle.getCapabilities(adapter, capabilities);
 
     io::printfn("formats: %s", capabilities.formatCount);
 
@@ -42,26 +42,35 @@ fn Surface*! createSurface(Instance instance, Window* window) {
 
     Queue queue = device.getQueue();
 
-    Color clearColor;
-    clearColor.red = 0.2;
-    clearColor.green = 0.2;
-    clearColor.blue = 0.4;
-    clearColor.alpha = 1.0;
+    SurfaceConfiguration* configuration = allocator::alloc(allocator, SurfaceConfiguration);
+    configuration.next = null;
+    configuration.device = device;
+    configuration.format = capabilities.formats[0];
+    configuration.usage = { .renderAttachment = true };
+    configuration.alphaMode = OPAQUE;
+    configuration.width = window.width;
+    configuration.height = window.height;
+    configuration.presentMode = FIFO;
+    configuration.viewFormatCount = 0;
 
-    Surface* surface = allocator::alloc(allocator::heap(), Surface);
+    Surface* surface = allocator::alloc(allocator, Surface);
+    surface.allocator = allocator;
     surface.handle = handle;
-    surface.textureFormat = surfaceFormat;
-    surface.clearColor = clearColor;
+    surface.capabilities = capabilities;
+    surface.configuration = configuration;
+    surface.clearColor = {0.9, 0.4, 0.1, 1.0};
     surface.device = device;
     surface.queue = queue;
-    surface.width = window.width;
-    surface.height = window.height;
+
     surface.configure();
 
     return surface;
 }
 
 fn void Surface.destroy(&self) {
+
+    allocator::free(self.allocator, self.configuration);
+    allocator::free(self.allocator, self.capabilities);
 
     self.queue.release();
 
@@ -74,48 +83,35 @@ fn void Surface.destroy(&self) {
 
 
 fn void Surface.configure(&self) {
-
-    TextureUsage textureUsage = { .renderAttachment = true };
-
-    SurfaceConfiguration configuration;
-    configuration.device = self.device;
-    configuration.format = self.textureFormat;
-    configuration.usage = textureUsage;
-    configuration.alphaMode = OPAQUE;
-    configuration.width = self.width;
-    configuration.height = self.height;
-    configuration.presentMode = FIFO;
-
-    self.handle.configure(&configuration);
+    self.handle.configure(self.configuration);
 }
 
 fn void Surface.resize(&self, uint width, uint height) {
 
-    self.width = width;
-    self.height = height;
+    self.configuration.width = width;
+    self.configuration.height = height;
+
     self.configure();
 }
 
 fn void Surface.render(&self) {
 
-    thread::sleep_ms(1);
+    thread::sleep_ms(100);
 
     SurfaceTexture surfaceTexture;
     self.handle.getCurrentTexture(&surfaceTexture);
     Texture currentSurfaceTexture = surfaceTexture.texture;
-    defer currentSurfaceTexture.release();
 
     TextureView surfaceTextureView = currentSurfaceTexture.createView();
-    defer surfaceTextureView.release();
 
     CommandEncoder commandEncoder = self.device.createCommandEncoder();
-    defer commandEncoder.release();
 
     RenderPassColorAttachment colorAttachment;
     colorAttachment.view = surfaceTextureView;
     colorAttachment.loadOperation = CLEAR;
     colorAttachment.storeOperation = STORE;
     colorAttachment.clearValue = self.clearColor;
+    // colorAttachment.depthSlice = 0;
 
     RenderPassDescriptor renderPassDescriptor;
     renderPassDescriptor.colorAttachmentCount = 1;
@@ -123,7 +119,17 @@ fn void Surface.render(&self) {
 
     RenderPassEncoder renderPassEncoder = commandEncoder.beginRenderPass(&renderPassDescriptor);
     renderPassEncoder.end();
+    renderPassEncoder.release();
+
+    surfaceTextureView.release();
+
+    CommandBuffer commandBuffer = commandEncoder.finish();
+    commandEncoder.release();
+
+    self.queue.submit(1, &commandBuffer);
+    commandBuffer.release();
 
     self.handle.present();
+    currentSurfaceTexture.release();
 }
 
