@@ -19,8 +19,8 @@ tasks:
 
   start:
     desc: Start the application from an existing binary.
-    dir: application/build
-    cmd: ./valdala
+    dir: application
+    cmd: ./build/valdala
     
   setup:
     desc: Setup development environment.
