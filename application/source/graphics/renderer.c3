@@ -1,6 +1,8 @@
 module graphics;
 
 import webgpu;
+import asset;
+import std::io;
 
 struct Renderer {
     Color clearColor;
@@ -19,6 +21,11 @@ fn void! Renderer.init(&self, Device device, TextureFormat colorTextureFormat, A
     RenderPipeline renderPipeline = createRenderPipeline(
         device, pipelineLayout, shaderModule, colorTextureFormat);
     self.pipeline = renderPipeline;
+
+    Image texture;
+    texture.loadQOI("textures/testing/texture_1.qoi", allocator)!;
+    io::printfn("texture: %d * %d", texture.width, texture.height);
+    texture.free();
 }
 
 

@@ -1,7 +1,8 @@
 module graphics;
 
-import std::io::file;
+import std::io;
 import webgpu;
+import asset;
 
 fault ShaderError {
     COMPILATION_FAILED
@@ -9,12 +10,8 @@ fault ShaderError {
 
 fn ShaderModule! loadShaderModule(String path, Device device, Allocator allocator) {
 
-    File file = file::open(path, "r")!;
-
-    DString content;
+    DString content = asset::loadText(path, allocator)!;
     defer content.free();
-    content.new_init(1024 * 4, allocator);
-    content.read_from_stream(&file)!;
 
     ShaderModuleWGSLDescriptor wgslDescriptor;
     wgslDescriptor.chain.sType = SHADER_MODULE_WGSL_DESCRIPTOR;
