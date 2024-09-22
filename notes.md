@@ -23,7 +23,7 @@
 - -1.0 ≤ y ≤ 1.0
 - 0.0 ≤ z ≤ 1.0
 
-<img src="https://www.w3.org/TR/webgpu/img/normalized-device-coordinates.svg" height="300">
+<img src="https://www.w3.org/TR/webgpu/img/normalized-device-coordinates.svg" height="400">
 
 
 ### Clip space
@@ -39,7 +39,7 @@ match window coordinates
 
 pixel coordinates on screen
 
-<img src="https://www.w3.org/TR/webgpu/img/framebuffer-coordinates.svg" height="300">
+<img src="https://www.w3.org/TR/webgpu/img/framebuffer-coordinates.svg" height="400">
 
 
 ### Viewport Coordinates
@@ -53,7 +53,7 @@ framebuffer coordinates + z depth
 
 ### Texture coordinates
 
-<img src="https://www.w3.org/TR/webgpu/img/uv-coordinates.svg" height="300">
+<img src="https://www.w3.org/TR/webgpu/img/uv-coordinates.svg" height="400">
 
 - 0 ≤ u ≤ 1.0
 - 0 ≤ v ≤ 1.0
