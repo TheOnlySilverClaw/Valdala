@@ -35,9 +35,11 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     Device device = adapter.requestDevice(&deviceDescriptor)!;
     adapter.release();
 
+    TextureFormat colorTextureFormat = capabilities.formats[0];
+
     SurfaceConfiguration configuration;
     configuration.device = device;
-    configuration.format = capabilities.formats[0];
+    configuration.format = colorTextureFormat;
     configuration.usage = { .renderAttachment = true };
     configuration.alphaMode = OPAQUE;
     configuration.width = window.width;
@@ -47,7 +49,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
     Renderer renderer;
     renderer.clearColor = {0.9, 0.4, 0.1, 1.0};
-    renderer.init(device, allocator);
+    renderer.init(device, colorTextureFormat, allocator)!;
 
     Surface* surface = allocator::alloc(allocator, Surface);
     surface.handle = handle;
