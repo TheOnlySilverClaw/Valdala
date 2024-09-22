@@ -4,7 +4,6 @@ import webgpu;
 import glfw_webgpu;
 
 import std::io;
-import std::thread;
 
 struct Surface {
     webgpu::Surface handle;
@@ -90,8 +89,6 @@ fn void Surface.resize(&self, uint width, uint height) {
 }
 
 fn void Surface.render(&self) {
-
-    thread::sleep_ms(100);
 
     SurfaceTexture surfaceTexture;
     self.handle.getCurrentTexture(&surfaceTexture);

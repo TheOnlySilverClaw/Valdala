@@ -1,5 +1,7 @@
 module graphics;
 
+import std::thread;
+
 import glfw::window;
 import webgpu;
 
@@ -46,6 +48,7 @@ fn void Window.show(&self) {
     while(self.handle.shouldClose() != 1) {
         glfw::pollEvents();
         self.render();
+        thread::sleep_ms(16);
     }
 }
 
