@@ -17,6 +17,19 @@
 
 ## Coordinate System
 
+### World coordinate system
+
+- x is the West to East axis (-x = West, +x = East)
+- y is the South to North axis (-y = South, +y = North)
+- z is the down to up axis (-z = down, +z = up)
+
+Relative to NDC, the world needs to be
+- rotated around the x axis by -90°
+- mirrored on the y axis
+
+... I guess?
+
+
 ### Normalized device coordinates
 
 - -1.0 ≤ x ≤ 1.0
