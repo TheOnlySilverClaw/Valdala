@@ -16,7 +16,7 @@ struct Surface {
 
 fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
 
-    webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle);
+    webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle)!;
 
     RequestAdapterOptions options;
     options.compatibleSurface = handle;

@@ -6,6 +6,18 @@ Currently compiled with C3 v0.6.2
 
 Requires linking a 3.4 of GLFW and recent wgpu-native.
 
+Required tools:
+
+| Taskfile ||
+| cargo ||
+| C compiler ||
+| C3 compiler ||
+| make ||
+| cmake ||
+
+Required libraries
+libwayland-dev libxkbcommon-dev xorg-dev
+
 
 ## C3 libraries
 
