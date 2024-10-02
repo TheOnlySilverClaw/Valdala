@@ -35,6 +35,8 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     Device device = adapter.requestDevice(&deviceDescriptor)!;
     adapter.release();
 
+	Queue queue = device.getQueue();
+	
     TextureFormat colorTextureFormat = capabilities.formats[0];
 
     SurfaceConfiguration configuration;
@@ -48,8 +50,8 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     configuration.viewFormatCount = 0;
 
     Renderer renderer;
-    renderer.clearColor = {0.9, 0.4, 0.1, 1.0};
-    renderer.init(device, colorTextureFormat, allocator)!;
+    renderer.clearColor = {0.3, 0.4, 0.6, 1.0};
+    renderer.init(device, queue, colorTextureFormat, allocator)!;
 
     Surface* surface = allocator::alloc(allocator, Surface);
     surface.handle = handle;
@@ -57,7 +59,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     surface.configuration = configuration;
     surface.renderer = renderer;
     surface.device = device;
-    surface.queue = device.getQueue();
+    surface.queue = queue;
 
     surface.configure();
 
@@ -96,8 +98,8 @@ fn void Surface.render(&self) {
     self.handle.getCurrentTexture(&surfaceTexture);
     Texture currentSurfaceTexture = surfaceTexture.texture;
 
-    self.renderer.render(currentSurfaceTexture, self.device, self.handle);
+    self.renderer.render(currentSurfaceTexture, self.device, self.queue, self.handle);
 
-    currentSurfaceTexture.release();
+    // currentSurfaceTexture.release();
 }
 

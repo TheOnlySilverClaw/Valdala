@@ -44,7 +44,7 @@ fn void! Image.loadQOI(&self, String path, Allocator allocator) {
     self.width = description.width;
     self.height = description.height;
     self.colorSpace = (ColorSpace) description.colorspace.id;
-    self.colorChannels = (ColorChannels) description.channels.id - 2;
+    self.colorChannels = (ColorChannels) description.channels.id - 3;
 }
 
 fn void Image.free(&self) {

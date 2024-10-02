@@ -10,14 +10,15 @@ struct Fragment {
   @location(2) textureIndex: f32
 }
 
-@group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
+// @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
 
 @vertex
 fn vertex(vertex: Vertex) -> Fragment {
 
   var fragment: Fragment;
   // vertex.position = projection * vec4<f32>(position.x, position.y, position.z, 1.0);
-  fragment.position = projection * vec4<f32>(vertex.position.xyz, 1.0);
+  // fragment.position = projection * vec4<f32>(vertex.position.xyz, 1.0);
+  fragment.position = vec4<f32>(vertex.position.xyz, 1.0);
   fragment.uv = vertex.uv;
   fragment.textureIndex = vertex.textureIndex;
 

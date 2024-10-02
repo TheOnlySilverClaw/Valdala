@@ -1,3 +1,5 @@
+module main;
+
 import std::io;
 
 import log;
@@ -28,8 +30,6 @@ fn void! start() {
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
     Window* window = graphics::createWindow(1000, 800, "Valdala", &allocator)!;
-
-    graphics::loadShaderModule("./shaders/textured.wgsl", window.surface.device, &allocator)!;
 
     window.show();
 
