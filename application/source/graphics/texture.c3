@@ -38,8 +38,10 @@ fn TextureView! TextureLoader.loadTextureArray(&self, TextureFormat format, uint
 
 
     Texture texture = self.device.createTexture(&descriptor);
+    defer texture.release();
 
     foreach(uint layer, String file: files) {
+        io::printfn("layer %d", layer);
         self.loadArrayTexture(texture, file, layer)!;
     }
 
@@ -54,7 +56,6 @@ fn TextureView! TextureLoader.loadTextureArray(&self, TextureFormat format, uint
 	};
 	
 	TextureView view = texture.createView(&viewDescriptor);
-    // texture.release();
 
     return view;
 }
