@@ -41,7 +41,6 @@ fn TextureView! TextureLoader.loadTextureArray(&self, TextureFormat format, uint
     defer texture.release();
 
     foreach(uint layer, String file: files) {
-        io::printfn("layer %d", layer);
         self.loadArrayTexture(texture, file, layer)!;
     }
 

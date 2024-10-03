@@ -3,11 +3,13 @@ module graphics;
 import webgpu;
 import asset;
 import std::io;
+import std::math::matrix;
 
 struct Renderer {
     Color clearColor;
     RenderPipeline pipeline;
     BindGroup bindGroup;
+    Buffer projectionBuffer;
 	Buffer vertexBuffer;
 }
 
@@ -21,18 +23,8 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
     ShaderModule shaderModule = loadShaderModule("shaders/textured.wgsl", device, allocator)!;
 
 	
-	float size = 0.5;
-	
-	float[] vertices = {
-		// x	y		z		u  v  texture index
-		-size,	size,	0.5,	0, 0, 2,
-		-size, -size,	0.5,	0, 1, 2,
-		size, -size,	0.5,	1, 1, 2,
-
-		size, -size,	0.5,	1, 1, 3,
-		size, size,		0.5,	1, 0, 3,
-		-size, size,	0.5,	0, 0, 3,
-	};
+	float[] vertices = square(0.5, allocator);
+    defer allocator::free(allocator, vertices);
 	
 	
 	usz bufferSize = vertices.len * float.sizeof;
@@ -47,7 +39,8 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
         .queue = queue
     };
 
-	TextureView texture = textureLoader.loadTextureArray(colorTextureFormat, 16, 16,
+	TextureView texture = textureLoader.loadTextureArray(
+        colorTextureFormat, 16, 16,
         "testing/texture_1.qoi",
         "testing/texture_2.qoi",
         "testing/texture_3.qoi",
@@ -57,14 +50,32 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
     self.pipeline = createRenderPipeline(
         device, pipelineLayout, shaderModule, colorTextureFormat);
 	self.vertexBuffer = createVertexBuffer(device, bufferSize);
+    self.projectionBuffer = createProjectionBuffer(device);
 	Sampler sampler = createSampler(device, REPEAT, NEAREST, LINEAR);
-	self.bindGroup = createBindGroup(device, bindGroupLayout, sampler, texture);
+	self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, texture);
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
 		
 }
 
-fn BindGroup createBindGroup(Device device, BindGroupLayout layout, Sampler sampler, TextureView texture) {
+fn Buffer createProjectionBuffer(Device device) {
+    
+    BufferDescriptor descriptor = {
+        .label = "projection",
+        .usage = { .copyDestination = true, .uniform = true },
+        .size = 4 * 4 * float.sizeof
+    };
+
+    return device.createBuffer(&descriptor);
+}
+
+fn BindGroup createBindGroup(Device device, BindGroupLayout layout, Buffer projectionBuffer, Sampler sampler, TextureView texture) {
+
+    BindGroupEntry projectionBufferEntry = {
+        .binding = 0,
+        .buffer = projectionBuffer,
+        .size = projectionBuffer.getSize()
+    };
 
 	BindGroupEntry samplerEntry = {
 		.binding = 1,
@@ -77,6 +88,7 @@ fn BindGroup createBindGroup(Device device, BindGroupLayout layout, Sampler samp
 	};
 	
 	BindGroupEntry[*] entries = {
+        projectionBufferEntry,
 		samplerEntry,
 		textureEntry
 	};
@@ -93,14 +105,15 @@ fn BindGroup createBindGroup(Device device, BindGroupLayout layout, Sampler samp
 
 fn Sampler createSampler(Device device, AddressMode addressMode, FilterMode filterMode, MipmapFilterMode mipmapFilterMode) {
 
-	SamplerDescriptor descriptor;
-	descriptor.addressModeU = addressMode;
-	descriptor.addressModeV = addressMode;
-	descriptor.addressModeW = addressMode;
-	descriptor.magFilter = filterMode;
-	descriptor.minFilter = filterMode;
-	descriptor.mipmapFilter = mipmapFilterMode;
-	descriptor.maxAnisotropy = 1;
+	SamplerDescriptor descriptor = {
+	    .addressModeU = addressMode,
+	    .addressModeV = addressMode,
+	    .addressModeW = addressMode,
+	    .magFilter = filterMode,
+	    .minFilter = filterMode,
+	    .mipmapFilter = mipmapFilterMode,
+	    .maxAnisotropy = 1
+    };
 	
 	return device.createSampler(&descriptor);
 }
@@ -111,7 +124,6 @@ fn Buffer createVertexBuffer(Device device, usz size) {
 		.label = "vertex",
 		.usage = { .vertex = true, .copyDestination = true },
 		.size = size,
-		.mappedAtCreation = 0
 	};
 	
 	return device.createBuffer(&descriptor);
@@ -120,6 +132,7 @@ fn Buffer createVertexBuffer(Device device, usz size) {
 fn BindGroupLayout createBindGroupLayout(Device device) {
 
     BindGroupLayoutEntry projectionBufferEntry;
+    projectionBufferEntry.binding = 0;
     projectionBufferEntry.visibility = { .vertex = true };
     projectionBufferEntry.buffer.type = UNIFORM;
 
@@ -136,7 +149,7 @@ fn BindGroupLayout createBindGroupLayout(Device device) {
     textureEntry.texture.multisampled = 0;
 
     BindGroupLayoutEntry[*] entries = {
-        // projectionBufferEntry,
+        projectionBufferEntry,
         samplerEntry,
         textureEntry
     };
@@ -243,7 +256,9 @@ fn RenderPipeline createRenderPipeline(Device device,
 
 
 fn void Renderer.render(&self,
-    Texture colorTexture, Device device, Queue queue, webgpu::Surface surface) {
+    Texture colorTexture, Device device, Queue queue, Matrix4 projection) {
+
+    queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
 
     TextureView colorTextureView = colorTexture.createView();
 
@@ -277,9 +292,7 @@ fn void Renderer.render(&self,
     
 
     queue.submit(1, &commandBuffer);
-    commandBuffer.release();
-    
-    surface.present();
+    commandBuffer.release();   
 }
 
 fn void Renderer.destroy(&self) {

@@ -2,9 +2,9 @@ module graphics;
 
 import std;
 
-fn float[] square(float size) {
+fn float[] square(float size, Allocator allocator) {
 	
-	float[] vertices = {
+	float[*] vertices = {
 		// x	y		z		u  v  texture index
 		-size,	size,	0.5,	0, 0, 0,
 		-size, -size,	0.5,	0, 1, 0,
@@ -14,7 +14,9 @@ fn float[] square(float size) {
 		size, size,		0.5,	1, 0, 1,
 		-size, size,	0.5,	0, 0, 1,
 	};
-	// TODO allocate
-	return vertices;
+	
+	float[] allocated = allocator::alloc_array(allocator, float, vertices.len);
+	mem::move(allocated.ptr, &vertices, vertices.len * float.sizeof);
+	return allocated;
 }
 

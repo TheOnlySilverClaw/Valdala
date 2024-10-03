@@ -4,6 +4,7 @@ import webgpu;
 import glfw_webgpu;
 
 import std::io;
+import std::math::matrix;
 
 struct Surface {
     webgpu::Surface handle;
@@ -12,6 +13,7 @@ struct Surface {
     Device device;
     Queue queue;
     Renderer renderer;
+    Matrix4 projection;
 }
 
 fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
@@ -60,6 +62,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     surface.renderer = renderer;
     surface.device = device;
     surface.queue = queue;
+    surface.projection = MATRIX4_IDENTITY;
 
     surface.configure();
 
@@ -98,8 +101,9 @@ fn void Surface.render(&self) {
     self.handle.getCurrentTexture(&surfaceTexture);
     Texture currentSurfaceTexture = surfaceTexture.texture;
 
-    self.renderer.render(currentSurfaceTexture, self.device, self.queue, self.handle);
+    self.renderer.render(currentSurfaceTexture, self.device, self.queue, self.projection);
+    self.handle.present();
 
-    // currentSurfaceTexture.release();
+    currentSurfaceTexture.release();
 }
 

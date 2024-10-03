@@ -10,7 +10,7 @@ struct Fragment {
   @location(2) textureIndex: f32
 }
 
-// @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
+@group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
 
 @vertex
 fn vertex(vertex: Vertex) -> Fragment {
