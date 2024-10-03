@@ -2,7 +2,6 @@ module main;
 
 import std::io;
 
-import log;
 import graphics;
 import glfw;
 
@@ -10,15 +9,13 @@ def Window = graphics::Window;
 
 fn void main() {
 
-    ConsoleLogger log = { DEBUG, io::stderr() };
-
-    log.info("launch");
+    io::printfn("launch");
 
     if(catch error = start()) {
-        log.fatal("unexpected error", &error);
+        io::printfn("unexpected error: %s", error);
     }
 
-    log.info("shutdown");
+    io::printfn("shutdown");
 }
 
 fn void! start() {

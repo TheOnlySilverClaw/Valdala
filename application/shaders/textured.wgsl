@@ -26,14 +26,13 @@ fn vertex(vertex: Vertex) -> Fragment {
 }
 
 @group(0) @binding(1) var textureSampler: sampler;
-// @group(0) @binding(1) var textureArray: texture_2d_array<f32>;
-@group(0) @binding(2) var colorTexture: texture_2d<f32>;
+@group(0) @binding(2) var textureArray: texture_2d_array<f32>;
 
 @fragment
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
   // TODO figure out how to send mixed types
-  // var i: u32 = u32(vertex.textureIndex);
-  let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
+  var i: u32 = u32(fragment.textureIndex);
+  let textureColor = textureSample(textureArray, textureSampler, fragment.uv, i);
   return textureColor;
 }

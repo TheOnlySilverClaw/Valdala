@@ -25,64 +25,42 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
 	
 	float[] vertices = {
 		// x	y		z		u  v  texture index
-		-size,	size,	0.5,	0, 0, 0,
-		-size, -size,	0.5,	0, 1, 0,
-		size, -size,	0.5,	1, 1, 0,
+		-size,	size,	0.5,	0, 0, 2,
+		-size, -size,	0.5,	0, 1, 2,
+		size, -size,	0.5,	1, 1, 2,
 
-		size, -size,	0.5,	1, 1, 0,
-		size, size,		0.5,	1, 0, 0,
-		-size, size,	0.5,	0, 0, 0,
+		size, -size,	0.5,	1, 1, 3,
+		size, size,		0.5,	1, 0, 3,
+		-size, size,	0.5,	0, 0, 3,
 	};
 	
 	
 	usz bufferSize = vertices.len * float.sizeof;
 
-    Image image;
-    defer image.free();
-    image.loadQOI("textures/testing/texture_1.qoi", allocator)!;
-    
-	Texture texture = createTexture(device, image, colorTextureFormat, allocator)!;
-	
-	TextureViewDescriptor viewDescriptor = {
-		.format = colorTextureFormat,
-		.dimension = SINGLE_2D,
-		.baseMipLevel = 0,
-		.mipLevelCount = 1,
-		.baseArrayLayer = 0,
-		.arrayLayerCount = 1,
-		.aspect = ALL
-	};
-	
-	TextureView textureView = texture.createView(&viewDescriptor);
+    Path texturesRoot = path::new("textures", allocator)!;
+    defer texturesRoot.free_with_allocator(allocator);
+
+    TextureLoader textureLoader = {
+        .allocator = allocator,
+        .root = texturesRoot,
+        .device = device,
+        .queue = queue
+    };
+
+	TextureView texture = textureLoader.loadTextureArray(colorTextureFormat, 16, 16,
+        "testing/texture_1.qoi",
+        "testing/texture_2.qoi",
+        "testing/texture_3.qoi",
+        "testing/texture_4.qoi"
+    )!;
 	
     self.pipeline = createRenderPipeline(
         device, pipelineLayout, shaderModule, colorTextureFormat);
 	self.vertexBuffer = createVertexBuffer(device, bufferSize);
 	Sampler sampler = createSampler(device, REPEAT, NEAREST, LINEAR);
-	self.bindGroup = createBindGroup(device, bindGroupLayout, sampler, textureView);
+	self.bindGroup = createBindGroup(device, bindGroupLayout, sampler, texture);
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
-    
-	ImageCopyTexture textureDestination = {
-		.texture = texture,
-		.mipLevel = 0,
-		.origin = {},
-		.aspect = ALL
-	};
-	
-	TextureDataLayout textureLayout = {
-		.offset = 0,
-		.bytesPerRow = image.width * image.colorChannels.size,
-		.rowsPerImage = image.height
-	};
-	
-	Extent3D textureSize = {
-		.width = image.width,
-		.height = image.height,
-		.depthOrArrayLayers = 1
-	};
-	
-	queue.writeTexture(&textureDestination, image.pixels.ptr, image.pixels.len, &textureLayout, &textureSize);
 		
 }
 
@@ -112,23 +90,6 @@ fn BindGroup createBindGroup(Device device, BindGroupLayout layout, Sampler samp
 	return device.createBindGroup(&descriptor);
 }
 
-fn Texture! createTexture(Device device, Image image, TextureFormat format, Allocator allocator) {
-
-    
-    TextureDescriptor textureDescriptor;
-    textureDescriptor.label = "texture_1";
-    textureDescriptor.usage = { .textureBinding = true, .copyDestination = true };
-    textureDescriptor.dimension = DIMENSION_2D;
-    textureDescriptor.size.width = image.width;
-    textureDescriptor.size.height = image.height;
-    textureDescriptor.size.depthOrArrayLayers = 1;
-    textureDescriptor.format = format;
-    textureDescriptor.mipLevelCount = 1;
-    textureDescriptor.sampleCount = 1;
-    
-    Texture texture = device.createTexture(&textureDescriptor);
-    return texture;
-}
 
 fn Sampler createSampler(Device device, AddressMode addressMode, FilterMode filterMode, MipmapFilterMode mipmapFilterMode) {
 
@@ -171,7 +132,7 @@ fn BindGroupLayout createBindGroupLayout(Device device) {
     textureEntry.binding = 2;
     textureEntry.visibility = { .fragment = true };
     textureEntry.texture.sampleType = FLOAT;
-    textureEntry.texture.viewDimension = SINGLE_2D;
+    textureEntry.texture.viewDimension = ARRAY_2D;
     textureEntry.texture.multisampled = 0;
 
     BindGroupLayoutEntry[*] entries = {
