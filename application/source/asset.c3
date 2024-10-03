@@ -19,9 +19,9 @@ enum ColorSpace {
     LINEAR
 }
 
-enum ColorChannels {
-    RGB,
-    RGBA
+enum ColorChannels: (char size) {
+    RGB = 3,
+    RGBA = 4
 }
 
 struct Image {

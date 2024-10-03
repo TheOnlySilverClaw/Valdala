@@ -72,7 +72,7 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
 	
 	TextureDataLayout textureLayout = {
 		.offset = 0,
-		.bytesPerRow = image.width * 4,
+		.bytesPerRow = image.width * image.colorChannels.size,
 		.rowsPerImage = image.height
 	};
 	
