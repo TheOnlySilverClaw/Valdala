@@ -114,12 +114,19 @@ fn void Surface.render(&self) {
 
     SurfaceTexture surfaceTexture;
     self.handle.getCurrentTexture(&surfaceTexture);
-    Texture currentSurfaceTexture = surfaceTexture.texture;
+    Texture colorTexture = surfaceTexture.texture;
 
-    self.renderer.render(currentSurfaceTexture, self.depthTexture, self.device, self.queue, self.projection);
+    Texture depthTexture = self.depthTexture;
+
+    TextureView colorTextureView = colorTexture.createView();
+    TextureView depthTextureView = depthTexture.createView();
+
+    self.renderer.render(colorTextureView, depthTextureView, self.device, self.queue, self.projection);
     self.handle.present();
 
-    currentSurfaceTexture.release();
+    colorTextureView.release();
+    depthTextureView.release();
+    colorTexture.release();
 }
 
 fn void Surface.destroy(&self) {

@@ -21,12 +21,9 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
     PipelineLayout pipelineLayout = createPipelineLayout(device, bindGroupLayouts);
 
     ShaderModule shaderModule = loadShaderModule("shaders/textured.wgsl", device, allocator)!;
-
 	
 	float[] vertices = square(0.5, allocator);
     defer allocator::free(allocator, vertices);
-	
-	
 	usz bufferSize = vertices.len * float.sizeof;
 
     Path texturesRoot = path::new("textures", allocator)!;
@@ -55,7 +52,6 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
 	self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, texture);
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
-		
 }
 
 fn Buffer createProjectionBuffer(Device device) {
@@ -154,7 +150,6 @@ fn BindGroupLayout createBindGroupLayout(Device device) {
         textureEntry
     };
 
-
     BindGroupLayoutDescriptor descriptor;
     descriptor.entryCount = entries.len;
     descriptor.entries = &entries;
@@ -173,7 +168,6 @@ fn PipelineLayout createPipelineLayout(Device device, BindGroupLayout[] bindGrou
 
 fn RenderPipeline createRenderPipeline(Device device,
     PipelineLayout pipelineLayout, ShaderModule shaderModule, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat) {
-
 
     // TODO compute from struct?
     VertexAttribute positionAttribute = {
@@ -199,7 +193,6 @@ fn RenderPipeline createRenderPipeline(Device device,
         uvAttribute,
         textureIndexAttribute
     };
-
 
     // TODO compute from struct? with alignment padding!
     VertexBufferLayout vertexBufferLayout = {
@@ -286,41 +279,38 @@ fn RenderPipeline createRenderPipeline(Device device,
         .fragment = &fragmentState
     };
 
-
     return device.createRenderPipeline(&descriptor);
 }
 
 
 fn void Renderer.render(&self,
-    Texture colorTexture, Texture depthTexture, Device device, Queue queue, Matrix4 projection) {
+    TextureView colorTexture, TextureView depthTexture, Device device, Queue queue, Matrix4 projection) {
 
     queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
-
-    TextureView colorTextureView = colorTexture.createView();
-    TextureView depthTextureView = depthTexture.createView();
-
-    CommandEncoder commandEncoder = device.createCommandEncoder();
-
-    RenderPassColorAttachment colorAttachment;
-    colorAttachment.view = colorTextureView;
-    colorAttachment.loadOperation = CLEAR;
-    colorAttachment.storeOperation = STORE;
-    colorAttachment.clearValue = self.clearColor;
-
+    
+    RenderPassColorAttachment colorAttachment = {
+        .view = colorTexture,
+        .loadOperation = CLEAR,
+        .storeOperation = STORE,
+        .clearValue = self.clearColor
+    };
+    
     RenderPassDepthStencilAttachment depthStencilAttachment = {
-        .view = depthTextureView,
+        .view = depthTexture,
         .depthLoadOperation = CLEAR,
         .depthStoreOperation = STORE,
         .depthClearValue = 1.0,
         .depthReadOnly = 0
     };
-
+    
     RenderPassDescriptor renderPassDescriptor = {
         .colorAttachmentCount = 1,
         .colorAttachments = &colorAttachment,
         .depthStencilAttachment = &depthStencilAttachment
     };
-
+    
+    CommandEncoder commandEncoder = device.createCommandEncoder();
+    
     RenderPassEncoder renderPassEncoder = commandEncoder.beginRenderPass(&renderPassDescriptor);
     
     renderPassEncoder.setPipeline(self.pipeline);
@@ -331,15 +321,12 @@ fn void Renderer.render(&self,
     
     renderPassEncoder.end();
     renderPassEncoder.release();
-    colorTextureView.release();
-
 
     CommandBuffer commandBuffer = commandEncoder.finish();
     commandEncoder.release();
-    
 
     queue.submit(1, &commandBuffer);
-    commandBuffer.release();   
+    commandBuffer.release();
 }
 
 fn void Renderer.destroy(&self) {
