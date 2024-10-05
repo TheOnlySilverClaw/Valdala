@@ -4,20 +4,17 @@ import webgpu;
 import glfw_webgpu;
 
 import std::io;
-import std::math::matrix;
 
 struct Surface {
     webgpu::Surface handle;
     SurfaceCapabilities capabilities;
     SurfaceConfiguration configuration;
     Device device;
-    Queue queue;
-    Renderer renderer;
-    Matrix4 projection;
+    TextureFormat depthTextureFormat;
     Texture depthTexture;
 }
 
-fn void! Surface.new(&self, Instance instance, Window* window, Allocator allocator) {
+fn void! Surface.new(&self, Window* window, Instance instance) {
 
     webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle)!;
 
@@ -39,14 +36,9 @@ fn void! Surface.new(&self, Instance instance, Window* window, Allocator allocat
     Device device = adapter.requestDevice(&deviceDescriptor)!;
     adapter.release();
 
-	Queue queue = device.getQueue();
-	
-    TextureFormat colorTextureFormat = capabilities.formats[0];
-    TextureFormat depthTextureFormat = DEPTH24_PLUS;
-
     SurfaceConfiguration configuration = {
         .device = device,
-        .format = colorTextureFormat,
+        .format = capabilities.formats[0],
         .usage = { .renderAttachment = true },
         .alphaMode = OPAQUE,
         .width = window.width,
@@ -55,39 +47,33 @@ fn void! Surface.new(&self, Instance instance, Window* window, Allocator allocat
         .viewFormatCount = 0,
     };
 
-    Renderer renderer;
-    renderer.clearColor = {0.3, 0.4, 0.6, 1.0};
-    renderer.new(device, queue, colorTextureFormat, depthTextureFormat, allocator)!;
-
     self.handle = handle;
     self.capabilities = capabilities;
     self.configuration = configuration;
-    self.renderer = renderer;
     self.device = device;
-    self.queue = queue;
-    self.projection = MATRIX4_IDENTITY;
-    self.depthTexture = createDepthTexture(device, depthTextureFormat, window.width, window.height);
-
+    self.depthTextureFormat = DEPTH24_PLUS;
+    self.depthTexture = self.createDepthTexture();
+    
     self.configure();
 }
 
-fn Texture createDepthTexture(Device device, TextureFormat format, uint width, uint height) {
+fn Texture Surface.createDepthTexture(&self) {
 
     TextureDescriptor descriptor = {
         .label = "depth",
         .usage = { .renderAttachment = true },
         .dimension = DIMENSION_2D,
         .size = {
-            .width = width,
-            .height = height,
+            .width = self.width(),
+            .height = self.height(),
             .depthOrArrayLayers = 1
         },
         .mipLevelCount = 1,
         .sampleCount = 1,
-        .format = format
+        .format = self.depthTextureFormat
     };
 
-    return device.createTexture(&descriptor);
+    return self.device.createTexture(&descriptor);
 }
 
 fn void Surface.configure(&self) {
@@ -99,46 +85,43 @@ fn void Surface.resize(&self, uint width, uint height) {
     self.configuration.width = width;
     self.configuration.height = height;
 
-    Texture old = self.depthTexture;
-    TextureFormat format = old.getFormat();
-    old.destroy();
-    old.release();
-
-    self.depthTexture = createDepthTexture(self.device, format, width, height);
-
+    self.depthTexture.destroy();
+    self.depthTexture.release();
+    self.depthTexture = self.createDepthTexture();
+    
     self.configure();
 }
 
-fn void Surface.render(&self) {
+fn Texture Surface.current_color_texture(&self) {
 
     SurfaceTexture surfaceTexture;
     self.handle.getCurrentTexture(&surfaceTexture);
-    Texture colorTexture = surfaceTexture.texture;
+    return surfaceTexture.texture;
+}
 
-    Texture depthTexture = self.depthTexture;
+fn TextureFormat Surface.color_texture_format(&self) {
+    return self.configuration.format;
+}
 
-    TextureView colorTextureView = colorTexture.createView();
-    TextureView depthTextureView = depthTexture.createView();
+fn uint Surface.width(&self) {
+    return self.configuration.width;
+}
 
-    self.renderer.render(colorTextureView, depthTextureView, self.device, self.queue, self.projection);
+fn uint Surface.height(&self) {
+    return self.configuration.height;
+}
+
+fn void Surface.present(&self) {
     self.handle.present();
-
-    colorTextureView.release();
-    depthTextureView.release();
-    colorTexture.release();
 }
 
 fn void Surface.destroy(&self) {
-
-    self.renderer.destroy();
 
     self.depthTexture.destroy();
     self.depthTexture.release();
 
     self.handle.unconfigure();
     self.handle.release();
-
-    self.queue.release();
 
     self.device.destroy();
     self.device.release();

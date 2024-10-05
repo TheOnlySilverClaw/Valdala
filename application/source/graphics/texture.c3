@@ -17,7 +17,7 @@ struct TextureLoader {
     Queue queue;
 }
 
-fn TextureView! TextureLoader.loadTextureArray(&self, TextureFormat format, uint width, uint height, String... files) {
+fn Texture! TextureLoader.loadTextureArray(&self, TextureFormat format, uint width, uint height, String... files) {
 
     TextureDescriptor descriptor = {
         .label = "texture_array",
@@ -38,25 +38,24 @@ fn TextureView! TextureLoader.loadTextureArray(&self, TextureFormat format, uint
 
 
     Texture texture = self.device.createTexture(&descriptor);
-    defer texture.release();
 
     foreach(uint layer, String file: files) {
         self.loadArrayTexture(texture, file, layer)!;
     }
 
-    TextureViewDescriptor viewDescriptor = {
-		.format = format,
-		.dimension = ARRAY_2D,
-		.baseMipLevel = 0,
-		.mipLevelCount = 1,
-		.baseArrayLayer = 0,
-		.arrayLayerCount = files.len,
-		.aspect = ALL
-	};
+    // TextureViewDescriptor viewDescriptor = {
+	// 	.format = format,
+	// 	.dimension = ARRAY_2D,
+	// 	.baseMipLevel = 0,
+	// 	.mipLevelCount = 1,
+	// 	.baseArrayLayer = 0,
+	// 	.arrayLayerCount = files.len,
+	// 	.aspect = ALL
+	// };
 	
-	TextureView view = texture.createView(&viewDescriptor);
+	// TextureView view = texture.createView(&viewDescriptor);
 
-    return view;
+    return texture;
 }
 
 fn void! TextureLoader.loadArrayTexture(&self, Texture texture, String file, uint layer) @local {

@@ -4,6 +4,7 @@ import std::io;
 
 import graphics;
 import glfw;
+import webgpu;
 
 def Window = graphics::Window;
 
@@ -27,11 +28,18 @@ fn void! start() {
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
     Window window;
-    window.new(1000, 800, "Valdala", &allocator)!;
-    window.show();
+    window.new(1000, 800, "Valdala")!;
+
+    Renderer renderer;
+    renderer.new(&window, &allocator)!;
+    
+    renderer.start();
+
+    renderer.destroy();
     window.destroy();
 
     glfw::terminate();
 
     allocator.print_report();
+
 }

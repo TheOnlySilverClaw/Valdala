@@ -1,27 +1,43 @@
 module graphics;
 
+import glfw::window;
 import webgpu;
 import asset;
 import std::io;
+import std::thread;
 import std::math::matrix;
 
 struct Renderer {
+    Allocator allocator;
+    Window* window;
     Color clearColor;
     RenderPipeline pipeline;
     BindGroup bindGroup;
     Buffer projectionBuffer;
 	Buffer vertexBuffer;
+    Texture texture;
 }
 
-fn void! Renderer.new(&self, Device device, Queue queue, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat, Allocator allocator) {
+fn void! Renderer.new(&self, Window* window, Allocator allocator) {
+
+    self.window = window;
+    self.allocator = allocator;
+
+    Surface surface = window.surface;
+    Device device = surface.device;
+    Queue queue = device.getQueue();
+    defer queue.release();
 
     BindGroupLayout bindGroupLayout = createBindGroupLayout(device);
+    defer bindGroupLayout.release();
     BindGroupLayout[] bindGroupLayouts = { bindGroupLayout };
 
     PipelineLayout pipelineLayout = createPipelineLayout(device, bindGroupLayouts);
+    defer pipelineLayout.release();
 
     ShaderModule shaderModule = loadShaderModule("shaders/textured.wgsl", device, allocator)!;
-	
+	defer shaderModule.release();
+
 	float[] vertices = square(0.5, allocator);
     defer allocator::free(allocator, vertices);
 	usz bufferSize = vertices.len * float.sizeof;
@@ -36,7 +52,10 @@ fn void! Renderer.new(&self, Device device, Queue queue, TextureFormat colorText
         .queue = queue
     };
 
-	TextureView texture = textureLoader.loadTextureArray(
+    TextureFormat colorTextureFormat = surface.color_texture_format();
+    TextureFormat depthTextureFormat = surface.depthTextureFormat;
+
+	self.texture = textureLoader.loadTextureArray(
         colorTextureFormat, 16, 16,
         "testing/texture_1.qoi",
         "testing/texture_2.qoi",
@@ -48,8 +67,14 @@ fn void! Renderer.new(&self, Device device, Queue queue, TextureFormat colorText
         device, pipelineLayout, shaderModule, colorTextureFormat, depthTextureFormat);
 	self.vertexBuffer = createVertexBuffer(device, bufferSize);
     self.projectionBuffer = createProjectionBuffer(device);
+
 	Sampler sampler = createSampler(device, REPEAT, NEAREST, LINEAR);
-	self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, texture);
+    defer sampler.release();
+
+    TextureView textureView = self.texture.createView();
+	
+    self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, textureView);
+    defer textureView.release();
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
 }
@@ -282,21 +307,45 @@ fn RenderPipeline createRenderPipeline(Device device,
     return device.createRenderPipeline(&descriptor);
 }
 
+fn void Renderer.start(&self) {
+    
+    while(self.window.keep_open()) {
+        glfw::pollEvents();
+        self.render();
+        thread::sleep_ms(16);
+    }
+}
 
-fn void Renderer.render(&self,
-    TextureView colorTexture, TextureView depthTexture, Device device, Queue queue, Matrix4 projection) {
+fn void Renderer.render(&self) {
+
+    Surface surface =  self.window.surface;
+
+    Texture colorTexture = surface.current_color_texture();
+    defer colorTexture.release();
+
+    TextureView colorTextureView = colorTexture.createView();
+    defer colorTextureView.release();
+
+    TextureView depthTextureView = surface.depthTexture.createView();
+    defer depthTextureView.release();
+
+    Device device = surface.device;
+    Queue queue = device.getQueue();
+    defer queue.release();
+
+    Matrix4 projection = MATRIX4_IDENTITY;
 
     queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
     
     RenderPassColorAttachment colorAttachment = {
-        .view = colorTexture,
+        .view = colorTextureView,
         .loadOperation = CLEAR,
         .storeOperation = STORE,
         .clearValue = self.clearColor
     };
     
     RenderPassDepthStencilAttachment depthStencilAttachment = {
-        .view = depthTexture,
+        .view = depthTextureView,
         .depthLoadOperation = CLEAR,
         .depthStoreOperation = STORE,
         .depthClearValue = 1.0,
@@ -327,7 +376,22 @@ fn void Renderer.render(&self,
 
     queue.submit(1, &commandBuffer);
     commandBuffer.release();
+
+    surface.present();
 }
 
 fn void Renderer.destroy(&self) {
+    
+    self.pipeline.release();
+
+    self.vertexBuffer.destroy();
+    self.vertexBuffer.release();
+
+    self.texture.destroy();
+    self.texture.release();
+    
+    self.bindGroup.release();
+
+    self.projectionBuffer.destroy();
+    self.projectionBuffer.release();
 }

@@ -13,12 +13,12 @@ struct Window {
     uint height;
 }
 
-fn void! Window.new(&self, int width, int height, String title, Allocator allocator) {
+fn void! Window.new(&self, int width, int height, ZString title) {
 
     self.width = width;
     self.height = height;
 
-    window::Window handle = window::createWindow(width, height, title.zstr_tcopy());
+    window::Window handle = window::createWindow(width, height, title);
     self.handle = handle;
     
     handle.setUserPointer(self);
@@ -29,35 +29,21 @@ fn void! Window.new(&self, int width, int height, String title, Allocator alloca
     });
     
     webgpu::Instance instance = webgpu::createInstance();
-    self.surface.new(instance, self, allocator)!;
+    self.surface.new(self, instance)!;
     instance.release();
 }
 
-import std::io;
-
-fn void Window.show(&self) {
-
-    while(self.handle.shouldClose() != 1) {
-        glfw::pollEvents();
-        self.render();
-        thread::sleep_ms(16);
-    }
+fn bool Window.keep_open(&self) {
+    return !self.handle.shouldClose();
 }
 
 fn void Window.resize(&self, int width, int height) {
-
     self.width = width;
     self.height = height;
-
     self.surface.resize(width, height);
 }
 
 fn void Window.destroy(&self) {
-
     self.surface.destroy();
     self.handle.destroy();
-}
-
-fn void Window.render(&self) {
-    self.surface.render();
 }
