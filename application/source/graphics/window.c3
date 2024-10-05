@@ -8,37 +8,29 @@ import webgpu;
 
 struct Window {
     window::Window handle;
-    Allocator allocator;
-    Surface* surface;
+    Surface surface;
     uint width;
     uint height;
 }
 
-fn Window*! createWindow(int width, int height, String title,
-    Allocator allocator) {
+fn void! Window.new(&self, int width, int height, String title, Allocator allocator) {
+
+    self.width = width;
+    self.height = height;
 
     window::Window handle = window::createWindow(width, height, title.zstr_tcopy());
-
-    Window* window = allocator::alloc(allocator, Window);
-    window.handle = handle;
-    window.allocator = allocator;
-    window.width = width;
-    window.height = height;
-    handle.setUserPointer(window);
-
+    self.handle = handle;
+    
+    handle.setUserPointer(self);
+    
     handle.setSizeCallback(fn(glfw::window::Window handle, int width, int height) {
         Window* window = handle.getUserPointer();
         window.resize(width, height);
     });
-
+    
     webgpu::Instance instance = webgpu::createInstance();
-
-    Surface* surface = createSurface(instance, window, allocator)!;
+    self.surface.new(instance, self, allocator)!;
     instance.release();
-
-    window.surface = surface;
-
-    return window;
 }
 
 import std::io;
@@ -63,8 +55,6 @@ fn void Window.resize(&self, int width, int height) {
 fn void Window.destroy(&self) {
 
     self.surface.destroy();
-    allocator::free(self.allocator, self.surface);
-
     self.handle.destroy();
 }
 

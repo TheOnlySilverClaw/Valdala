@@ -26,12 +26,10 @@ fn void! start() {
     glfw::initialize()!;
     glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
 
-    Window* window = graphics::createWindow(1000, 800, "Valdala", &allocator)!;
-
+    Window window;
+    window.new(1000, 800, "Valdala", &allocator)!;
     window.show();
-
     window.destroy();
-    allocator::free(&allocator, window);
 
     glfw::terminate();
 

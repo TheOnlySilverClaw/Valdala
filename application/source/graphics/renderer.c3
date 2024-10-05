@@ -13,7 +13,7 @@ struct Renderer {
 	Buffer vertexBuffer;
 }
 
-fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat, Allocator allocator) {
+fn void! Renderer.new(&self, Device device, Queue queue, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat, Allocator allocator) {
 
     BindGroupLayout bindGroupLayout = createBindGroupLayout(device);
     BindGroupLayout[] bindGroupLayouts = { bindGroupLayout };

@@ -17,13 +17,14 @@ struct Surface {
     Texture depthTexture;
 }
 
-fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
+fn void! Surface.new(&self, Instance instance, Window* window, Allocator allocator) {
 
     webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle)!;
 
-    RequestAdapterOptions options;
-    options.compatibleSurface = handle;
-    options.powerPreference = HIGH_PERFORMANCE;
+    RequestAdapterOptions options = {
+        .compatibleSurface = handle,
+        .powerPreference = HIGH_PERFORMANCE
+    };
 
     Adapter adapter = instance.requestAdapter(&options)!;
 
@@ -43,33 +44,31 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     TextureFormat colorTextureFormat = capabilities.formats[0];
     TextureFormat depthTextureFormat = DEPTH24_PLUS;
 
-    SurfaceConfiguration configuration;
-    configuration.device = device;
-    configuration.format = colorTextureFormat;
-    configuration.usage = { .renderAttachment = true };
-    configuration.alphaMode = OPAQUE;
-    configuration.width = window.width;
-    configuration.height = window.height;
-    configuration.presentMode = FIFO;
-    configuration.viewFormatCount = 0;
+    SurfaceConfiguration configuration = {
+        .device = device,
+        .format = colorTextureFormat,
+        .usage = { .renderAttachment = true },
+        .alphaMode = OPAQUE,
+        .width = window.width,
+        .height = window.height,
+        .presentMode = FIFO,
+        .viewFormatCount = 0,
+    };
 
     Renderer renderer;
     renderer.clearColor = {0.3, 0.4, 0.6, 1.0};
-    renderer.init(device, queue, colorTextureFormat, depthTextureFormat, allocator)!;
+    renderer.new(device, queue, colorTextureFormat, depthTextureFormat, allocator)!;
 
-    Surface* surface = allocator::alloc(allocator, Surface);
-    surface.handle = handle;
-    surface.capabilities = capabilities;
-    surface.configuration = configuration;
-    surface.renderer = renderer;
-    surface.device = device;
-    surface.queue = queue;
-    surface.projection = MATRIX4_IDENTITY;
-    surface.depthTexture = createDepthTexture(device, depthTextureFormat, window.width, window.height);
+    self.handle = handle;
+    self.capabilities = capabilities;
+    self.configuration = configuration;
+    self.renderer = renderer;
+    self.device = device;
+    self.queue = queue;
+    self.projection = MATRIX4_IDENTITY;
+    self.depthTexture = createDepthTexture(device, depthTextureFormat, window.width, window.height);
 
-    surface.configure();
-
-    return surface;
+    self.configure();
 }
 
 fn Texture createDepthTexture(Device device, TextureFormat format, uint width, uint height) {
