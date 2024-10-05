@@ -13,7 +13,7 @@ struct Renderer {
 	Buffer vertexBuffer;
 }
 
-fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTextureFormat, Allocator allocator) {
+fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat, Allocator allocator) {
 
     BindGroupLayout bindGroupLayout = createBindGroupLayout(device);
     BindGroupLayout[] bindGroupLayouts = { bindGroupLayout };
@@ -48,7 +48,7 @@ fn void! Renderer.init(&self, Device device, Queue queue, TextureFormat colorTex
     )!;
 	
     self.pipeline = createRenderPipeline(
-        device, pipelineLayout, shaderModule, colorTextureFormat);
+        device, pipelineLayout, shaderModule, colorTextureFormat, depthTextureFormat);
 	self.vertexBuffer = createVertexBuffer(device, bufferSize);
     self.projectionBuffer = createProjectionBuffer(device);
 	Sampler sampler = createSampler(device, REPEAT, NEAREST, LINEAR);
@@ -172,11 +172,8 @@ fn PipelineLayout createPipelineLayout(Device device, BindGroupLayout[] bindGrou
 }
 
 fn RenderPipeline createRenderPipeline(Device device,
-    PipelineLayout pipelineLayout, ShaderModule shaderModule, TextureFormat colorTextureFormat) {
+    PipelineLayout pipelineLayout, ShaderModule shaderModule, TextureFormat colorTextureFormat, TextureFormat depthTextureFormat) {
 
-    RenderPipelineDescriptor descriptor;
-    descriptor.label = "textured mesh";
-    descriptor.layout = pipelineLayout;
 
     // TODO compute from struct?
     VertexAttribute positionAttribute = {
@@ -204,29 +201,52 @@ fn RenderPipeline createRenderPipeline(Device device,
     };
 
 
-    VertexBufferLayout vertexBuffer;
     // TODO compute from struct? with alignment padding!
-    vertexBuffer.arrayStride = (3+2+1) * float.sizeof;
-    vertexBuffer.stepMode = VERTEX;
-    vertexBuffer.attributeCount = vertexAttributes.len;
-    vertexBuffer.attributes = &vertexAttributes;
+    VertexBufferLayout vertexBufferLayout = {
+        .arrayStride = (3+2+1) * float.sizeof,
+        .stepMode = VERTEX,
+        .attributeCount = vertexAttributes.len,
+        .attributes = &vertexAttributes
+    };
 
-    descriptor.vertex.shaderModule = shaderModule;
-    descriptor.vertex.entryPoint = "vertex";
-    descriptor.vertex.bufferCount = 1;
-    descriptor.vertex.buffers = &vertexBuffer;
+    VertexState vertexState = {
+        .shaderModule = shaderModule,
+        .entryPoint = "vertex",
+        .bufferCount = 1,
+        .buffers = &vertexBufferLayout
+    };
 
-    descriptor.primitive.topology = TRIANGLE_LIST;
-    descriptor.primitive.frontFace = COUNTER_CLOCKWISE;
-    // TODO change to FRONT when rendering works
-    descriptor.primitive.cullMode = NONE;
+    PrimitiveState primitiveState = {
+        .topology = TRIANGLE_LIST,
+        .frontFace = COUNTER_CLOCKWISE,
+        // TODO change to FRONT when rendering works
+        .cullMode = NONE
+    };
 
-    descriptor.depthStencil = null;
+    DepthStencilState depthStencilState = {
+        .format = depthTextureFormat,
+        .depthWriteEnabled = 1,
+        .depthCompare = LESS,
+        .stencilFront = {
+            .compare = ALWAYS,
+            .failOperation = KEEP,
+            .depthFailOperation = KEEP,
+            .passOperation = KEEP
+        },
+        .stencilBack = {
+            .compare = ALWAYS,
+            .failOperation = KEEP,
+            .depthFailOperation = KEEP,
+            .passOperation = KEEP
+        }
+    };
 
-    descriptor.multisample.count = 1;
-    descriptor.multisample.mask = webgpu::UNDEFINED;
+    MultisampleState multisampleState = {
+        .count = 1,
+        .mask = webgpu::UNDEFINED
+    };
 
-	BlendState blend = {
+	BlendState blendState = {
 		.color = {
 			.operation = ADD,
 			.sourceFactor = SRC_ALPHA,
@@ -239,28 +259,45 @@ fn RenderPipeline createRenderPipeline(Device device,
 		}
 	};
 	
-    ColorTargetState colorTarget;
-    colorTarget.format = colorTextureFormat;
-    colorTarget.blend = &blend;
-    colorTarget.writeMask = { .red = true, .green = true, .blue = true, .alpha = true };
+    ColorTargetState colorTargetState = {
+        .format = colorTextureFormat,
+        .blend = &blendState,
+        .writeMask = {
+            .red = true,
+            .green = true,
+            .blue = true,
+            .alpha = true }
+    };
 
-    FragmentState fragment;
-    fragment.shaderModule = shaderModule;
-    fragment.entryPoint = "fragment";
-    fragment.targetCount = 1;
-    fragment.targets = &colorTarget;
-    descriptor.fragment = &fragment;
+    FragmentState fragmentState = {
+        .shaderModule = shaderModule,
+        .entryPoint = "fragment",
+        .targetCount = 1,
+        .targets = &colorTargetState
+    };
+
+    RenderPipelineDescriptor descriptor = {
+        .label = "textured mesh",
+        .layout = pipelineLayout,
+        .vertex = vertexState,
+        .primitive = primitiveState,
+        .depthStencil = &depthStencilState,
+        .multisample = multisampleState,
+        .fragment = &fragmentState
+    };
+
 
     return device.createRenderPipeline(&descriptor);
 }
 
 
 fn void Renderer.render(&self,
-    Texture colorTexture, Device device, Queue queue, Matrix4 projection) {
+    Texture colorTexture, Texture depthTexture, Device device, Queue queue, Matrix4 projection) {
 
     queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
 
     TextureView colorTextureView = colorTexture.createView();
+    TextureView depthTextureView = depthTexture.createView();
 
     CommandEncoder commandEncoder = device.createCommandEncoder();
 
@@ -270,9 +307,19 @@ fn void Renderer.render(&self,
     colorAttachment.storeOperation = STORE;
     colorAttachment.clearValue = self.clearColor;
 
-    RenderPassDescriptor renderPassDescriptor;
-    renderPassDescriptor.colorAttachmentCount = 1;
-    renderPassDescriptor.colorAttachments = &colorAttachment;
+    RenderPassDepthStencilAttachment depthStencilAttachment = {
+        .view = depthTextureView,
+        .depthLoadOperation = CLEAR,
+        .depthStoreOperation = STORE,
+        .depthClearValue = 1.0,
+        .depthReadOnly = 0
+    };
+
+    RenderPassDescriptor renderPassDescriptor = {
+        .colorAttachmentCount = 1,
+        .colorAttachments = &colorAttachment,
+        .depthStencilAttachment = &depthStencilAttachment
+    };
 
     RenderPassEncoder renderPassEncoder = commandEncoder.beginRenderPass(&renderPassDescriptor);
     

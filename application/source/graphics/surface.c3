@@ -14,6 +14,7 @@ struct Surface {
     Queue queue;
     Renderer renderer;
     Matrix4 projection;
+    Texture depthTexture;
 }
 
 fn Surface*! createSurface(Instance instance, Window* window, Allocator allocator) {
@@ -40,6 +41,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 	Queue queue = device.getQueue();
 	
     TextureFormat colorTextureFormat = capabilities.formats[0];
+    TextureFormat depthTextureFormat = DEPTH24_PLUS;
 
     SurfaceConfiguration configuration;
     configuration.device = device;
@@ -53,7 +55,7 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
 
     Renderer renderer;
     renderer.clearColor = {0.3, 0.4, 0.6, 1.0};
-    renderer.init(device, queue, colorTextureFormat, allocator)!;
+    renderer.init(device, queue, colorTextureFormat, depthTextureFormat, allocator)!;
 
     Surface* surface = allocator::alloc(allocator, Surface);
     surface.handle = handle;
@@ -63,25 +65,31 @@ fn Surface*! createSurface(Instance instance, Window* window, Allocator allocato
     surface.device = device;
     surface.queue = queue;
     surface.projection = MATRIX4_IDENTITY;
+    surface.depthTexture = createDepthTexture(device, depthTextureFormat, window.width, window.height);
 
     surface.configure();
 
     return surface;
 }
 
-fn void Surface.destroy(&self) {
+fn Texture createDepthTexture(Device device, TextureFormat format, uint width, uint height) {
 
-    self.renderer.destroy();
+    TextureDescriptor descriptor = {
+        .label = "depth",
+        .usage = { .renderAttachment = true },
+        .dimension = DIMENSION_2D,
+        .size = {
+            .width = width,
+            .height = height,
+            .depthOrArrayLayers = 1
+        },
+        .mipLevelCount = 1,
+        .sampleCount = 1,
+        .format = format
+    };
 
-    self.handle.unconfigure();
-    self.handle.release();
-
-    self.queue.release();
-
-    self.device.destroy();
-    self.device.release();
+    return device.createTexture(&descriptor);
 }
-
 
 fn void Surface.configure(&self) {
     self.handle.configure(&self.configuration);
@@ -92,6 +100,13 @@ fn void Surface.resize(&self, uint width, uint height) {
     self.configuration.width = width;
     self.configuration.height = height;
 
+    Texture old = self.depthTexture;
+    TextureFormat format = old.getFormat();
+    old.destroy();
+    old.release();
+
+    self.depthTexture = createDepthTexture(self.device, format, width, height);
+
     self.configure();
 }
 
@@ -101,9 +116,24 @@ fn void Surface.render(&self) {
     self.handle.getCurrentTexture(&surfaceTexture);
     Texture currentSurfaceTexture = surfaceTexture.texture;
 
-    self.renderer.render(currentSurfaceTexture, self.device, self.queue, self.projection);
+    self.renderer.render(currentSurfaceTexture, self.depthTexture, self.device, self.queue, self.projection);
     self.handle.present();
 
     currentSurfaceTexture.release();
 }
 
+fn void Surface.destroy(&self) {
+
+    self.renderer.destroy();
+
+    self.depthTexture.destroy();
+    self.depthTexture.release();
+
+    self.handle.unconfigure();
+    self.handle.release();
+
+    self.queue.release();
+
+    self.device.destroy();
+    self.device.release();
+}
