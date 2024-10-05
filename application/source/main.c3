@@ -1,6 +1,7 @@
 module main;
 
 import std::io;
+import std::thread;
 
 import graphics;
 import glfw;
@@ -31,9 +32,13 @@ fn void! start() {
     window.new(1000, 800, "Valdala")!;
 
     Renderer renderer;
-    renderer.new(&window, &allocator)!;
+    renderer.new(&window.surface, &allocator)!;
     
-    renderer.start();
+    while(window.keep_open()) {
+        glfw::pollEvents();
+        renderer.render();
+        thread::sleep_ms(16);
+    }
 
     renderer.destroy();
     window.destroy();

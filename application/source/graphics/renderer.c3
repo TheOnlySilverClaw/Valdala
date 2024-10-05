@@ -9,7 +9,7 @@ import std::math::matrix;
 
 struct Renderer {
     Allocator allocator;
-    Window* window;
+    Surface* surface;
     Color clearColor;
     RenderPipeline pipeline;
     BindGroup bindGroup;
@@ -18,12 +18,11 @@ struct Renderer {
     Texture texture;
 }
 
-fn void! Renderer.new(&self, Window* window, Allocator allocator) {
+fn void! Renderer.new(&self, Surface* surface, Allocator allocator) {
 
-    self.window = window;
+    self.surface = surface;
     self.allocator = allocator;
 
-    Surface surface = window.surface;
     Device device = surface.device;
     Queue queue = device.getQueue();
     defer queue.release();
@@ -307,18 +306,10 @@ fn RenderPipeline createRenderPipeline(Device device,
     return device.createRenderPipeline(&descriptor);
 }
 
-fn void Renderer.start(&self) {
-    
-    while(self.window.keep_open()) {
-        glfw::pollEvents();
-        self.render();
-        thread::sleep_ms(16);
-    }
-}
 
 fn void Renderer.render(&self) {
 
-    Surface surface =  self.window.surface;
+    Surface* surface = self.surface;
 
     Texture colorTexture = surface.current_color_texture();
     defer colorTexture.release();
