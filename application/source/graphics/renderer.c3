@@ -71,9 +71,9 @@ fn void! Renderer.new(&self, Surface* surface, Allocator allocator) {
     defer sampler.release();
 
     TextureView textureView = self.texture.createView();
+    defer textureView.release();
 	
     self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, textureView);
-    defer textureView.release();
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
 }

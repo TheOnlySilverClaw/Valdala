@@ -2,6 +2,7 @@ module graphics;
 
 import webgpu;
 import glfw_webgpu;
+import glfw::window;
 
 import std::io;
 
@@ -14,7 +15,7 @@ struct Surface {
     Texture depthTexture;
 }
 
-fn void! Surface.new(&self, Window* window, Instance instance) {
+fn void! Surface.new(&self, Window* window, uint width, uint height, Instance instance) {
 
     webgpu::Surface handle = glfw_webgpu::createSurface(instance, window.handle)!;
 
@@ -41,8 +42,8 @@ fn void! Surface.new(&self, Window* window, Instance instance) {
         .format = capabilities.formats[0],
         .usage = { .renderAttachment = true },
         .alphaMode = OPAQUE,
-        .width = window.width,
-        .height = window.height,
+        .width = width,
+        .height = height,
         .presentMode = FIFO,
         .viewFormatCount = 0,
     };
@@ -116,6 +117,8 @@ fn void Surface.present(&self) {
 }
 
 fn void Surface.destroy(&self) {
+
+    // self.capabilities.freeMembers();
 
     self.depthTexture.destroy();
     self.depthTexture.release();

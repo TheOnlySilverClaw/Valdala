@@ -9,14 +9,9 @@ import webgpu;
 struct Window {
     window::Window handle;
     Surface surface;
-    uint width;
-    uint height;
 }
 
 fn void! Window.new(&self, int width, int height, ZString title) {
-
-    self.width = width;
-    self.height = height;
 
     window::Window handle = window::createWindow(width, height, title);
     self.handle = handle;
@@ -29,7 +24,7 @@ fn void! Window.new(&self, int width, int height, ZString title) {
     });
     
     webgpu::Instance instance = webgpu::createInstance();
-    self.surface.new(self, instance)!;
+    self.surface.new(self, width, height, instance)!;
     instance.release();
 }
 
@@ -38,8 +33,6 @@ fn bool Window.keep_open(&self) {
 }
 
 fn void Window.resize(&self, int width, int height) {
-    self.width = width;
-    self.height = height;
     self.surface.resize(width, height);
 }
 
