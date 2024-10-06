@@ -30,6 +30,11 @@ Relative to NDC, the world needs to be
 ... I guess?
 
 
+### Axes
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yaw_Axis_Corrected.svg/2560px-Yaw_Axis_Corrected.svg.png" height="400">
+
+
 ### Normalized device coordinates
 
 - -1.0 ≤ x ≤ 1.0
