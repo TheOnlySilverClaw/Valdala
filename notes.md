@@ -32,7 +32,7 @@ Relative to NDC, the world needs to be
 
 ### Axes
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yaw_Axis_Corrected.svg/2560px-Yaw_Axis_Corrected.svg.png" height="400">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yaw_Axis_Corrected.svg/2560px-Yaw_Axis_Corrected.svg.png" height="400" style="background-color: white">
 
 
 ### Normalized device coordinates
