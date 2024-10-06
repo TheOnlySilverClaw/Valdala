@@ -17,6 +17,16 @@
 
 ## Coordinate System
 
+From the WebGPU C++ guide:
+
+> - in.position is the local coordinates, or model coordinates of the object. It describes the geometry as if the object was alone and centered around the origin.
+> - modelMatrix * in.position gives the world coordinates of the points, telling where it is relatively to a global static frame.
+> - viewMatrix * modelMatrix * in.position gives the camera coordinates, or view coordinates. This is the coordinates of the point as seen from the camera. You can think of it as if instead of moving the eye, we actually move and rotate the whole scene in the opposite direction.
+> - multiplying by projectionMatrix applies the projection [...] to give us clip coordinates.
+> - the fixed pipeline divides the clip coordinates by its w, which gives the NDC (normalized device coordinates).
+
+
+
 ### World coordinate system
 
 - x is the West to East axis (-x = West, +x = East)
@@ -24,7 +34,7 @@
 - z is the down to up axis (-z = down, +z = up)
 
 Relative to NDC, the world needs to be
-- rotated around the x axis by -90°
+- rotated around the x axis by -90°g
 - mirrored on the y axis
 
 ... I guess?
