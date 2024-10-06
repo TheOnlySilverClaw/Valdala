@@ -31,12 +31,16 @@ fn void! start() {
     Window window;
     window.new(1000, 800, "Valdala")!;
 
+    Camera camera;
+
     Renderer renderer;
-    renderer.new(&window.surface, &allocator)!;
+    renderer.new(&window.surface, &camera, &allocator)!;
     
+    window.setup_input(&camera);
+
     while(window.keep_open()) {
         glfw::pollEvents();
-        renderer.render();
+        renderer.render()!;
         thread::sleep_ms(16);
     }
 

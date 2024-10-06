@@ -10,6 +10,7 @@ import std::math::matrix;
 struct Renderer {
     Allocator allocator;
     Surface* surface;
+    Camera* camera;
     Color clearColor;
     RenderPipeline pipeline;
     BindGroup bindGroup;
@@ -18,9 +19,10 @@ struct Renderer {
     Texture texture;
 }
 
-fn void! Renderer.new(&self, Surface* surface, Allocator allocator) {
+fn void! Renderer.new(&self, Surface* surface, Camera* camera, Allocator allocator) {
 
     self.surface = surface;
+    self.camera = camera;
     self.allocator = allocator;
 
     Device device = surface.device;
@@ -307,7 +309,7 @@ fn RenderPipeline createRenderPipeline(Device device,
 }
 
 
-fn void Renderer.render(&self) {
+fn void! Renderer.render(&self) {
 
     Surface* surface = self.surface;
 
@@ -324,7 +326,7 @@ fn void Renderer.render(&self) {
     Queue queue = device.getQueue();
     defer queue.release();
 
-    Matrix4 projection = MATRIX4_IDENTITY;
+    Matrix4f projection = self.camera.project()!;
 
     queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
     
