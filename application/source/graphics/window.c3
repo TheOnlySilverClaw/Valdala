@@ -14,7 +14,7 @@ struct Window {
     Camera* camera;
 }
 
-fn void! Window.new(&self, int width, int height, ZString title) {
+fn Window*! Window.init(&self, int width, int height, ZString title) {
 
     window::Window handle = window::createWindow(width, height, title);
     self.handle = handle;
@@ -29,6 +29,7 @@ fn void! Window.new(&self, int width, int height, ZString title) {
     webgpu::Instance instance = webgpu::createInstance();
     self.surface.new(self, width, height, instance)!;
     instance.release();
+    return self;
 }
 
 fn bool Window.keep_open(&self) {

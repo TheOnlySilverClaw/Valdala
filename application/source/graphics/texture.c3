@@ -62,8 +62,7 @@ fn void! TextureLoader.loadArrayTexture(&self, Texture texture, String file, uin
     Path resolved = self.root.new_append(file)!;
     defer resolved.free();
 
-    Image image;
-    image.load(resolved)!;
+    Image* image = Image{}.load(resolved)!;
     defer image.free();
 
     ImageCopyTexture destination = {

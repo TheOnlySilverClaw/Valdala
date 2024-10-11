@@ -35,7 +35,7 @@ struct Image {
 }
 
 
-fn void! Image.load(&self, Path path) {
+fn Image*! Image.load(&self, Path path) {
     
     String extension = path.extension()!;
 
@@ -43,6 +43,7 @@ fn void! Image.load(&self, Path path) {
         case "qoi": self.loadQOI(path)!;
         default: return AssetError.UNSUPPORTED_FORMAT?;
     }
+    return self;
 }
 
 

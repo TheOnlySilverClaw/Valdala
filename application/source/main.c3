@@ -24,19 +24,24 @@ fn void! start() {
 
     TrackingAllocator allocator;
     allocator.init(allocator::heap());
+    defer {
+        allocator.print_report();
+        allocator.free();
+    }
 
     mem::@scoped(&allocator) {
-        
+
         glfw::initialize()!;
         glfw::windowHint(glfw::window::hint::CLIENT_API, glfw::window::hint::NO_API);
+        defer glfw::terminate();
     
-        Window window;
-        window.new(1000, 800, "Valdala")!;
+        Window* window = Window{}.init(1000, 800, "Valdala")!;
+        defer window.destroy();
     
         Camera camera;
     
-        Renderer renderer;
-        renderer.new(&window.surface, &camera)!;
+        Renderer* renderer = Renderer{}.init(&window.surface, &camera)!;
+        defer renderer.destroy();
         
         window.setup_input(&camera);
     
@@ -45,12 +50,5 @@ fn void! start() {
             renderer.render()!;
             thread::sleep_ms(16);
         }
-    
-        renderer.destroy();
-        window.destroy();
-    
-        glfw::terminate();
     };
-
-    allocator.print_report();
 }

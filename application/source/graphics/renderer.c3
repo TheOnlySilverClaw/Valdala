@@ -19,7 +19,7 @@ struct Renderer {
     Matrix4 perspective;
 }
 
-fn void! Renderer.new(&self, Surface* surface, Camera* camera) {
+fn Renderer*! Renderer.init(&self, Surface* surface, Camera* camera) {
 
     self.surface = surface;
     self.camera = camera;
@@ -81,6 +81,7 @@ fn void! Renderer.new(&self, Surface* surface, Camera* camera) {
     self.bindGroup = createBindGroup(device, bindGroupLayout, self.projectionBuffer, sampler, textureView);
 	
 	queue.writeBuffer(self.vertexBuffer, 0, vertices.ptr, bufferSize);
+    return self;
 }
 
 fn Buffer createProjectionBuffer(Device device) {
