@@ -3,36 +3,28 @@ module graphics;
 import std::math;
 import std::io;
 
-const UP = Vec3 { 0, 0, 1 };
+import geometry;
+
+const UP = Vec3 { 0, 1, 0 };
 
 struct Camera {
-    inline Transform transform;
+    Vec3 position;
+    Quaternion rotation;
+}
+
+fn Matrix4! Camera.view(&self) {
+
+    Vec3 eye = { 0, -1, 0 };
+    Quaternion rotation = geometry::from_axis_angle(Vec3{1, 0, 0}.normalize(), math::deg_to_rad(90));
+
+    Vec3 target = eye.rotate_quat(rotation);
+    Matrix4 lookat = math::matrix::look_at(<double>)(eye, target, UP);
+    io::printfn("matrix: %s", lookat.m);
+    Matrix4! inverted = lookat.inverse();
     
-}
-
-fn move_right() {
-
-}
-
-fn Matrix4f! Camera.project(&self) {
-
-    Matrix4 identity = MATRIX4_IDENTITY;
-    io::printfn("identity: %s", identity.m);
-    Matrix4 translated = identity.translate(self.position);
-    io::printfn("translated: %s", translated.m);
-
-    Matrix4 inverted = translated.inverse()!;
-
-    return to_float(inverted);
-}
-
-fn Matrix4f to_float(Matrix4 dm) {
-
-    Matrix4f fm;
-
-    for(int i = 0; i < dm.m.len; i++) {
-        fm.m[i] = (float) dm.m[i];
+    if(try inverted) {
+        return inverted;
+    } else {
+        return lookat;
     }
-
-    return fm;
 }

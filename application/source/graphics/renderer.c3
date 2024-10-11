@@ -5,7 +5,7 @@ import webgpu;
 import asset;
 import std::io;
 import std::thread;
-import std::math::matrix;
+import std::math;
 
 struct Renderer {
     Allocator allocator;
@@ -17,6 +17,7 @@ struct Renderer {
     Buffer projectionBuffer;
 	Buffer vertexBuffer;
     Texture texture;
+    Matrix4 perspective;
 }
 
 fn void! Renderer.new(&self, Surface* surface, Camera* camera, Allocator allocator) {
@@ -24,6 +25,11 @@ fn void! Renderer.new(&self, Surface* surface, Camera* camera, Allocator allocat
     self.surface = surface;
     self.camera = camera;
     self.allocator = allocator;
+
+    io::printfn("aspect ratio: %f", surface.aspect_ratio());
+
+    self.perspective = math::matrix::perspective(<double>)(
+        math::deg_to_rad(120), surface.aspect_ratio(), 0.0001, 1000.0);
 
     Device device = surface.device;
     Queue queue = device.getQueue();
@@ -168,7 +174,7 @@ fn BindGroupLayout createBindGroupLayout(Device device) {
     textureEntry.visibility = { .fragment = true };
     textureEntry.texture.sampleType = FLOAT;
     textureEntry.texture.viewDimension = ARRAY_2D;
-    textureEntry.texture.multisampled = 0;
+    textureEntry.texture.multisampled = FALSE;
 
     BindGroupLayoutEntry[*] entries = {
         projectionBufferEntry,
@@ -244,7 +250,7 @@ fn RenderPipeline createRenderPipeline(Device device,
 
     DepthStencilState depthStencilState = {
         .format = depthTextureFormat,
-        .depthWriteEnabled = 1,
+        .depthWriteEnabled = TRUE,
         .depthCompare = LESS,
         .stencilFront = {
             .compare = ALWAYS,
@@ -326,9 +332,11 @@ fn void! Renderer.render(&self) {
     Queue queue = device.getQueue();
     defer queue.release();
 
-    Matrix4f projection = self.camera.project()!;
+    Matrix4 view = self.camera.view()!;
+    Matrix4 projection = view.mul(self.perspective);
+    float[4*4] floats = to_float_array(self.perspective);
 
-    queue.writeBuffer(self.projectionBuffer, 0, &projection, self.projectionBuffer.getSize());
+    queue.writeBuffer(self.projectionBuffer, 0, &floats, self.projectionBuffer.getSize());
     
     RenderPassColorAttachment colorAttachment = {
         .view = colorTextureView,
@@ -342,7 +350,7 @@ fn void! Renderer.render(&self) {
         .depthLoadOperation = CLEAR,
         .depthStoreOperation = STORE,
         .depthClearValue = 1.0,
-        .depthReadOnly = 0
+        .depthReadOnly = FALSE
     };
     
     RenderPassDescriptor renderPassDescriptor = {
