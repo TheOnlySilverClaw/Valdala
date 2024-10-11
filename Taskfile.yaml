@@ -16,6 +16,10 @@ tasks:
     desc: Check syntax
     dir: application
     cmd: c3c build -C
+  
+  test:
+    dir: application
+    cmd: c3c test
 
   start:
     desc: Start the application from an existing binary.
