@@ -8,7 +8,6 @@ import std::thread;
 import std::math;
 
 struct Renderer {
-    Allocator allocator;
     Surface* surface;
     Camera* camera;
     Color clearColor;
@@ -20,11 +19,10 @@ struct Renderer {
     Matrix4 perspective;
 }
 
-fn void! Renderer.new(&self, Surface* surface, Camera* camera, Allocator allocator) {
+fn void! Renderer.new(&self, Surface* surface, Camera* camera) {
 
     self.surface = surface;
     self.camera = camera;
-    self.allocator = allocator;
 
     io::printfn("aspect ratio: %f", surface.aspect_ratio());
 
@@ -42,18 +40,17 @@ fn void! Renderer.new(&self, Surface* surface, Camera* camera, Allocator allocat
     PipelineLayout pipelineLayout = createPipelineLayout(device, bindGroupLayouts);
     defer pipelineLayout.release();
 
-    ShaderModule shaderModule = loadShaderModule("shaders/textured.wgsl", device, allocator)!;
+    ShaderModule shaderModule = loadShaderModule("shaders/textured.wgsl", device)!;
 	defer shaderModule.release();
 
-	float[] vertices = square(0.5, allocator);
-    defer allocator::free(allocator, vertices);
+	float[] vertices = square(0.5);
+    defer free(vertices);
 	usz bufferSize = vertices.len * float.sizeof;
 
-    Path texturesRoot = path::new("textures", allocator)!;
-    defer texturesRoot.free_with_allocator(allocator);
+    Path texturesRoot = path::new("textures")!;
+    defer texturesRoot.free();
 
     TextureLoader textureLoader = {
-        .allocator = allocator,
         .root = texturesRoot,
         .device = device,
         .queue = queue

@@ -5,12 +5,12 @@ import std::compression::qoi;
 
 fault AssetError { UNSUPPORTED_FORMAT }
 
-fn DString! loadText(String path, Allocator allocator, usz expectedSize = 1024) {
+fn DString! loadText(String path, usz expectedSize = 1024) {
 
     File file = file::open(path, "r")!;
 
     DString content;
-    content.new_init(expectedSize, allocator);
+    content.new_init(expectedSize);
     content.read_from_stream(&file)!;
 
     return content;
@@ -27,7 +27,6 @@ enum ColorChannels: (char size) {
 }
 
 struct Image {
-    Allocator allocator;
     char[] pixels;
     uint width;
     uint height;
@@ -36,23 +35,21 @@ struct Image {
 }
 
 
-fn void! Image.load(&self, Path path, Allocator allocator) {
+fn void! Image.load(&self, Path path) {
     
     String extension = path.extension()!;
 
     switch(extension) {
-        case "qoi": self.loadQOI(path, allocator)!;
+        case "qoi": self.loadQOI(path)!;
         default: return AssetError.UNSUPPORTED_FORMAT?;
     }
 }
 
 
-fn void! Image.loadQOI(&self, Path path, Allocator allocator) {
-
-    self.allocator = allocator;
+fn void! Image.loadQOI(&self, Path path) {
 
     QOIDesc description;
-    char[] pixels = qoi::read(path.str_view(), &description, AUTO, allocator)!;
+    char[] pixels = qoi::read(path.str_view(), &description, AUTO)!;
 
     self.pixels = pixels;
     self.width = description.width;
@@ -62,5 +59,5 @@ fn void! Image.loadQOI(&self, Path path, Allocator allocator) {
 }
 
 fn void Image.free(&self) {
-    allocator::free(self.allocator, self.pixels);
+    free(self.pixels);
 }

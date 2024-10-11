@@ -11,7 +11,6 @@ fault TextureLoadingFault {
 } 
 
 struct TextureLoader {
-    Allocator allocator;
     Path root;
     Device device;
     Queue queue;
@@ -60,11 +59,11 @@ fn Texture! TextureLoader.loadTextureArray(&self, TextureFormat format, uint wid
 
 fn void! TextureLoader.loadArrayTexture(&self, Texture texture, String file, uint layer) @local {
 
-    Path resolved = self.root.new_append(file, self.allocator)!;
-    defer resolved.free_with_allocator(self.allocator);
+    Path resolved = self.root.new_append(file)!;
+    defer resolved.free();
 
     Image image;
-    image.load(resolved, self.allocator)!;
+    image.load(resolved)!;
     defer image.free();
 
     ImageCopyTexture destination = {

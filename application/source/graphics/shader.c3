@@ -8,9 +8,9 @@ fault ShaderError {
     COMPILATION_FAILED
 }
 
-fn ShaderModule! loadShaderModule(String path, Device device, Allocator allocator) {
+fn ShaderModule! loadShaderModule(String path, Device device) {
 
-    DString content = asset::loadText(path, allocator)!;
+    DString content = asset::loadText(path)!;
     defer content.free();
 
     ShaderModuleWGSLDescriptor wgslDescriptor;
