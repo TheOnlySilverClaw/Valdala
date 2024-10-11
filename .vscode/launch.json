@@ -2,10 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug Application",
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
             "program": "${workspaceFolder}/application/build/valdala",
+            "args": [],
+            "cwd": "${workspaceFolder}/application"
+        },
+        {
+            "name": "Debug Test",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/application/build/testrun",
             "args": [],
             "cwd": "${workspaceFolder}/application"
         }
