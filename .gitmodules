@@ -1,7 +1,7 @@
-[submodule "application/libraries/wgpu-native"]
-	path = application/libraries/wgpu-native
-	url = https://github.com/gfx-rs/wgpu-native
-
-[submodule "application/libraries/glfw"]
-	path = application/libraries/glfw
+[submodule "glfw"]
+	path = application/submodules/glfw
 	url = https://github.com/glfw/glfw
+
+[submodule "wgpu-native"]
+	path = application/submodules/wgpu-native
+	url = https://github.com/gfx-rs/wgpu-native
