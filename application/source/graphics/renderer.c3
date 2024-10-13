@@ -16,7 +16,7 @@ struct Renderer {
     Buffer projectionBuffer;
 	Buffer vertexBuffer;
     Texture texture;
-    Matrix4 perspective;
+    Matrix4f perspective;
 }
 
 fn Renderer*! Renderer.init(&self, Surface* surface, Camera* camera) {
@@ -26,8 +26,8 @@ fn Renderer*! Renderer.init(&self, Surface* surface, Camera* camera) {
 
     io::printfn("aspect ratio: %f", surface.aspect_ratio());
 
-    self.perspective = math::matrix::perspective(<double>)(
-        math::deg_to_rad(120), surface.aspect_ratio(), 0.0001, 1000.0);
+    self.perspective = math::matrix::perspective(<float>)(
+        (float) math::deg_to_rad(120), surface.aspect_ratio(), 0.0001, 1000.0);
 
     Device device = surface.device;
     Queue queue = device.getQueue();
@@ -330,11 +330,10 @@ fn void! Renderer.render(&self) {
     Queue queue = device.getQueue();
     defer queue.release();
 
-    Matrix4 view = self.camera.view()!;
-    Matrix4 projection = view.mul(self.perspective);
-    float[4*4] floats = to_float_array(self.perspective);
+    Matrix4f view = self.camera.view()!;
+    Matrix4f projection = view.mul(self.perspective);
 
-    queue.writeBuffer(self.projectionBuffer, 0, &floats, self.projectionBuffer.getSize());
+    queue.writeBuffer(self.projectionBuffer, 0, &projection.m, self.projectionBuffer.getSize());
     
     RenderPassColorAttachment colorAttachment = {
         .view = colorTextureView,

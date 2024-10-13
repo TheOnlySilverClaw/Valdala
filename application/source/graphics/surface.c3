@@ -112,8 +112,8 @@ fn uint Surface.height(&self) {
     return self.configuration.height;
 }
 
-fn double Surface.aspect_ratio(&self) {
-    return ((double) self.width()) / ((double) self.height());
+fn float Surface.aspect_ratio(&self) {
+    return ((float) self.width()) / ((float) self.height());
 }
 
 fn void Surface.present(&self) {
