@@ -40,15 +40,15 @@ tasks:
 
   build-wgpu:
     desc: Build the wgpu-native submodule into a static library.
-    dir: application/libraries/wgpu-native
+    dir: application/submodules/wgpu-native
     cmds:
       - make lib-native
-      - cp ./target/debug/libwgpu_native.a ..
+      - cp ./target/debug/libwgpu_native.a ../../libraries
   
   build-glfw:
     desc: Build GLFW. 
-    dir: application/libraries/glfw
+    dir: application/submodules/glfw
     cmds:
       - cmake -S . -B build
       - make -C build
-      - cp build/src/libglfw3.a ..
+      - cp build/src/libglfw3.a ../../libraries
