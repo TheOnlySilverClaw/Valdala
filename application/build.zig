@@ -12,6 +12,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    exe.linkLibC();
+    exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
