@@ -1,5 +1,6 @@
-const FALSE = 0;
-const TRUE = 1;
+const glfw = @import("glfw.zig");
+const Monitor = @import("monitor.zig").Monitor;
+
 
 pub const Window = opaque {
 
@@ -8,37 +9,12 @@ pub const Window = opaque {
     }
 
     pub fn should_stay(window: *Window) bool {
-        return glfwWindowShouldClose(window) == FALSE;
+        return glfwWindowShouldClose(window) == glfw.FALSE;
     }
     
     pub const destroy = glfwDestroyWindow;
 };
 
-pub const Monitor = opaque {
-
-};
-
-const GlfwError = error {
-    InitFailed
-};
-
-pub fn init() !void {
-    if(glfwInit() == FALSE) {
-        return GlfwError.InitFailed;
-    }
-}
-
-pub const terminate = glfwTerminate;
-
-pub const pollEvents = glfwPollEvents;
-
-
-
-extern fn glfwInit() c_int;
-
-extern fn glfwTerminate() void;
-
-extern fn glfwPollEvents() void;
 
 extern fn glfwCreateWindow(width: c_int, height: c_int, title: [*:0] const u8, shared: ?*Window, monitor: ?*Monitor) *Window;
 

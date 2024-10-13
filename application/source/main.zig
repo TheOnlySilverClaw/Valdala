@@ -1,16 +1,17 @@
 const std = @import("std");
 const transform = @import("transform.zig");
-const glfw = @import("glfw.zig");
+const glfw = @import("glfw");
+const Window = glfw.window.Window;
 const log = std.log;
 
 pub fn main() !void {
     
     log.info("Launch", .{});
 
-    try glfw.init();
+    try glfw.initialize();
     defer glfw.terminate();
 
-    const window = glfw.Window.create(1000, 800, "Valdala");
+    const window = Window.create(1000, 800, "Valdala");
     defer window.destroy();
 
     while (window.should_stay()) {

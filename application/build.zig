@@ -5,6 +5,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const glfw = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/glfw/glfw.zig")
+    });
+
     const exe = b.addExecutable(.{
         .name = "Valdala",
         .root_source_file = b.path("source/main.zig"),
@@ -14,6 +20,8 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
+
+    exe.root_module.addImport("glfw", glfw);
 
     b.installArtifact(exe);
 
