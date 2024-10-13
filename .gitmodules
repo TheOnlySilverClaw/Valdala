@@ -1,15 +1,7 @@
-[submodule "webgpu.c3l"]
-	path = application/dependencies/webgpu.c3l
-	url = https://codeberg.org/Silverclaw/webgpu.c3l
-[submodule "glfw-webgpu.c3l"]
-	path = application/dependencies/glfw-webgpu.c3l
-	url = https://codeberg.org/Silverclaw/glfw-webgpu.c3l
-[submodule "glfw.c3l"]
-	path = application/dependencies/glfw.c3l
-	url = https://codeberg.org/Silverclaw/glfw.c3l
 [submodule "application/libraries/wgpu-native"]
 	path = application/libraries/wgpu-native
 	url = https://github.com/gfx-rs/wgpu-native
+
 [submodule "application/libraries/glfw"]
 	path = application/libraries/glfw
 	url = https://github.com/glfw/glfw
