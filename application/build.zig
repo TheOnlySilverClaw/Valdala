@@ -11,6 +11,12 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/glfw/glfw.zig")
     });
 
+    const webgpu = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/webgpu/webgpu.zig")
+    });
+
     const exe = b.addExecutable(.{
         .name = "Valdala",
         .root_source_file = b.path("source/main.zig"),
@@ -22,6 +28,7 @@ pub fn build(b: *std.Build) void {
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
 
     exe.root_module.addImport("glfw", glfw);
+    exe.root_module.addImport("webgpu", webgpu);
 
     b.installArtifact(exe);
 
