@@ -1,0 +1,2 @@
+The data types in this module are mostly based on zig-gamedev's [zgpu library](https://github.com/zig-gamedev/zig-gamedev/tree/main/libs/zgpu),
+but reorganized, updated in some parts and intended to be used with wgpu-native instead of Dawn.
