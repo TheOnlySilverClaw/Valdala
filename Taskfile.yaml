@@ -5,17 +5,17 @@ tasks:
   run:
     desc: Build and run the application.
     dir: application
-    cmd: c3c run
+    cmd: zig build run
 
   build:
     desc: Build the application.
     dir: application
-    cmd: c3c build
+    cmd: zig build
 
   check:
     desc: Check syntax
     dir: application
-    cmd: c3c build -C
+    cmd: zig ast-check source/main.zig
   
   test:
     dir: application
@@ -24,7 +24,7 @@ tasks:
   start:
     desc: Start the application from an existing binary.
     dir: application
-    cmd: ./build/valdala
+    cmd: ./zig-out/bin/Valdala
     
   setup:
     desc: Setup development environment.
