@@ -1,0 +1,13 @@
+.{
+    .name = "Valdala",
+    .version = "0.0.1",
+    .dependencies = .{
+        .qoi = .{
+            .path = "submodules/zig-qoi"
+        }
+    },
+    .paths = .{
+        // TODO
+        "source"
+    }
+}
