@@ -57,8 +57,8 @@ pub const AdapterType = enum(u32) {
 };
 
 pub const BackendType = enum(u32) {
-    undef,
-    null_,
+    undefined,
+    null,
     webgpu,
     d3d11,
     d3d12,

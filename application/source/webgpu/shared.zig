@@ -1,5 +1,7 @@
 pub const Undefined = ~0;
 
+pub const UserData = *anyopaque;
+
 pub const CompareFunction = enum(u32) {
     undefined,
     never,
@@ -19,7 +21,7 @@ pub const ConstantEntry = extern struct {
 };
 
 pub const ChainedStruct = extern struct {
-    next: ?*const ChainedStruct,
+    next: ?*const ChainedStruct = null,
     type: StructType,
 };
 

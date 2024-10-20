@@ -1,3 +1,3 @@
-pub const Monitor = opaque {
+pub const Monitor = *opaque {
 
 };
