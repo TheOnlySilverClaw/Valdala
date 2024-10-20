@@ -5,15 +5,7 @@
             "name": "Debug Application",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/application/build/valdala",
-            "args": [],
-            "cwd": "${workspaceFolder}/application"
-        },
-        {
-            "name": "Debug Test",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/application/build/testrun",
+            "program": "${workspaceFolder}/application/zig-out/bin/Valdala",
             "args": [],
             "cwd": "${workspaceFolder}/application"
         }
