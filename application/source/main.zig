@@ -15,6 +15,9 @@ pub fn main() !void {
     const window = Window.create(1000, 800, "Valdala");
     defer window.destroy();
 
+    const instance = webgpu.instance.createInstance(null);
+    defer instance.release();
+
     while (window.should_stay()) {
         glfw.pollEvents();
         std.Thread.sleep(10 * std.time.ns_per_s / 60);

@@ -3,6 +3,10 @@ const adapter = @import("adapter.zig");
 const surface = @import("surface.zig");
 
 
+pub fn createInstance(descriptor: ?*const InstanceDescriptor) Instance {
+    return wgpuCreateInstance(descriptor);
+}
+
 pub const Instance = *opaque {
 
     pub fn createSurface(instance: Instance,
@@ -23,6 +27,10 @@ pub const Instance = *opaque {
     pub fn release(instance: Instance) void {
         wgpuInstanceRelease(instance);
     }
+};
+
+pub const InstanceDescriptor = extern struct {
+    next: ?*const shared.ChainedStruct = null
 };
 
 pub const RequestAdapterCallback = *const fn (
@@ -48,6 +56,8 @@ pub const RequestAdapterStatus = enum(u32) {
     unknown
 };
 
+
+extern fn wgpuCreateInstance(descriptor: ?* const InstanceDescriptor) Instance;
 
 extern fn wgpuInstanceCreateSurface(instance: Instance,
     descriptor: *const surface.SurfaceDescriptor) surface.Surface;

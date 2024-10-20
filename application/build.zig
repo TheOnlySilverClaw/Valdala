@@ -25,7 +25,9 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.linkLibC();
+    exe.linkSystemLibrary("unwind");
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
+    exe.addObjectFile(.{ .cwd_relative = "libraries/libwgpu_native.a" });
 
     exe.root_module.addImport("glfw", glfw);
     exe.root_module.addImport("webgpu", webgpu);
