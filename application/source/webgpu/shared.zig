@@ -72,6 +72,7 @@ pub const StructType = enum(u32) {
     surface_descriptor_from_canvas_html_selector,
     shader_module_spirv_descriptor,
     shader_module_wgsl_descriptor,
+    primitive_depth_clip_control,
     surface_descriptor_from_wayland_surface,
     surface_descriptor_from_android_native_window,
     surface_descriptor_from_xcb_window,

@@ -1,3 +1,4 @@
+pub const shared = @import("shared.zig");
 pub const adapter = @import("adapter.zig");
 pub const bind_group_layout = @import("bind_group_layout.zig");
 pub const bind_group = @import("bind_group.zig");

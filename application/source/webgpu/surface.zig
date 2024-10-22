@@ -88,34 +88,6 @@ pub const SurfaceDescriptor = extern struct {
     label: ?[*:0]const u8 = null
 };
 
-pub const SurfaceDescriptorFromMetalLayer = extern struct {
-    chain: shared.ChainedStruct,
-    layer: *anyopaque,
-};
-
-pub const SurfaceDescriptorFromWaylandSurface = extern struct {
-    chain: shared.ChainedStruct,
-    display: *anyopaque,
-    surface: *anyopaque,
-};
-
-pub const SurfaceDescriptorFromWindowsHWND = extern struct {
-    chain: shared.ChainedStruct,
-    hinstance: *anyopaque,
-    hwnd: *anyopaque,
-};
-
-pub const SurfaceDescriptorFromXlibWindow = extern struct {
-    chain: shared.ChainedStruct,
-    display: *anyopaque,
-    window: u32,
-};
-
-pub const SurfaceDescriptorFromCanvasHTMLSelector = extern struct {
-    chain: shared.ChainedStruct,
-    selector: [*:0]const u8,
-};
-
 pub const SurfaceGetCurrentTextureStatus = enum {
     success,
     timeout,

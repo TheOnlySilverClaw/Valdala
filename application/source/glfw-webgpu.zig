@@ -1,32 +1,59 @@
 const glfw = @import("glfw");
 const webgpu = @import("webgpu");
-const surface = webgpu.surface;
+
+const ChainedStruct = webgpu.shared.ChainedStruct;
+const GlfwWindow = glfw.window.Window;
+const SurfaceDescriptor = webgpu.surface.SurfaceDescriptor;
 
 const SurfaceError = error {
-    platform_unsupported
+    PlatformUnsupported
 };
 
-pub fn createSurface(window: glfw.window.Window, instance: webgpu.instance.Instance) SurfaceError!surface.Surface {
+pub const SurfaceDescriptorFromMetalLayer = extern struct {
+    chain: ChainedStruct,
+    layer: *anyopaque,
+};
+
+pub const SurfaceDescriptorFromWaylandSurface = extern struct {
+    chain: ChainedStruct,
+    display: glfw.native.WaylandDisplay,
+    surface: glfw.native.WaylandWindow,
+};
+
+pub const SurfaceDescriptorFromWindowsHWND = extern struct {
+    chain: ChainedStruct,
+    hinstance: *anyopaque,
+    hwnd: *anyopaque,
+};
+
+pub const SurfaceDescriptorFromXlibWindow = extern struct {
+    chain: ChainedStruct,
+    display: glfw.native.X11Display,
+    window: glfw.native.X11Window,
+};
+
+pub fn createSurface(window: GlfwWindow, instance: webgpu.instance.Instance) SurfaceError!webgpu.surface.Surface {
     
     const descriptor = try createDescriptor(window);
     return instance.createSurface(&descriptor);
 }
 
-fn createDescriptor(window: glfw.window.Window) SurfaceError!surface.SurfaceDescriptor {
+fn createDescriptor(window: GlfwWindow) SurfaceError!SurfaceDescriptor {
 
     return switch (glfw.getPlatform()) {
         .x11 => createX11SurfaceDescriptor(window),
-        else => return SurfaceError.platform_unsupported
+        .wayland => createWaylandDescriptor(window),
+        else => return SurfaceError.PlatformUnsupported
     };
 }
 
 
-fn createX11SurfaceDescriptor(glfwWindow: glfw.window.Window) surface.SurfaceDescriptor {
+fn createX11SurfaceDescriptor(glfwWindow: GlfwWindow) SurfaceDescriptor {
 
     const x11Display = glfw.native.getX11Display();
     const x11Window = glfw.native.getX11Window(glfwWindow);
     
-    const x11SurfaceDescriptor = surface.SurfaceDescriptorFromXlibWindow {
+    const x11SurfaceDescriptor = SurfaceDescriptorFromXlibWindow {
         .chain = .{
             .type = .surface_descriptor_from_xlib_window
         },
@@ -34,8 +61,27 @@ fn createX11SurfaceDescriptor(glfwWindow: glfw.window.Window) surface.SurfaceDes
         .window =  x11Window
     };
 
-    const surfaceDescriptor = surface.SurfaceDescriptor {
+    const surfaceDescriptor = SurfaceDescriptor {
         .next = &x11SurfaceDescriptor.chain
+    };
+
+    return surfaceDescriptor;
+}
+
+fn createWaylandDescriptor(glfwWindow: GlfwWindow) SurfaceDescriptor {
+
+    const waylandDisplay = glfw.native.getWaylandDisplay();
+    const waylandWindow = glfw.native.getWaylandWindow(glfwWindow);
+    const waylandDescriptor = SurfaceDescriptorFromWaylandSurface {
+        .chain = .{
+            .type = .surface_descriptor_from_wayland_surface
+        },
+        .display = waylandDisplay,
+        .surface = waylandWindow
+    };
+
+    const surfaceDescriptor = SurfaceDescriptor {
+        .next = &waylandDescriptor.chain
     };
 
     return surfaceDescriptor;
