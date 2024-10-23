@@ -1,3 +1,4 @@
+pub const input = @import("input.zig");
 pub const window = @import("window.zig");
 pub const native = @import("native.zig");
 

@@ -2,7 +2,7 @@
 pub const Action = enum(c_int) {
     release,
     press,
-    repeat,
+    repeat
 };
 
 pub const MouseButton = enum(c_int) {
@@ -14,7 +14,7 @@ pub const MouseButton = enum(c_int) {
     five,
     six,
     seven,
-    eight,
+    eight
 };
 
 pub const Key = enum(c_int) {
@@ -146,14 +146,15 @@ pub const Key = enum(c_int) {
     right_control = 345,
     right_alt = 346,
     right_super = 347,
-    menu = 348,
+    menu = 348
 };
 
-pub const Mods = packed struct(c_int) {
+pub const Modifiers = packed struct(u32) {
     shift: bool = false,
     control: bool = false,
     alt: bool = false,
     super: bool = false,
     caps_lock: bool = false,
     num_lock: bool = false,
+    _padding: u26 = 0
 };
