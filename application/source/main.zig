@@ -38,11 +38,13 @@ pub fn main() !void {
     };
 
     // TODO figure out where ot put this
-    const pipeline = @import("graphics/render_pipeline.zig").RenderPipeline.create(window.surface.getDevice());
+    const pipeline = try @import("graphics/render_pipeline.zig").RenderPipeline
+        .create(allocator, window.surface.getDevice());
 
     const renderer = Renderer {
         .surface = &window.surface,
-        .pipeline = &pipeline
+        .pipeline = &pipeline,
+        .allocator = allocator
     };
 
     window.controller = &controller;

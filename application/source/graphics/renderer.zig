@@ -1,3 +1,6 @@
+const std = @import("std");
+const Allocator = std.mem.Allocator;
+
 const Surface = @import("surface.zig").Surface;
 const webgpu = @import("webgpu");
 const RenderPipeline = @import("render_pipeline.zig").RenderPipeline;
@@ -8,6 +11,7 @@ pub const RenderError = error {
 };
 
 pub const Renderer = struct {
+    allocator: Allocator,
     surface: *const Surface,
     pipeline: *const RenderPipeline,
 

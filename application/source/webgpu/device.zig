@@ -20,12 +20,12 @@ const surface = @import("surface.zig");
 pub const Device = *opaque {
     
     pub fn createBindGroup(device: Device,
-        descriptor: *bind_group.BindGroupDescriptor) bind_group.BindGroup {
+        descriptor: *const bind_group.BindGroupDescriptor) bind_group.BindGroup {
         return wgpuDeviceCreateBindGroup(device, descriptor);
     }
 
     pub fn createBindGroupLayout(device: Device,
-        descriptor: *bind_group_layut.BindGroupLayoutDescriptor) bind_group_layut.BindGroupLayout {
+        descriptor: *const bind_group_layut.BindGroupLayoutDescriptor) bind_group_layut.BindGroupLayout {
         return wgpuDeviceCreateBindGroupLayout(device, descriptor);
     }
 
@@ -34,44 +34,44 @@ pub const Device = *opaque {
     }
 
     pub fn createCommandEncoder(device: Device,
-        descriptor: ?*command_encoder.CommandEncoderDescriptor) command_encoder.CommandEncoder {
+        descriptor: ?*const command_encoder.CommandEncoderDescriptor) command_encoder.CommandEncoder {
         return wgpuDeviceCreateCommandEncoder(device, descriptor);
     }
 
     pub fn createComputePipeline(device: Device,
-        descriptor: *compute_pipeline.ComputePipelineDescriptor) compute_pipeline.ComputePipeline {
+        descriptor: *const compute_pipeline.ComputePipelineDescriptor) compute_pipeline.ComputePipeline {
         return wgpuDeviceCreateComputePipeline(device, descriptor);
     }
 
     pub fn createComputePipelineAsync(device: Device,
-        descriptor: *compute_pipeline.ComputePipelineDescriptor,
+        descriptor: *const compute_pipeline.ComputePipelineDescriptor,
         callback: compute_pipeline.CreateComputePipelineAsyncCallback,
         userdata: ?*anyopaque) void {
         wgpuDeviceCreateComputePipelineAsync(device, descriptor, callback, userdata);
     }
 
     pub fn createPipelineLayout(device: Device,
-        descriptor: *pipeline_layout.PipelineLayoutDescriptor) pipeline_layout.PipelineLayout {
+        descriptor: *const pipeline_layout.PipelineLayoutDescriptor) pipeline_layout.PipelineLayout {
         return wgpuDeviceCreatePipelineLayout(device, descriptor);
     }
 
     pub fn createQuerySet(device: Device,
-        descriptor: *query.QuerySetDescriptor) query.QuerySet {
+        descriptor: *const query.QuerySetDescriptor) query.QuerySet {
         return wgpuDeviceCreateQuerySet(device, descriptor);
     }
 
     pub fn createRenderBundleEncoder(device: Device,
-        descriptor: *render_bundle.RenderBundleEncoderDescriptor) render_bundle.RenderBundleEncoder {
+        descriptor: *const render_bundle.RenderBundleEncoderDescriptor) render_bundle.RenderBundleEncoder {
         return wgpuDeviceCreateRenderBundleEncoder(device, descriptor);
     }
 
     pub fn createRenderPipeline(device: Device,
-        descriptor: *render_pipeline.RenderPipelineDescriptor) render_pipeline.RenderPipeline {
+        descriptor: *const render_pipeline.RenderPipelineDescriptor) render_pipeline.RenderPipeline {
         return wgpuDeviceCreateRenderPipeline(device, descriptor);
     }
 
     pub fn createRenderPipelineAsync(device: Device,
-        descriptor: *render_pipeline.RenderPipelineDescriptor,
+        descriptor: *const render_pipeline.RenderPipelineDescriptor,
         callback: render_pipeline.CreateRenderPipelineAsyncCallback,
         userdata: ?*anyopaque) void {
         wgpuDeviceCreateRenderPipelineAsync(device, descriptor, callback, userdata);
@@ -83,12 +83,12 @@ pub const Device = *opaque {
     }
 
     pub fn createShaderModule(device: Device,
-        descriptor: *shader.ShaderModuleDescriptor) shader.ShaderModule {
+        descriptor: *const shader.ShaderModuleDescriptor) shader.ShaderModule {
         return wgpuDeviceCreateShaderModule(device, descriptor);
     }
 
     pub fn createTexture(device: Device,
-        descriptor: *texture.TextureDescriptor) texture.Texture {
+        descriptor: *const texture.TextureDescriptor) texture.Texture {
         return wgpuDeviceCreateTexture(device, descriptor);
     }
 

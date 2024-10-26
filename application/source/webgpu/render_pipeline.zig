@@ -160,10 +160,10 @@ pub const VertexState = extern struct {
     next: ?*const shared.ChainedStruct = null,
     module: shader.ShaderModule,
     entry_point: [*:0]const u8,
-    constant_count: usize = 0,
-    constants: ?[*]const shared.ConstantEntry = null,
-    buffer_count: usize = 0,
-    buffers: ?[*]const VertexBufferLayout = null
+    constant_count: usize,
+    constants: ?[*]const shared.ConstantEntry,
+    buffer_count: usize,
+    buffers: ?[*]const VertexBufferLayout
 };
 
 pub const BlendComponent = extern struct {
@@ -188,18 +188,18 @@ pub const FragmentState = extern struct {
     next: ?*const shared.ChainedStruct = null,
     module: shader.ShaderModule,
     entry_point: [*:0]const u8,
-    constant_count: usize = 0,
-    constants: ?[*]const shared.ConstantEntry = null,
-    target_count: usize = 0,
-    targets: ?[*]const ColorTargetState = null
+    constant_count: usize,
+    constants: ?[*]const shared.ConstantEntry,
+    target_count: usize,
+    targets: ?[*]const ColorTargetState
 };
 
 pub const PrimitiveState = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    topology: PrimitiveTopology = .triangle_list,
-    strip_index_format: buffer.IndexFormat = .undefined,
-    front_face: FrontFace = .counter_clockwise,
-    cull_mode: CullMode = .none
+    topology: PrimitiveTopology,
+    strip_index_format: buffer.IndexFormat,
+    front_face: FrontFace,
+    cull_mode: CullMode
 };
 
 pub const StencilFaceState = extern struct {
@@ -233,12 +233,12 @@ pub const MultisampleState = extern struct {
 pub const RenderPipelineDescriptor = extern struct {
     next: ?*const shared.ChainedStruct = null,
     label: ?[*:0]const u8 = null,
-    layout: ?layout.PipelineLayout = null,
+    layout: ?layout.PipelineLayout,
     vertex: VertexState,
-    primitive: PrimitiveState = .{},
-    depth_stencil: ?*const DepthStencilState = null,
-    multisample: MultisampleState = .{},
-    fragment: ?*const FragmentState = null
+    primitive: PrimitiveState,
+    depth_stencil: ?*const DepthStencilState,
+    multisample: MultisampleState,
+    fragment: ?*const FragmentState
 };
 
 

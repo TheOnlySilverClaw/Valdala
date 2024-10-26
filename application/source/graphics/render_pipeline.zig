@@ -1,16 +1,30 @@
+const std = @import("std");
+const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Device = webgpu.device.Device;
 const VertexBuffer = @import("vertex_buffer.zig").VertexBuffer;
+const Shader = @import("shader.zig").Shader;
 
 pub const RenderPipeline = struct {
 
     block_sampler: webgpu.sampler.Sampler,
 
-    pub fn create(device: Device) RenderPipeline {
+    pub fn create(allocator: Allocator, device: Device) !RenderPipeline {
 
         const block_sampler = createSampler(device, .repeat, .nearest);
 
-        createRenderPipeline();
+        const shader_module = try Shader.loadModule(allocator, device, "shaders/textured.wgsl", "textured");
+        const vertex_shader = Shader {
+            .entry = "vertex",
+            .module =  shader_module
+        };
+        const fragment_shader = Shader {
+            .entry = "fragment",
+            .module = shader_module
+        };
+
+        const handle = createRenderPipeline(device, undefined, undefined, vertex_shader, fragment_shader);
+        _ = handle;
 
         const TypedVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32});
         const vertex_buffer = TypedVertexBuffer.create(device, 4, null);
@@ -44,10 +58,50 @@ const Vertex = struct {
     }
 };
 
-fn createRenderPipeline() void {
+fn createRenderPipeline(device: webgpu.device.Device,
+    layout: webgpu.pipeline_layout.PipelineLayout,
+    color_texture_format: webgpu.texture.TextureFormat,
+    vertex_shader: Shader, fragment_shader: Shader) webgpu.render_pipeline.RenderPipeline {
 
+    const vertex = webgpu.render_pipeline.VertexState {
+        .module = vertex_shader.module,
+        .entry_point = vertex_shader.entry,
+        .buffer_count = 0,
+        .buffers = null,
+        .constant_count = 0,
+        .constants = null
+    };
 
+    const color_target = webgpu.render_pipeline.ColorTargetState {
+        .format = color_texture_format
+    };
 
+    const fragment = webgpu.render_pipeline.FragmentState {
+        .module = fragment_shader.module,
+        .entry_point = fragment_shader.entry,
+        .target_count = 1,
+        .targets = &.{color_target},
+        .constant_count = 0,
+        .constants = null
+    };
+
+    const primitive = webgpu.render_pipeline.PrimitiveState {
+        .cull_mode = .none,
+        .front_face = .counter_clockwise,
+        .topology = .triangle_list,
+        .strip_index_format = .undefined
+    };
+
+    const descriptor = webgpu.render_pipeline.RenderPipelineDescriptor {
+        .layout = layout,
+        .vertex = vertex,
+        .fragment = &fragment,
+        .primitive = primitive,
+        .depth_stencil = null,
+        .multisample = .{}
+    };
+
+    return device.createRenderPipeline(&descriptor);
 }
 
 fn createPipelineLayout(device: Device, bind_group_layouts: []const webgpu.bind_group_layout.BindGroupLayout) webgpu.pipeline_layout.PipelineLayout {
