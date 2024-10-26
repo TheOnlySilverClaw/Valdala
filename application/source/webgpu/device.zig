@@ -29,7 +29,7 @@ pub const Device = *opaque {
         return wgpuDeviceCreateBindGroupLayout(device, descriptor);
     }
 
-    pub fn createBuffer(device: Device, descriptor: *buffer.BufferDescriptor) buffer.Buffer {
+    pub fn createBuffer(device: Device, descriptor: *const buffer.BufferDescriptor) buffer.Buffer {
         return wgpuDeviceCreateBuffer(device, descriptor);
     }
 
@@ -78,7 +78,7 @@ pub const Device = *opaque {
     }
 
     pub fn createSampler(device: Device,
-        descriptor: *sampler.SamplerDescriptor) sampler.Sampler {
+        descriptor: *const sampler.SamplerDescriptor) sampler.Sampler {
         return wgpuDeviceCreateSampler(device, descriptor);
     }
 

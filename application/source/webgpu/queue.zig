@@ -19,12 +19,8 @@ pub const Queue = *opaque {
     }
 
     pub fn writeBuffer(queue: Queue,
-        target: buffer.Buffer, offset: u64, comptime T: type, data: []const T) void {
-        wgpuQueueWriteBuffer(
-            queue, target, offset,
-            @as(*const anyopaque, @ptrCast(data.ptr)),
-            @as(u64, @intCast(data.len)) * @sizeOf(T),
-        );
+        target: buffer.Buffer, offset: u64, data: *const anyopaque, size: usize) void {
+        wgpuQueueWriteBuffer(queue, target, offset, data, size);
     }
 
     pub fn writeTexture(queue: Queue,
@@ -73,7 +69,7 @@ extern fn wgpuQueueSubmit(queue: Queue,
     count: u32, commands: [*]const command_buffer.CommandBuffer) void;
 
 extern fn wgpuQueueWriteBuffer(queue: Queue,
-    target: buffer.Buffer, offset: u64, data: *const anyopaque, size: u64) void;
+    target: buffer.Buffer, offset: u64, data: *const anyopaque, size: usize) void;
 
 extern fn wgpuQueueWriteTexture(queue: Queue,
     destination: *const texture.ImageCopyTexture, data: *const anyopaque,

@@ -17,6 +17,12 @@ pub const Sampler = *opaque {
     }
 };
 
+pub const AddressMode = enum(u32) {
+    repeat,
+    mirror_repeat,
+    clamp_to_edge,
+};
+
 pub const FilterMode = enum(u32) {
     nearest,
     linear,
@@ -28,12 +34,12 @@ pub const MipmapFilterMode = FilterMode;
 pub const SamplerDescriptor = extern struct {
     next: ?*const shared.ChainedStruct = null,
     label: ?[*:0]const u8 = null,
-    address_mode_u: texture.AddressMode = .clamp_to_edge,
-    address_mode_v: texture.AddressMode = .clamp_to_edge,
-    address_mode_w: texture.AddressMode = .clamp_to_edge,
-    mag_filter: FilterMode = .nearest,
-    min_filter: FilterMode = .nearest,
-    mipmap_filter: MipmapFilterMode = .nearest,
+    address_mode_u: AddressMode,
+    address_mode_v: AddressMode,
+    address_mode_w: AddressMode,
+    mag_filter: FilterMode,
+    min_filter: FilterMode,
+    mipmap_filter: MipmapFilterMode,
     lod_min_clamp: f32 = 0.0,
     lod_max_clamp: f32 = 32.0,
     compare: shared.CompareFunction = .undefined,

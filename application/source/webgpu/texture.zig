@@ -25,13 +25,6 @@ pub const Texture = *opaque {
     }
 };
 
-
-pub const AddressMode = enum(u32) {
-    repeat,
-    mirror_repeat,
-    clamp_to_edge,
-};
-
 pub const AlphaMode = enum(u32) {
     auto,
     opaque_,
