@@ -15,28 +15,23 @@ pub const Window = struct {
     surface: Surface,
     controller: *const Controller,
 
-    pub fn create(window: *Window, title: [*:0]const u8, width: u32, height: u32, controller: *const Controller) !void {
+    pub fn create(window: *Window, title: [*:0]const u8, width: u32, height: u32) !void {
 
         const handle = binding.create(width, height, title, null, null);
         
         const instance = webgpu.instance.create(null);
+
         var surface = try Surface.create(handle, instance);
         instance.release();
 
         window.handle = handle;
         window.surface = surface;
-        window.controller = controller;
 
-        handle.setUserPoiner(@ptrCast(&window));
+        handle.setUserPoiner(@ptrCast(window));
         _ = handle.setSizeCallback(&sizeCallback);
         _ = handle.setKeyCallback(&keyCallback);
 
         surface.resize(width, height);
-        surface.configure();
-
-        log.debug("window surface {}  var surface {}", .{@intFromPtr(&window.surface), @intFromPtr(&surface)});
-        log.debug("window surface {s}  var surface {s}", .{@tagName(window.surface.configuration.format), @tagName(surface.configuration.format)});
-        log.debug("window surface {}  var surface {}", .{@intFromPtr(window.surface.configuration.device), @intFromPtr(surface.configuration.device)});
     }
 
 
@@ -44,7 +39,6 @@ pub const Window = struct {
 
         var window = @as(*Window, @ptrCast(@alignCast(handle.getUserPoiner())));
         var surface = &window.surface;
-        log.debug("callback surface: {}", .{@intFromPtr(surface)});
         surface.resize(@intCast(new_width), @intCast(new_height));
     }
 

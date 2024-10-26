@@ -48,11 +48,6 @@ pub const Surface = struct {
 
     pub fn resize(self: *Surface, new_width: u32, new_height: u32) void {
         
-        @import("std").log.debug("surface {}", .{@intFromPtr(self)});
-        @import("std").log.debug("width: {} height: {}", .{self.width(), self.height()});
-        @import("std").log.debug("device: {}", .{self.configuration.device});
-        @import("std").log.debug("present mode: {}", .{self.configuration.present_mode});
-        
         self.configuration.width = new_width;
         self.configuration.height = new_height;
         
@@ -60,10 +55,6 @@ pub const Surface = struct {
     }
 
     pub fn configure(self: *Surface) void {
-        @import("std").log.debug("surface {}", .{@intFromPtr(self)});
-        @import("std").log.debug("width: {} height: {}", .{self.width(), self.height()});
-        @import("std").log.debug("device: {}", .{self.configuration.device});
-        @import("std").log.debug("present mode: {}", .{self.configuration.present_mode});
         self.handle.configure(&self.configuration);
     }
 

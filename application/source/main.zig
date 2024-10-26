@@ -28,14 +28,14 @@ pub fn main() !void {
     
     glfw.window.hint(glfw.window.HintKey.ClientApi, glfw.window.no_api);
 
-    var controller = Controller {
-        .window = null
-    };
-    
     var window: Window = undefined;
-    try Window.create(&window, "Valdala", 1000, 800, &controller);
+    try window.create("Valdala", 1000, 800);
     defer window.destroy();
-    controller.window = &window;
+    
+    const controller = Controller {
+        .window = &window
+    };
+    window.controller = &controller;
 
     window.show();
 
