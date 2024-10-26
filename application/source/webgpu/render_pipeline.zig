@@ -82,7 +82,7 @@ pub const StencilOperation = enum(u32) {
     zero,
     replace,
     invert,
-    increment_lamp,
+    increment_clamp,
     decrement_clamp,
     increment_wrap,
     decrement_wrap
