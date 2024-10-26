@@ -3,6 +3,14 @@ const glfw = @import("glfw");
 const glfw_webgpu = @import("../glfw-webgpu.zig");
 const binding = webgpu.surface;
 
+pub const SurfaceError = error {
+    DeviceLost,
+    TextureLost,
+    TextureOutdated,
+    Memory,
+    Timeout
+};
+
 pub const Surface = struct {
 
     handle: binding.Surface,
@@ -73,48 +81,30 @@ pub const Surface = struct {
         return self.configuration.device;
     }
 
+    pub fn getQueue(self: Surface) webgpu.queue.Queue {
+        return self.queue;
+    }
+
     pub fn getColorTextureFormat(self: Surface) webgpu.texture.TextureFormat {
         return self.configuration.format;
     }
 
-    pub fn render(self: Surface) void {
-
-        const device = self.getDevice();
-
-        var surface_texture: binding.SurfaceTexture = undefined;
+    pub fn getColorTexture(self: Surface) SurfaceError!webgpu.texture.Texture {
+        
+        var surface_texture : webgpu.surface.SurfaceTexture = undefined;
         self.handle.getCurrentTexture(&surface_texture);
-
-        const color_texture = surface_texture.texture;
-        const frame = color_texture.createView(null);
-
-        const command_encoder = device.createCommandEncoder(null);
         
-        const color_attachment = webgpu.render_pass_encoder.RenderPassColorAttachment {
-            .clear_value = .{ .r = 0.53, .g = 0.81, .b = 0.92, .a = 1.0 },
-            .load_op = .clear,
-            .store_op = .store,
-            .view = frame
+        return switch (surface_texture.status) {
+            .success => surface_texture.texture,
+            .timeout => SurfaceError.Timeout,
+            .device_lost => SurfaceError.DeviceLost,
+            .outdated => SurfaceError.TextureOutdated,
+            .lost => SurfaceError.TextureLost,
+            .memory => SurfaceError.Memory
         };
+    }
 
-        const descriptor = webgpu.render_pass_encoder.RenderPassDescriptor {
-            .color_attachment_count = 1,
-            .color_attachments = &.{color_attachment},
-            .depth_stencil_attachment = null,
-        };
-
-        const render_pass_encoder = command_encoder.beginRenderPass(&descriptor);
-        render_pass_encoder.end();
-        render_pass_encoder.release();
-
-        const command_buffer = command_encoder.finish(null);
-        command_encoder.release();
-
-        self.queue.submit(&.{command_buffer});
-        command_buffer.release();
-        
+    pub fn present(self: Surface) void {
         self.handle.present();
-        
-        frame.release();
-        color_texture.release();
     }
 };
