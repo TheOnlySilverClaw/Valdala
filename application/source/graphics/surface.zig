@@ -83,7 +83,7 @@ pub const Surface = struct {
         const command_encoder = device.createCommandEncoder(null);
         
         const color_attachment = webgpu.render_pass_encoder.RenderPassColorAttachment {
-            .clear_value = .{ .r = 0.95, .g = 0.7, .b = 0.7, .a = 1.0 },
+            .clear_value = .{ .r = 0.53, .g = 0.81, .b = 0.92, .a = 1.0 },
             .load_op = .clear,
             .store_op = .store,
             .view = frame
