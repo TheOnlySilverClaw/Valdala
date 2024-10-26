@@ -3,6 +3,10 @@ const shared = @import("shared.zig");
 const support = @import("support.zig");
 const surface = @import("surface.zig");
 
+pub const AdapterError = error {
+    Unavailable
+};
+
 pub const Adapter = *opaque {
 
     pub fn enumerateFeatures(adapter: Adapter, features: ?[*]support.FeatureName) usize {
@@ -21,9 +25,31 @@ pub const Adapter = *opaque {
         return wgpuAdapterHasFeature(adapter, feature);
     }
 
-    pub fn requestDevice(adapter: Adapter, descriptor: *device.DeviceDescriptor,
+    pub fn requestDeviceAsync(adapter: Adapter, descriptor: *const device.DeviceDescriptor,
         callback: device.RequestDeviceCallback, userdata: ?*anyopaque) void {
         wgpuAdapterRequestDevice(adapter, descriptor, callback, userdata);
+    }
+
+    pub fn requestDevice(adapter: Adapter, descriptor: ?*const device.DeviceDescriptor) device.DeviceError!device.Device {
+
+        var result: ?device.Device = null;
+        wgpuAdapterRequestDevice(adapter, descriptor, deviceCallback, @ptrCast(&result));
+        if(result) |r| {
+            return r;
+        } else {
+            return device.DeviceError.Unavailable;
+        }
+    }
+
+    fn deviceCallback(status: RequestDeviceStatus, received: ?device.Device,
+        message: ?[*:0]const u8, userdata: ?shared.UserData) callconv(.C) void {
+        
+        if(status == .success and received != null and userdata != null) {
+            const result = @as(*device.Device, @alignCast(@ptrCast(userdata)));
+            result.* = received.?;
+        } else {
+            @import("std").log.err("failed to get device: {?s}", .{message});
+        }
     }
 
     pub fn reference(adapter: Adapter) void {
@@ -34,8 +60,6 @@ pub const Adapter = *opaque {
         wgpuAdapterRelease(adapter);
     }
 };
-
-const AdapterError = error{REQUEST_FAILED};
 
 pub const AdapterInfo = extern struct {
     next: ?*shared.ChainedStructOut = null,
@@ -97,7 +121,8 @@ extern fn wgpuAdapterGetInfo(adapter: Adapter, properties: *AdapterInfo) void;
 
 extern fn wgpuAdapterHasFeature(adapter: Adapter, feature: support.FeatureName) bool;
 
-extern fn wgpuAdapterRequestDevice(adapter: Adapter, descriptor: *const device.DeviceDescriptor, callback: RequestDeviceCallback, userdata: ?*anyopaque) void;
+extern fn wgpuAdapterRequestDevice(adapter: Adapter, descriptor: ?*const device.DeviceDescriptor,
+    callback: RequestDeviceCallback, userdata: ?*anyopaque) void;
 
 extern fn wgpuAdapterReference(adapter: Adapter) void;
 

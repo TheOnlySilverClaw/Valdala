@@ -1,4 +1,4 @@
-pub const Undefined = ~0;
+pub const Undefined = ~@as(u32, 0);
 
 pub const UserData = *anyopaque;
 

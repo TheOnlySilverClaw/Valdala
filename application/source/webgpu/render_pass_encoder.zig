@@ -36,8 +36,8 @@ pub const RenderPassEncoder = *opaque {
         wgpuRenderPassEncoderDrawIndirect(encoder, indirect_buffer, indirect_offset);
     }
 
-    pub fn end(encoder: RenderPassEncoder, descriptor: *RenderPassEncoderDescriptor) bundle.RenderBundle {
-        return wgpuRenderPassEncoderEnd(encoder, descriptor);
+    pub fn end(encoder: RenderPassEncoder) void {
+        wgpuRenderPassEncoderEnd(encoder);
     }
 
     pub fn endOcclusionQuery(encoder: RenderPassEncoder) void {
@@ -116,17 +116,6 @@ pub const RenderPassEncoder = *opaque {
     }
 };
 
-pub const RenderPassEncoderDescriptor = extern struct {
-    next: ?*const shared.ChainedStruct = null,
-    label: ?[*:0]const u8 = null,
-    color_formats_count: usize,
-    color_formats: ?[*]const texture.TextureFormat,
-    depth_stencil_format: texture.TextureFormat,
-    sample_count: u32,
-    depth_read_only: bool,
-    stencil_read_only: bool,
-};
-
 pub const LoadOperation = enum(u32) {
     undefined,
     clear,
@@ -136,6 +125,7 @@ pub const LoadOperation = enum(u32) {
 pub const RenderPassColorAttachment = extern struct {
     next: ?*const shared.ChainedStruct = null,
     view: ?texture.view.TextureView,
+    depth_slice: u32 = shared.Undefined,
     resolve_target: ?texture.view.TextureView = null,
     load_op: LoadOperation,
     store_op: StoreOperation,
@@ -192,8 +182,7 @@ extern fn wgpuRenderPassEncoderDrawIndexedIndirect(encoder: RenderPassEncoder,
 extern fn wgpuRenderPassEncoderDrawIndirect(encoder: RenderPassEncoder,
     indirect_buffer: buffer.Buffer, indirect_offset: u64) void;
 
-extern fn wgpuRenderPassEncoderEnd(encoder: RenderPassEncoder,
-    descriptor: *const bundle.RenderBundleDescriptor) bundle.RenderBundle;
+extern fn wgpuRenderPassEncoderEnd(encoder: RenderPassEncoder) void;
 
 extern fn wgpuRenderPassEncoderEndOcclusionQuery(encoder: RenderPassEncoder) void;
 

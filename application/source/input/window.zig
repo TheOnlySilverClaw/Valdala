@@ -1,38 +1,57 @@
 const std = @import("std");
+const webgpu = @import("webgpu");
 const glfw = @import("glfw");
 
 const log = std.log;
 const input = glfw.input;
 const binding = glfw.window;
 
+const Surface = @import("../graphics/surface.zig").Surface;
 const Controller = @import("controller.zig").Controller;
-
 
 pub const Window = struct {
 
     handle: binding.Window,
+    surface: Surface,
     controller: *const Controller,
 
-    pub fn create(title: [*:0]const u8, width: u32, height: u32, controller: *const Controller) Window {
+    pub fn create(window: *Window, title: [*:0]const u8, width: u32, height: u32, controller: *const Controller) !void {
 
         const handle = binding.create(width, height, title, null, null);
         
-        const window = Window {
-            .handle = handle,
-            .controller = controller
-        };
+        const instance = webgpu.instance.create(null);
+        var surface = try Surface.create(handle, instance);
+        instance.release();
+
+        window.handle = handle;
+        window.surface = surface;
+        window.controller = controller;
 
         handle.setUserPoiner(@ptrCast(&window));
+        _ = handle.setSizeCallback(&sizeCallback);
         _ = handle.setKeyCallback(&keyCallback);
 
-        return window;
+        surface.resize(width, height);
+        surface.configure();
+
+        log.debug("window surface {}  var surface {}", .{@intFromPtr(&window.surface), @intFromPtr(&surface)});
+        log.debug("window surface {s}  var surface {s}", .{@tagName(window.surface.configuration.format), @tagName(surface.configuration.format)});
+        log.debug("window surface {}  var surface {}", .{@intFromPtr(window.surface.configuration.device), @intFromPtr(surface.configuration.device)});
+    }
+
+
+    fn sizeCallback(handle: binding.Window, new_width: i32, new_height: i32) callconv(.C) void {
+
+        var window = @as(*Window, @ptrCast(@alignCast(handle.getUserPoiner())));
+        var surface = &window.surface;
+        log.debug("callback surface: {}", .{@intFromPtr(surface)});
+        surface.resize(@intCast(new_width), @intCast(new_height));
     }
 
     fn keyCallback(handle: binding.Window, key: input.Key, _: u32,
             action: input.Action, modifiers: input.Modifiers) callconv(.C) void {
 
-        const user_pointer = handle.getUserPoiner().?;
-        const window = @as(*const Window, @ptrCast(@alignCast(user_pointer)));
+        const window = @as(*const Window, @ptrCast(@alignCast(handle.getUserPoiner())));
         const controller = window.controller;
         controller.on_key(key, action, modifiers);
     }
@@ -41,6 +60,7 @@ pub const Window = struct {
         
         while (!self.handle.should_close()) {
             glfw.pollEvents();
+            self.surface.render();
             std.Thread.sleep(10 * std.time.ns_per_s / 60);
         }
     }

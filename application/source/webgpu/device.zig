@@ -167,6 +167,10 @@ pub const DeviceDescriptor = extern struct {
     device_lost_user_data: ?*anyopaque = null,
 };
 
+pub const DeviceError = error {
+    Unavailable
+};
+
 pub const DeviceLostCallback = *const fn (
     reason: DeviceLostReason,
     message: ?[*:0]const u8,

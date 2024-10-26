@@ -15,7 +15,7 @@ pub const CommandEncoder = *opaque {
     }
 
     pub fn beginRenderPass(encoder: CommandEncoder,
-        descriptor: *render_pass_encoder.RenderPassDescriptor) render_pass_encoder.RenderPassEncoder {
+        descriptor: *const render_pass_encoder.RenderPassDescriptor) render_pass_encoder.RenderPassEncoder {
         return wgpuCommandEncoderBeginRenderPass(encoder, descriptor);
     }
 

@@ -14,7 +14,7 @@ pub const Surface = *opaque {
         wgpuSurfaceGetCapabilities(surface, surface_adapter, capalities);
     }
 
-    pub fn getCurrentTexture(surface: Surface, surface_texture: *SurfaceTexture) void {
+    pub fn getCurrentTexture(surface: Surface, surface_texture: *const SurfaceTexture) void {
         wgpuSurfaceGetCurrentTexture(surface, surface_texture);
     }
 
@@ -50,23 +50,11 @@ pub const SurfaceCapabilities = extern struct {
     next: ?*const shared.ChainedStruct = null,
     usages: texture.TextureUsage,
     format_count: usize,
-    formats: ?[*]const texture.TextureFormat,
+    formats: [*]const texture.TextureFormat,
     present_mode_count: usize,
-    present_modes: ?[*]const PresentMode,
+    present_modes: [*]const PresentMode,
     alpha_mode_count: usize,
-    alpha_modes: ?[*]const texture.AlphaMode,
-
-    pub fn empty() SurfaceCapabilities {
-        return .{
-            .usages = .{},
-            .format_count = 0,
-            .formats = null,
-            .present_mode_count = 0,
-            .present_modes = null,
-            .alpha_mode_count = 0,
-            .alpha_modes = null
-        };
-    }
+    alpha_modes: [*]const texture.AlphaMode
 };
 
 pub const SurfaceConfiguration = extern struct {
@@ -88,7 +76,7 @@ pub const SurfaceDescriptor = extern struct {
     label: ?[*:0]const u8 = null
 };
 
-pub const SurfaceGetCurrentTextureStatus = enum {
+pub const SurfaceGetCurrentTextureStatus = enum(u32) {
     success,
     timeout,
     outdated,
@@ -108,7 +96,7 @@ extern fn wgpuSurfaceConfigure(surface: Surface, configuration: *const SurfaceCo
 
 extern fn wgpuSurfaceGetCapabilities(surface: Surface, surface_adapter: adapter.Adapter, capabilities: *const SurfaceCapabilities) void;
 
-extern fn wgpuSurfaceGetCurrentTexture(surface: Surface, surface_texture: *SurfaceTexture) void;
+extern fn wgpuSurfaceGetCurrentTexture(surface: Surface, surface_texture: *const SurfaceTexture) void;
 
 extern fn wgpuSurfacePresent(surface: Surface) void;
 

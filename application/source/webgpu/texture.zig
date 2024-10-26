@@ -4,7 +4,7 @@ pub const view = @import("texture_view.zig");
 
 pub const Texture = *opaque {
 
-    pub fn createView(texture: Texture, descriptor: *view.TextureViewDescriptor) view.TextureView {
+    pub fn createView(texture: Texture, descriptor: ?*const view.TextureViewDescriptor) view.TextureView {
         return wgpuTextureCreateView(texture, descriptor);
     }
 
@@ -33,9 +33,11 @@ pub const AddressMode = enum(u32) {
 };
 
 pub const AlphaMode = enum(u32) {
+    auto,
+    opaque_,
     premultiplied,
     unpremultiplied,
-    opaque_,
+    inherit
 };
 
 pub const TextureAspect = enum(u32) {
@@ -180,7 +182,7 @@ pub const TextureUsage = packed struct(u32) {
 };
 
 
-extern fn wgpuTextureCreateView(texture: Texture, descriptor: *const view.TextureViewDescriptor) view.TextureView;
+extern fn wgpuTextureCreateView(texture: Texture, descriptor: ?*const view.TextureViewDescriptor) view.TextureView;
 
 extern fn wgpuTextureDestroy(texture: Texture) void;
 

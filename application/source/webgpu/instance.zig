@@ -2,7 +2,6 @@ const shared = @import("shared.zig");
 const adapter = @import("adapter.zig");
 const surface = @import("surface.zig");
 
-
 pub fn create(descriptor: ?*const InstanceDescriptor) Instance {
     return wgpuCreateInstance(descriptor);
 }
@@ -20,19 +19,27 @@ pub const Instance = *opaque {
         wgpuInstanceRequestAdapter(instance, options, callback, userdata);
     }
 
-    pub fn requestAdapter(instance: Instance, options: *const RequestAdapterOptions) RequestAdapterResult {
+    pub fn requestAdapter(instance: Instance, options: *const RequestAdapterOptions) !adapter.Adapter {
 
-        var result = RequestAdapterResult {
-            .status = .unknown,
-            .adapter = null,
-            .message = null
-        };
-
+        var result: ?adapter.Adapter = null;
         wgpuInstanceRequestAdapter(instance, options, adapterCallback, @ptrCast(&result));
-        
-        return result;
+        if(result) |r| {
+            return r;
+        } else {
+            return adapter.AdapterError.Unavailable;
+        }
     }
 
+    fn adapterCallback(status: RequestAdapterStatus, received: ?adapter.Adapter,
+        message: ?[*:0]const u8, userdata: ?shared.UserData) callconv(.C) void {
+        
+        if(status == .success and received != null and userdata != null) {
+            const result = @as(*adapter.Adapter, @alignCast(@ptrCast(userdata)));
+            result.* = received.?;
+        } else {
+            @import("std").log.err("failed to get adapter: {?s}", .{message});
+        }
+    }
 
     pub fn reference(instance: Instance) void {
         wgpuInstanceReference(instance);
@@ -49,7 +56,7 @@ pub const InstanceDescriptor = extern struct {
 
 pub const RequestAdapterCallback = *const fn (
     status: RequestAdapterStatus,
-    adapter: adapter.Adapter,
+    adapter: ?adapter.Adapter,
     message: ?[*:0]const u8,
     userdata: ?*anyopaque
 ) callconv(.C) void;
@@ -74,15 +81,6 @@ pub const RequestAdapterStatus = enum(u32) {
     failure,
     unknown
 };
-
-fn adapterCallback(status: RequestAdapterStatus, received: adapter.Adapter, message: ?[*:0]const u8, userdata: ?shared.UserData) callconv(.C) void {
-    
-    var result = @as(*RequestAdapterResult, @alignCast(@ptrCast(userdata)));
-    result.status = status;
-    result.message = message;
-    result.adapter = received;
-}
-
 
 extern fn wgpuCreateInstance(descriptor: ?* const InstanceDescriptor) Instance;
 

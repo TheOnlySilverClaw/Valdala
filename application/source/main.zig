@@ -25,35 +25,19 @@ pub fn main() !void {
 
     try glfw.initialize();
     defer glfw.terminate();
+    
+    glfw.window.hint(glfw.window.HintKey.ClientApi, glfw.window.no_api);
 
     var controller = Controller {
         .window = null
     };
-
-    const window = Window.create("Valdala", 1000, 800, &controller);
+    
+    var window: Window = undefined;
+    try Window.create(&window, "Valdala", 1000, 800, &controller);
     defer window.destroy();
     controller.window = &window;
+
     window.show();
-
-    // const instance = webgpu.instance.create(undefined);
-    // defer instance.release();
-
-    // const surface = try glfw_webgpu.createSurface(window, instance);
-    // defer surface.release();
-
-    // const adapterResult = instance.requestAdapter(&webgpu.instance.RequestAdapterOptions {
-    //     .compatible_surface = surface,
-    //     .power_preference = .high_performance
-    // });
-
-    // const adapter = adapterResult.adapter orelse {
-    //     return;
-    // };
-    // defer adapter.release();
-
-
-    // var capabilities = webgpu.surface.SurfaceCapabilities.empty();
-    // surface.getCapabilities(adapter, &capabilities);
 
     var file = try std.fs.cwd().openFile("textures/testing/texture_1.qoi", .{});
     var image = try qoi.decodeStream(allocator, file.reader());
@@ -61,9 +45,6 @@ pub fn main() !void {
 
     const text = try std.fs.cwd().readFileAlloc(allocator, "shaders/textured.wgsl", 16 * 1024);
     defer allocator.free(text);
-    // log.debug("loaded shader:\n{s}\n", .{text});
-
-    // log.info("texture image: {} * {} = {} px color spcace: {s}", .{ image.width, image.height, image.pixels.len, @tagName(image.colorspace) });
     
     log.info("Shutdown", .{});
 }
