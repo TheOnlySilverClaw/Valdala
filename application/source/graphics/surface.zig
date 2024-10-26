@@ -8,6 +8,7 @@ pub const Surface = struct {
     handle: binding.Surface,
     capabilities: binding.SurfaceCapabilities,
     configuration: binding.SurfaceConfiguration,
+    queue: webgpu.queue.Queue,
 
     pub fn create(window: glfw.window.Window,
         instance: webgpu.instance.Instance) !Surface {
@@ -23,8 +24,9 @@ pub const Surface = struct {
 
         var capabilities: binding.SurfaceCapabilities = undefined;
         handle.getCapabilities(adapter, &capabilities);
-        
         adapter.release();
+
+        const queue = device.getQueue();
 
         const configuration = binding.SurfaceConfiguration {
             .alpha_mode = capabilities.alpha_modes[0],
@@ -41,7 +43,8 @@ pub const Surface = struct {
         const surface = Surface {
             .handle = handle,
             .capabilities = capabilities,
-            .configuration = configuration
+            .configuration = configuration,
+            .queue = queue
         };
         return surface;
     }
@@ -58,22 +61,26 @@ pub const Surface = struct {
         self.handle.configure(&self.configuration);
     }
 
-    pub fn width(self: Surface) u32 {
+    pub fn getWidth(self: Surface) u32 {
         return self.configuration.width;
     }
 
-    pub fn height(self: Surface) u32 {
+    pub fn getHeight(self: Surface) u32 {
         return self.configuration.height;
     }
 
-    pub fn color_texture_format(self: Surface) webgpu.texture.TextureFormat {
+    pub fn getDevice(self: Surface) webgpu.device.Device {
+        return self.configuration.device;
+    }
+
+    pub fn getColorTextureFormat(self: Surface) webgpu.texture.TextureFormat {
         return self.configuration.format;
     }
 
     pub fn render(self: Surface) void {
 
-        const device = self.configuration.device;
-        
+        const device = self.getDevice();
+
         var surface_texture: binding.SurfaceTexture = undefined;
         self.handle.getCurrentTexture(&surface_texture);
 
@@ -102,10 +109,8 @@ pub const Surface = struct {
         const command_buffer = command_encoder.finish(null);
         command_encoder.release();
 
-        const queue = device.getQueue();
-        queue.submit(&.{command_buffer});
+        self.queue.submit(&.{command_buffer});
         command_buffer.release();
-        queue.release();
         
         self.handle.present();
         

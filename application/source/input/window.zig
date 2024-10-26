@@ -7,6 +7,7 @@ const input = glfw.input;
 const binding = glfw.window;
 
 const Surface = @import("../graphics/surface.zig").Surface;
+const Renderer = @import("../graphics/renderer.zig").Renderer;
 const Controller = @import("controller.zig").Controller;
 
 pub const Window = struct {
@@ -14,6 +15,7 @@ pub const Window = struct {
     handle: binding.Window,
     surface: Surface,
     controller: *const Controller,
+    renderer: *const Renderer,
 
     pub fn create(window: *Window, title: [*:0]const u8, width: u32, height: u32) !void {
 
@@ -50,11 +52,11 @@ pub const Window = struct {
         controller.on_key(key, action, modifiers);
     }
 
-    pub fn show(self: Window) void {
+    pub fn show(self: Window) !void {
         
         while (!self.handle.should_close()) {
             glfw.pollEvents();
-            self.surface.render();
+            try self.renderer.render();
             std.Thread.sleep(10 * std.time.ns_per_s / 60);
         }
     }

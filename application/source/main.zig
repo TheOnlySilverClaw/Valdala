@@ -2,6 +2,7 @@ const std = @import("std");
 const transform = @import("transform.zig");
 const glfw = @import("glfw");
 const Controller = @import("input/controller.zig").Controller;
+const Renderer = @import("graphics/renderer.zig").Renderer;
 const Window = @import("input/window.zig").Window;
 const webgpu = @import("webgpu");
 const glfw_webgpu = @import("glfw-webgpu.zig");
@@ -35,9 +36,15 @@ pub fn main() !void {
     const controller = Controller {
         .window = &window
     };
-    window.controller = &controller;
 
-    window.show();
+    const renderer = Renderer {
+        .surface = &window.surface
+    };
+
+    window.controller = &controller;
+    window.renderer = &renderer;
+    
+    try window.show();
 
     var file = try std.fs.cwd().openFile("textures/testing/texture_1.qoi", .{});
     var image = try qoi.decodeStream(allocator, file.reader());
