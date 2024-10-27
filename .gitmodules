@@ -5,6 +5,8 @@
 [submodule "wgpu-native"]
 	path = application/submodules/wgpu-native
 	url = https://github.com/gfx-rs/wgpu-native
-[submodule "zig-qoi"]
-	path = application/submodules/zig-qoi
-	url = https://github.com/ikskuh/zig-qoi.git
+
+[submodule "zigimg"]
+	path = application/submodules/zigimg
+	url = https://github.com/zigimg/zigimg.git
+	branch = master

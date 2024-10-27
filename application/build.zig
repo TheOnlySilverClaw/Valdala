@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/webgpu/webgpu.zig")
     });
 
-    const qoi = b.dependency("qoi", .{});
+    const zigimg = b.dependency("zigimg", .{});
 
     const exe = b.addExecutable(.{
         .name = "Valdala",
@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("glfw", glfw);
     exe.root_module.addImport("webgpu", webgpu);
-    exe.root_module.addImport("qoi", qoi.module("qoi"));
+    exe.root_module.addImport("zigimg", zigimg.module("zigimg"));
 
     b.installArtifact(exe);
 

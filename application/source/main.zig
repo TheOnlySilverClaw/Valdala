@@ -7,7 +7,7 @@ const Window = @import("input/window.zig").Window;
 const webgpu = @import("webgpu");
 const glfw_webgpu = @import("glfw-webgpu.zig");
 const log = std.log;
-const qoi = @import("qoi");
+const zigimg = @import("zigimg");
 
 
 pub fn main() !void {
@@ -53,7 +53,7 @@ pub fn main() !void {
     try window.show();
 
     var file = try std.fs.cwd().openFile("textures/testing/texture_1.qoi", .{});
-    var image = try qoi.decodeStream(allocator, file.reader());
+    var image = try zigimg.ImageUnmanaged.fromFile(allocator, &file);
     defer image.deinit(allocator);
 
     const text = try std.fs.cwd().readFileAlloc(allocator, "shaders/textured.wgsl", 16 * 1024);
