@@ -4,25 +4,15 @@ pub const view = @import("texture_view.zig");
 
 pub const Texture = *opaque {
 
-    pub fn createView(texture: Texture, descriptor: ?*const view.TextureViewDescriptor) view.TextureView {
-        return wgpuTextureCreateView(texture, descriptor);
-    }
+    pub const createView = wgpuTextureCreateView;
 
-    pub fn destroy(texture: Texture) void {
-        wgpuTextureDestroy(texture);
-    }
+    pub const destroy = wgpuTextureDestroy;
 
-    pub fn setLabel(texture: Texture, label: ?[*:0]const u8) void {
-        wgpuTextureSetLabel(texture, label);
-    }
+    pub const setLabel = wgpuTextureSetLabel;
 
-    pub fn reference(texture: Texture) void {
-        wgpuTextureReference(texture);
-    }
+    pub const reference = wgpuTextureReference;
 
-    pub fn release(texture: Texture) void {
-        wgpuTextureRelease(texture);
-    }
+    pub const release = wgpuTextureRelease;
 };
 
 pub const AlphaMode = enum(u32) {
@@ -31,6 +21,14 @@ pub const AlphaMode = enum(u32) {
     premultiplied,
     unpremultiplied,
     inherit
+};
+
+pub const ImageCopyTexture = extern struct {
+    next: ?*const shared.ChainedStruct = null,
+    texture: Texture,
+    mip_level: u32,
+    origin: shared.Origin3D,
+    aspect: TextureAspect = .all,
 };
 
 pub const TextureAspect = enum(u32) {
@@ -50,20 +48,20 @@ pub const TextureDescriptor = extern struct {
     next: ?*const shared.ChainedStruct = null,
     label: ?[*:0]const u8 = null,
     usage: TextureUsage,
-    dimension: TextureDimension = .tdim_2d,
+    dimension: TextureDimension,
     size: shared.Extent3D,
     format: TextureFormat,
-    mip_level_count: u32 = 1,
-    sample_count: u32 = 1,
-    view_format_count: usize = 0,
-    view_formats: ?[*]const TextureFormat = null,
+    mip_level_count: u32,
+    sample_count: u32,
+    view_format_count: usize,
+    view_formats: ?[*]const TextureFormat,
 };
 
 
 pub const TextureDimension = enum(u32) {
-    _1d,
-    _2d,
-    _3d,
+    @"1d",
+    @"2d",
+    @"3d"
 };
 
 pub const TextureFormat = enum(u32) {

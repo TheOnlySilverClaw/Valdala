@@ -11,9 +11,9 @@ pub fn VertexBuffer(comptime T: type, comptime attribute_formats: []const Format
         const Self = @This();
 
         pub const formats: [attribute_formats.len] Format = attribute_formats;
-        pub const element_size = layout.elementSize(attribute_formats);
         
         comptime {
+            const element_size = layout.elementSize(attribute_formats);
             if(element_size != @sizeOf(T)) {
                 const print = @import("std").fmt.comptimePrint;
                 @compileError(print("calculated element size {} does not match type size {} of type {s}",
@@ -21,28 +21,25 @@ pub fn VertexBuffer(comptime T: type, comptime attribute_formats: []const Format
             }
         }
 
-        handle: binding.Buffer,
         length: usize,
+        label: ?[*:0]const u8 = null,
 
-        pub fn create(device: webgpu.device.Device, length: usize, label: ?[*:0]const u8) Self {
+        handle: binding.Buffer = undefined,
+
+        pub fn create(self: *Self, device: webgpu.device.Device) void {
             
             const descriptor = webgpu.buffer.BufferDescriptor {
-                .label = label,
-                .size = length * element_size,
+                .label = self.label,
+                .size = self.size(),
                 .usage = .{ .vertex = true, .copy_dst = true },
                 .mapped_at_creation = false
             };
 
-            const handle = device.createBuffer(&descriptor);
-
-            return .{
-                .handle = handle,
-                .length = length
-            };
+            self.handle = device.createBuffer(&descriptor);
         }
 
         pub fn size(self: Self) usize {
-            return self.length * element_size;
+            return self.length * @sizeOf(T);
         }
 
         pub fn destroy(self: Self) void {
@@ -50,8 +47,12 @@ pub fn VertexBuffer(comptime T: type, comptime attribute_formats: []const Format
             self.handle.release();
         }
 
-        pub fn upload(self: Self, queue: webgpu.queue.Queue, data: []const T, offset: u32) void {
-            queue.writeBuffer(self.handle, offset, data.ptr, data.len * element_size);
+        pub fn upload(self: Self, queue: webgpu.queue.Queue, data: []const T) void {
+            self.uploadAfter(queue, data, 0);
+        }
+
+        pub fn uploadAfter(self: Self, queue: webgpu.queue.Queue, data: []const T, offset: u64) void {
+            queue.writeBuffer(self.handle, T, data, offset);
         }
     };
 }

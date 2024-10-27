@@ -78,3 +78,4 @@ pub const StructType = enum(u32) {
     surface_descriptor_from_xcb_window,
     render_pass_descriptor_max_draw_count
 };
+

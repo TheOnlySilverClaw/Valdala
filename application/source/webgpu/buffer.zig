@@ -1,10 +1,7 @@
 const shared = @import("shared.zig");
+const texture = @import("texture.zig");
 
 pub const Buffer = *opaque {
-    
-    pub fn destroy(buffer: Buffer) void {
-        wgpuBufferDestroy(buffer);
-    }
 
     // `offset` has to be a multiple of 8 (otherwise `null` will be returned).
     // `@sizeOf(T) * len` has to be a multiple of 4 (otherwise `null` will be returned).
@@ -24,30 +21,22 @@ pub const Buffer = *opaque {
         return @as([*]T, @ptrCast(@alignCast(ptr)))[0..len];
     }
 
-    // `offset` has to be a multiple of 8 (Dawn's validation layer will warn).
-    // `size` has to be a multiple of 4 (Dawn's validation layer will warn).
-    // `size == 0` will map entire range (from 'offset' to the end of the buffer).
-    pub fn mapAsync(buffer: Buffer,
-        mode: MapMode, offset: usize, size: usize,
-        callback: BufferMapCallback, userdata: ?*anyopaque) void {
-        wgpuBufferMapAsync(buffer, mode, offset, size, callback, userdata);
-    }
+    pub const size = wgpuBufferGetSize;
 
-    pub fn setLabel(buffer: Buffer, label: ?[*:0]const u8) void {
-        wgpuBufferSetLabel(buffer, label);
-    }
+    // `offset` has to be a multiple of 8
+    // `size` has to be a multiple of 4
+    // `size == 0` will map entire range (from 'offset' to the end of the buffer)
+    pub const mapAsync = wgpuBufferMapAsync;
 
-    pub fn unmap(buffer: Buffer) void {
-        wgpuBufferUnmap(buffer);
-    }
+    pub const setLabel = wgpuBufferSetLabel;
 
-    pub fn reference(buffer: Buffer) void {
-        wgpuBufferReference(buffer);
-    }
+    pub const unmap = wgpuBufferUnmap;
 
-    pub fn release(buffer: Buffer) void {
-        wgpuBufferRelease(buffer);
-    }
+    pub const reference = wgpuBufferReference;
+
+    pub const release = wgpuBufferRelease;
+    
+    pub const destroy = wgpuBufferDestroy;
 };
 
 pub const BufferDescriptor = extern struct {
@@ -101,20 +90,35 @@ pub const MapMode = packed struct(u32) {
     _padding: u30 = 0
 };
 
+pub const ImageCopyBuffer = extern struct {
+    next: ?*const shared.ChainedStruct = null,
+    layout: texture.TextureDataLayout,
+    buffer: Buffer,
+};
+
 pub const IndexFormat = enum(u32) {
     undefined,
     uint16,
     uint32
 };
 
+
 extern fn wgpuBufferMapAsync(buffer: Buffer,
     mode: MapMode, offset: usize, size: usize,
     callback: BufferMapCallback, userdata: ?*anyopaque) void;
 
 extern fn wgpuBufferGetConstMappedRange(buffer: Buffer, offset: usize, size: usize) ?*const anyopaque;
+
 extern fn wgpuBufferGetMappedRange(buffer: Buffer, offset: usize, size: usize) ?*anyopaque;
+
+extern fn wgpuBufferGetSize(buffer: Buffer) u64;
+
 extern fn wgpuBufferSetLabel(buffer: Buffer, label: ?[*:0]const u8) void;
+
 extern fn wgpuBufferUnmap(buffer: Buffer) void;
+
 extern fn wgpuBufferReference(buffer: Buffer) void;
+
 extern fn wgpuBufferRelease(buffer: Buffer) void;
+
 extern fn wgpuBufferDestroy(buffer: Buffer) void;

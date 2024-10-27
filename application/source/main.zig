@@ -11,7 +11,7 @@ const zigimg = @import("zigimg");
 
 
 pub fn main() !void {
-    
+
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer {
         const check = gpa.deinit();
@@ -39,7 +39,7 @@ pub fn main() !void {
 
     // TODO figure out where ot put this
     const pipeline = try @import("graphics/render_pipeline.zig").RenderPipeline
-        .create(allocator, window.surface.getDevice());
+        .create(allocator, window.surface);
 
     const renderer = Renderer {
         .surface = &window.surface,

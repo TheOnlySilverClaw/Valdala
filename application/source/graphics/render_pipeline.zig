@@ -2,14 +2,18 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Device = webgpu.device.Device;
+const Surface = @import("surface.zig").Surface;
 const VertexBuffer = @import("vertex_buffer.zig").VertexBuffer;
 const Shader = @import("shader.zig").Shader;
+const texture = @import("texture.zig");
 
 pub const RenderPipeline = struct {
 
     block_sampler: webgpu.sampler.Sampler,
 
-    pub fn create(allocator: Allocator, device: Device) !RenderPipeline {
+    pub fn create(allocator: Allocator, surface: Surface) !RenderPipeline {
+
+        const device = surface.getDevice();
 
         const block_sampler = createSampler(device, .repeat, .nearest);
 
@@ -23,11 +27,25 @@ pub const RenderPipeline = struct {
             .module = shader_module
         };
 
-        const handle = createRenderPipeline(device, undefined, undefined, vertex_shader, fragment_shader);
+        var texture_array = texture.TextureArray {
+            .label = "blocks",
+            .format = surface.getColorTextureFormat(),
+            .width = 16,
+            .height = 16,
+            .layers = 4
+        };
+        texture_array.create(device);
+        
+        try texture_array.loadImages(allocator, surface.queue, &.{
+            "textures/testing/texture_1.qoi",
+            "textures/testing/texture_2.qoi",
+            "textures/testing/texture_3.qoi",
+            "textures/testing/texture_4.qoi"
+        });
+
+        const handle = createRenderPipeline(device, undefined, surface.getColorTextureFormat(), vertex_shader, fragment_shader);
         _ = handle;
 
-        const TypedVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32});
-        const vertex_buffer = TypedVertexBuffer.create(device, 4, null);
         const size: f32 = 0.5;
         const z : f32 = 0.5;
         const vertices: [4]Vertex = .{
@@ -36,7 +54,13 @@ pub const RenderPipeline = struct {
             .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = 1, .v = 1, .index = 0 }},
             .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = 1, .v = 0, .index = 0 }},
         };
-        vertex_buffer.upload(device.getQueue(), &vertices, 0);
+
+        var vertex_buffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32}) {
+            .label = "vertices",
+            .length = vertices.len
+        };
+        vertex_buffer.create(device);
+        vertex_buffer.upload(device.getQueue(), &vertices);
         vertex_buffer.destroy();
 
         return .{

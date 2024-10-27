@@ -5,41 +5,25 @@ const command_buffer = @import("command_buffer.zig");
 
 pub const Queue = *opaque {
 
-    pub fn onSubmittedWorkDone(queue: Queue,
-        value: u64, callback: QueueWorkDoneCallback, userdata: ?*anyopaque) void {
-        wgpuQueueOnSubmittedWorkDone(queue, value, callback, userdata);
-    }
+    pub const onSubmittedWorkDone = wgpuQueueOnSubmittedWorkDone;
 
-    pub fn setLabel(queue: Queue, label: ?[*:0]const u8) void {
-        wgpuQueueSetLabel(queue, label);
-    }
+    pub const setLabel = wgpuQueueSetLabel;
 
     pub fn submit(queue: Queue, commands: []const command_buffer.CommandBuffer) void {
-        wgpuQueueSubmit(queue, @as(u32, @intCast(commands.len)), commands.ptr);
+        wgpuQueueSubmit(queue, commands.len, commands.ptr);
     }
 
     pub fn writeBuffer(queue: Queue,
-        target: buffer.Buffer, offset: u64, data: *const anyopaque, size: usize) void {
-        wgpuQueueWriteBuffer(queue, target, offset, data, size);
+        target: buffer.Buffer, comptime T: type, data: []const T, offset: u64) void {
+        wgpuQueueWriteBuffer(queue, target, offset, data.ptr, data.len * @sizeOf(T));
     }
 
-    pub fn writeTexture(queue: Queue,
-        destination: texture.ImageCopyTexture, layout: *texture.TextureDataLayout,
-        extent: *shared.Extent3D, comptime T: type, data: []const T) void {
-        
-        wgpuQueueWriteTexture(queue, destination,
-            @as(*const anyopaque, @ptrCast(data.ptr)),
-            @as(usize, @intCast(data.len)) * @sizeOf(T),
-            layout, extent);
-    }
+    // TODO maybe change as soon as casting between slices works
+    pub const writeTexture = wgpuQueueWriteTexture;
 
-    pub fn reference(queue: Queue) void {
-        wgpuQueueReference(queue);
-    }
+    pub const reference = wgpuQueueReference;
 
-    pub fn release(queue: Queue) void {
-        wgpuQueueRelease(queue);
-    }
+    pub const release = wgpuQueueRelease;
 };
 
 pub const QueueDescriptor = extern struct {
@@ -66,14 +50,17 @@ extern fn wgpuQueueOnSubmittedWorkDone(queue: Queue,
 extern fn wgpuQueueSetLabel(queue: Queue, label: ?[*:0]const u8) void;
 
 extern fn wgpuQueueSubmit(queue: Queue,
-    count: u32, commands: [*]const command_buffer.CommandBuffer) void;
+    count: usize, commands: [*]const command_buffer.CommandBuffer) void;
 
 extern fn wgpuQueueWriteBuffer(queue: Queue,
     target: buffer.Buffer, offset: u64, data: *const anyopaque, size: usize) void;
 
 extern fn wgpuQueueWriteTexture(queue: Queue,
-    destination: *const texture.ImageCopyTexture, data: *const anyopaque,
-    size: u64, layout: *const texture.TextureDataLayout, extent: *const shared.Extent3D) void;
+    destination: *const texture.ImageCopyTexture,
+    data: *const anyopaque,
+    size: usize,
+    layout: *const texture.TextureDataLayout,
+    extent: *const shared.Extent3D) void;
 
 extern fn wgpuQueueReference(queue: Queue) void;
 
