@@ -10,6 +10,11 @@ const texture = @import("texture.zig");
 pub const RenderPipeline = struct {
 
     block_sampler: webgpu.sampler.Sampler,
+    block_texture: texture.TextureArray,
+    vertex_buffer: webgpu.buffer.Buffer,
+    bind_group_layout: webgpu.bind_group_layout.BindGroupLayout,
+    handle: webgpu.render_pipeline.RenderPipeline,
+
 
     pub fn create(allocator: Allocator, surface: Surface) !RenderPipeline {
 
@@ -27,16 +32,16 @@ pub const RenderPipeline = struct {
             .module = shader_module
         };
 
-        var texture_array = texture.TextureArray {
+        var block_texture = texture.TextureArray {
             .label = "blocks",
             .format = surface.getColorTextureFormat(),
             .width = 16,
             .height = 16,
             .layers = 4
         };
-        texture_array.create(device);
+        block_texture.create(device);
         
-        try texture_array.loadImages(allocator, surface.queue, &.{
+        try block_texture.loadImages(allocator, surface.queue, &.{
             "textures/testing/texture_1.qoi",
             "textures/testing/texture_2.qoi",
             "textures/testing/texture_3.qoi",
@@ -60,7 +65,7 @@ pub const RenderPipeline = struct {
         };
         vertex_buffer.create(device);
         vertex_buffer.upload(device.getQueue(), &vertices);
-        vertex_buffer.destroy();
+        // vertex_buffer.destroy();
 
         const bind_group_layout = createBindGroupLayout(device, null);
 
@@ -74,11 +79,12 @@ pub const RenderPipeline = struct {
             fragment_shader,
             null);
 
-        _ = handle;
-
-
         return .{
-            .block_sampler = block_sampler
+            .block_sampler = block_sampler,
+            .block_texture = block_texture,
+            .bind_group_layout = bind_group_layout,
+            .vertex_buffer = vertex_buffer.handle,
+            .handle = handle
         };
     }
 };
@@ -168,6 +174,7 @@ fn createBindGroupLayout(device: Device, label: ?[*:0]const u8) webgpu.bind_grou
         },
         .visibility = .{ .vertex =  true }
     };
+    _ = vertexBufferEntry;
 
     const samplerEntry = Entry {
         .binding = 1,
@@ -188,7 +195,7 @@ fn createBindGroupLayout(device: Device, label: ?[*:0]const u8) webgpu.bind_grou
     };
 
     const entries = [_]Entry {
-        vertexBufferEntry,
+        // vertexBufferEntry,
         textureEntry,
         samplerEntry
     };

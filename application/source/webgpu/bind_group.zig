@@ -24,7 +24,7 @@ pub const BindGroupEntry = extern struct {
     binding: u32,
     buffer: ?buffer.Buffer = null,
     offset: u64 = 0,
-    size: u64,
+    size: u64 = 0,
     sampler: ?sampler.Sampler = null,
     texture_view: ?texture_view.TextureView = null,
 };
@@ -39,5 +39,7 @@ pub const BindGroupDescriptor = extern struct {
 
 
 extern fn wgpuBindGroupSetLabel(bind_group: BindGroup, label: ?[*:0]const u8) void;
+
 extern fn wgpuBindGroupReference(bind_group: BindGroup) void;
+
 extern fn wgpuBindGroupRelease(bind_group: BindGroup) void;
