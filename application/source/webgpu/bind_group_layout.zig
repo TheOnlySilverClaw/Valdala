@@ -27,27 +27,39 @@ pub const BindGroupLayoutEntry = extern struct {
     next: ?*const shared.ChainedStruct = null,
     binding: u32,
     visibility: ShaderStage,
-    buffer: BufferBindingLayout = .{ .binding_type = .undef },
-    sampler: SamplerBindingLayout = .{ .binding_type = .undef },
-    texture: TextureBindingLayout = .{ .sample_type = .undef },
-    storage_texture: StorageTextureBindingLayout = .{ .access = .undefined, .format = .undef },
+    buffer: BufferBindingLayout = .{ .type = .undefined },
+    sampler: SamplerBindingLayout = .{ .type = .undefined },
+    texture: TextureBindingLayout = .{ .type = .undefined, .view_dimension = .@"2d", .multisampled = false },
+    storage_texture: StorageTextureBindingLayout = .{
+        .format = .undefined,
+        .access = .{
+            .write = false,
+            .read = false
+        },
+        .view_dimension = .@"2d"
+    }
 };
 
 pub const BufferBindingLayout = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    binding_type: BufferBindingType = .uniform,
+    type: BufferBindingType = .uniform,
     has_dynamic_offset: bool = false,
     min_binding_size: u64 = 0,
 };
 
 pub const BufferBindingType = enum(u32) {
-    undefined_,
+    undefined,
     uniform,
     storage,
     read_only_storage
 };
 
-pub const SamplerBindingType = enum(u32) { undefined, filtering, non_filtering, comparison };
+pub const SamplerBindingType = enum(u32) {
+    undefined,
+    filtering,
+    non_filtering,
+    comparison
+};
 
 pub const ShaderStage = packed struct(u32) {
     vertex: bool = false,
@@ -56,29 +68,43 @@ pub const ShaderStage = packed struct(u32) {
     _padding: u29 = 0,
 };
 
-pub const StorageTextureAccess = enum(u32) { undefined, write_only, read_only, read_write };
+pub const StorageTextureAccess = packed struct(u32) {
+    write: bool,
+    read: bool,
+    _padding: u30 = 0
+};
 
 pub const StorageTextureBindingLayout = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    access: StorageTextureAccess = .write_only,
+    access: StorageTextureAccess,
     format: texture.TextureFormat,
-    view_dimension: texture_view.TextureViewDimension = ._2d,
+    view_dimension: texture_view.TextureViewDimension
 };
 
-pub const TextureSampleType = enum(u32) { undefined, float, unfilterable_float, depth, sint, uint };
+pub const TextureSampleType = enum(u32) {
+    undefined,
+    float,
+    unfilterable_float,
+    depth,
+    sint,
+    uint
+};
 
 pub const SamplerBindingLayout = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    binding_type: SamplerBindingType = .filtering,
+    type: SamplerBindingType = .filtering
 };
 
 pub const TextureBindingLayout = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    sample_type: TextureSampleType = .float,
-    view_dimension: texture_view.TextureViewDimension = ._2d,
-    multisampled: bool = false,
+    type: TextureSampleType,
+    view_dimension: texture_view.TextureViewDimension,
+    multisampled: bool
 };
 
+
 extern fn wgpuBindGroupLayoutSetLabel(layout: BindGroupLayout, label: ?[*:0]const u8) void;
+
 extern fn wgpuBindGroupLayoutReference(layout: BindGroupLayout) void;
+
 extern fn wgpuBindGroupLayoutRelease(layout: BindGroupLayout) void;

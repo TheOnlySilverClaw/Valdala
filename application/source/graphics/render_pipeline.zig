@@ -43,8 +43,6 @@ pub const RenderPipeline = struct {
             "textures/testing/texture_4.qoi"
         });
 
-        const handle = createRenderPipeline(device, undefined, surface.getColorTextureFormat(), vertex_shader, fragment_shader);
-        _ = handle;
 
         const size: f32 = 0.5;
         const z : f32 = 0.5;
@@ -55,13 +53,29 @@ pub const RenderPipeline = struct {
             .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = 1, .v = 0, .index = 0 }},
         };
 
-        var vertex_buffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32}) {
+        const TypedVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32});
+        var vertex_buffer =  TypedVertexBuffer {
             .label = "vertices",
             .length = vertices.len
         };
         vertex_buffer.create(device);
         vertex_buffer.upload(device.getQueue(), &vertices);
         vertex_buffer.destroy();
+
+        const bind_group_layout = createBindGroupLayout(device, null);
+
+        const pipeline_layout = createPipelineLayout(device, &.{bind_group_layout}, null);
+
+        const handle = createRenderPipeline(device, 
+            pipeline_layout,
+            surface.getColorTextureFormat(),
+            &.{ TypedVertexBuffer.layout() },
+            vertex_shader,
+            fragment_shader,
+            null);
+
+        _ = handle;
+
 
         return .{
             .block_sampler = block_sampler
@@ -85,13 +99,16 @@ const Vertex = struct {
 fn createRenderPipeline(device: webgpu.device.Device,
     layout: webgpu.pipeline_layout.PipelineLayout,
     color_texture_format: webgpu.texture.TextureFormat,
-    vertex_shader: Shader, fragment_shader: Shader) webgpu.render_pipeline.RenderPipeline {
+    buffer_layouts: []const webgpu.render_pipeline.VertexBufferLayout,
+    vertex_shader: Shader,
+    fragment_shader: Shader,
+    label: ?[*:0]const u8) webgpu.render_pipeline.RenderPipeline {
 
     const vertex = webgpu.render_pipeline.VertexState {
         .module = vertex_shader.module,
         .entry_point = vertex_shader.entry,
-        .buffer_count = 0,
-        .buffers = null,
+        .buffer_count = buffer_layouts.len,
+        .buffers = buffer_layouts.ptr,
         .constant_count = 0,
         .constants = null
     };
@@ -117,6 +134,7 @@ fn createRenderPipeline(device: webgpu.device.Device,
     };
 
     const descriptor = webgpu.render_pipeline.RenderPipelineDescriptor {
+        .label = label,
         .layout = layout,
         .vertex = vertex,
         .fragment = &fragment,
@@ -128,14 +146,60 @@ fn createRenderPipeline(device: webgpu.device.Device,
     return device.createRenderPipeline(&descriptor);
 }
 
-fn createPipelineLayout(device: Device, bind_group_layouts: []const webgpu.bind_group_layout.BindGroupLayout) webgpu.pipeline_layout.PipelineLayout {
+fn createPipelineLayout(device: Device, bind_group_layouts: []const webgpu.bind_group_layout.BindGroupLayout, label: ?[*:0]const u8) webgpu.pipeline_layout.PipelineLayout {
 
     const descriptor = webgpu.pipeline_layout.PipelineLayoutDescriptor {
-        .bind_group_layout_count = bind_group_layouts.len,
-        .bind_group_layouts = bind_group_layouts.ptr
+        .label = label,
+        .bind_group_layouts = bind_group_layouts.ptr,
+        .bind_group_layout_count = bind_group_layouts.len
     };
 
     return device.createPipelineLayout(&descriptor);
+}
+
+fn createBindGroupLayout(device: Device, label: ?[*:0]const u8) webgpu.bind_group_layout.BindGroupLayout {
+
+    const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
+
+    const vertexBufferEntry = Entry {
+        .binding = 0,
+        .buffer = .{
+            .type = .uniform,
+        },
+        .visibility = .{ .vertex =  true }
+    };
+
+    const samplerEntry = Entry {
+        .binding = 1,
+        .sampler = .{
+            .type = .filtering
+        },
+        .visibility = .{ .fragment = true }
+    };
+
+    const textureEntry = Entry {
+        .binding = 2,
+        .texture = .{
+            .type = .float,
+            .view_dimension = .@"2d_array",
+            .multisampled = false
+        },
+        .visibility = .{ .fragment = true }
+    };
+
+    const entries = [_]Entry {
+        vertexBufferEntry,
+        textureEntry,
+        samplerEntry
+    };
+
+    const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
+        .label = label,
+        .entries = &entries,
+        .entry_count = entries.len
+    };
+
+    return device.createBindGroupLayout(&descriptor);
 }
 
 

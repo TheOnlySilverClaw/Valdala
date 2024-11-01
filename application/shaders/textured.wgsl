@@ -1,13 +1,13 @@
 struct Vertex {
   @location(0) position: vec3<f32>,
   @location(1) uv: vec2<f32>,
-  @location(2) textureIndex: f32
+  @location(2) textureIndex: u32
 }
 
 struct Fragment {
   @builtin(position) position: vec4<f32>,
   @location(1) uv: vec2<f32>,
-  @location(2) textureIndex: f32
+  @location(2) textureIndex: u32
 }
 
 @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
@@ -29,8 +29,6 @@ fn vertex(vertex: Vertex) -> Fragment {
 @fragment
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
-  // TODO figure out how to send mixed types
-  var i: u32 = u32(fragment.textureIndex);
-  let textureColor = textureSample(textureArray, textureSampler, fragment.uv, i);
+  let textureColor = textureSample(textureArray, textureSampler, fragment.uv, fragment.textureIndex);
   return textureColor;
 }
