@@ -17,6 +17,12 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/webgpu/webgpu.zig")
     });
 
+    const algebra = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/algebra/algebra.zig")
+    });
+
     const zigimg = b.dependency("zigimg", .{});
 
     const exe = b.addExecutable(.{
@@ -33,6 +39,7 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("glfw", glfw);
     exe.root_module.addImport("webgpu", webgpu);
+    exe.root_module.addImport("algebra", algebra);
     exe.root_module.addImport("zigimg", zigimg.module("zigimg"));
 
     b.installArtifact(exe);
