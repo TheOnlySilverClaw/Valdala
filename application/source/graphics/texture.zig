@@ -73,7 +73,8 @@ pub const TextureArray = struct {
         if(image.width != @as(usize, self.width)) return TextureError.ImageDimensionMismatch;
         if(image.height != @as(usize, self.height)) return TextureError.ImageDimensionMismatch;
 
-        const channels = image.pixelFormat().channelCount();
+        // TODO map from surface texture format?
+        try image.convert(allocator, .bgra32);
 
         const destination = binding.ImageCopyTexture {
             .aspect = .all,
@@ -88,7 +89,7 @@ pub const TextureArray = struct {
 
         const layout = binding.TextureDataLayout {
             .offset = 0,
-            .bytes_per_row = self.width * channels,
+            .bytes_per_row = @intCast(image.rowByteSize()),
             .rows_per_image = self.height
         };
 
@@ -98,8 +99,7 @@ pub const TextureArray = struct {
             .depth = 1
         };
         
-        const pixel_bytes = image.pixels.asBytes();
-
+        const pixel_bytes = image.pixels.asConstBytes();
         queue.writeTexture(&destination, pixel_bytes.ptr, pixel_bytes.len, &layout, &extent);
     }
 
