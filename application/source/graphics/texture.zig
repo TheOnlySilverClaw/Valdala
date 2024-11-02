@@ -54,6 +54,8 @@ pub const TextureArray = struct {
 
     pub fn loadImages(self: TextureArray, allocator: Allocator, queue: Queue, paths: []const []const u8) !void {
 
+        if(paths.len > self.layers) return TextureError.LayersExceeded;
+
         for(paths, 0..) | path, layer| {
             try self.loadImage(allocator, queue, path, @intCast(layer));
         }
