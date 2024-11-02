@@ -79,8 +79,8 @@ pub const Renderer = struct {
 
         render_pass_encoder.setPipeline(self.pipeline.handle);
         render_pass_encoder.setBindGroup(0, bind_group, null);
-        render_pass_encoder.setVertexBuffer(0, pipeline.vertex_buffer, 0, pipeline.vertex_buffer.size());
-        render_pass_encoder.draw(4, 1, 0, 0);
+        render_pass_encoder.setVertexBuffer(0, pipeline.vertex_buffer.handle, 0, pipeline.vertex_buffer.size());
+        render_pass_encoder.draw(@intCast(pipeline.vertex_buffer.length), 1, 0, 0);
 
         render_pass_encoder.end();
         render_pass_encoder.release();

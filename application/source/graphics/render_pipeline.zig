@@ -3,15 +3,16 @@ const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Device = webgpu.device.Device;
 const Surface = @import("surface.zig").Surface;
-const VertexBuffer = @import("vertex_buffer.zig").VertexBuffer;
+const VertexBuffer = @import("vertex_buffer.zig").VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32 });
 const Shader = @import("shader.zig").Shader;
 const texture = @import("texture.zig");
+
 
 pub const RenderPipeline = struct {
 
     block_sampler: webgpu.sampler.Sampler,
     block_texture: texture.TextureArray,
-    vertex_buffer: webgpu.buffer.Buffer,
+    vertex_buffer: VertexBuffer,
     bind_group_layout: webgpu.bind_group_layout.BindGroupLayout,
     handle: webgpu.render_pipeline.RenderPipeline,
 
@@ -48,18 +49,21 @@ pub const RenderPipeline = struct {
             "textures/testing/texture_4.qoi"
         });
 
+        const max = std.math.maxInt(u16);
 
         const size: f32 = 0.5;
         const z : f32 = 0.5;
-        const vertices: [4]Vertex = .{
+        const vertices = [_]Vertex {
             .{ .position = .{.x = -size, .y = size, .z = z }, .texture = .{.u = 0, .v = 0, .index = 0 }},
-            .{ .position = .{.x = -size, .y = -size, .z = z }, .texture = .{.u = 0, .v = 1, .index = 0 }},
-            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = 1, .v = 1, .index = 0 }},
-            .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = 1, .v = 0, .index = 0 }},
+            .{ .position = .{.x = -size, .y = -size, .z = z }, .texture = .{.u = 0, .v = max, .index = 0 }},
+            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},
+            
+            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},
+            .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = max, .v = 0, .index = 0 }},
+            .{ .position = .{.x = -size, .y = size, .z = z }, .texture = .{.u = 0, .v = 0, .index = 0 }},
         };
 
-        const TypedVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32});
-        var vertex_buffer =  TypedVertexBuffer {
+        var vertex_buffer = VertexBuffer {
             .label = "vertices",
             .length = vertices.len
         };
@@ -74,7 +78,7 @@ pub const RenderPipeline = struct {
         const handle = createRenderPipeline(device, 
             pipeline_layout,
             surface.getColorTextureFormat(),
-            &.{ TypedVertexBuffer.layout() },
+            &.{ VertexBuffer.layout() },
             vertex_shader,
             fragment_shader,
             null);
@@ -83,21 +87,21 @@ pub const RenderPipeline = struct {
             .block_sampler = block_sampler,
             .block_texture = block_texture,
             .bind_group_layout = bind_group_layout,
-            .vertex_buffer = vertex_buffer.handle,
+            .vertex_buffer = vertex_buffer,
             .handle = handle
         };
     }
 };
 
-const Vertex = struct {
-    position: struct {
+const Vertex = extern struct {
+    position: extern struct {
         x: f32,
         y: f32,
         z: f32
     },
-    texture: struct {
-        u: u8,
-        v: u8,
+    texture: extern struct {
+        u: u16,
+        v: u16,
         index: u32
     }
 };
