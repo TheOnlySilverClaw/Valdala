@@ -13,6 +13,7 @@ pub const RenderPipeline = struct {
     block_sampler: webgpu.sampler.Sampler,
     block_texture: texture.TextureArray,
     vertex_buffer: VertexBuffer,
+    index_buffer: webgpu.buffer.Buffer,
     bind_group_layout: webgpu.bind_group_layout.BindGroupLayout,
     handle: webgpu.render_pipeline.RenderPipeline,
 
@@ -56,11 +57,13 @@ pub const RenderPipeline = struct {
         const vertices = [_]Vertex {
             .{ .position = .{.x = -size, .y = size, .z = z }, .texture = .{.u = 0, .v = 0, .index = 0 }},
             .{ .position = .{.x = -size, .y = -size, .z = z }, .texture = .{.u = 0, .v = max, .index = 0 }},
-            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},
-            
-            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},
-            .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = max, .v = 0, .index = 0 }},
-            .{ .position = .{.x = -size, .y = size, .z = z }, .texture = .{.u = 0, .v = 0, .index = 0 }},
+            .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},  
+            .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = max, .v = 0, .index = 0 }}
+        };
+
+        const indices = [_]u16 {
+            0, 1, 2,
+            2, 3, 0
         };
 
         var vertex_buffer = VertexBuffer {
@@ -69,7 +72,13 @@ pub const RenderPipeline = struct {
         };
         vertex_buffer.create(device);
         vertex_buffer.upload(device.getQueue(), &vertices);
-        // vertex_buffer.destroy();
+        
+        const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+            .usage = . { .index = true, .copy_dst = true },
+            .size = indices.len * @sizeOf(u16)
+        };
+        const index_buffer = device.createBuffer(&index_buffer_descriptor);
+        device.getQueue().writeBuffer(index_buffer, u16, &indices, 0);
 
         const bind_group_layout = createBindGroupLayout(device, null);
 
@@ -88,6 +97,7 @@ pub const RenderPipeline = struct {
             .block_texture = block_texture,
             .bind_group_layout = bind_group_layout,
             .vertex_buffer = vertex_buffer,
+            .index_buffer = index_buffer,
             .handle = handle
         };
     }
