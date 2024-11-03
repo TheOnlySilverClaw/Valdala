@@ -3,7 +3,6 @@ const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
 
-
 pub fn Quaternion(comptime T: type) type {
 
     const Vector3D = @import("vector.zig").Vector3D(T);

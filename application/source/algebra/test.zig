@@ -7,6 +7,9 @@ const Vector3D = algebra.Vector3D(f32);
 const Quaternion = algebra.Quaternion(f32);
 const Axis = algebra.Axis(f32);
 
+test {
+    _ = @import("matrix.zig");
+}
 
 const rad90: f32 = math.degreesToRadians(90.0);
 
