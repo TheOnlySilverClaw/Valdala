@@ -42,6 +42,12 @@ Relative to NDC, the world needs to be
 
 ### Axes
 
+- pitch = local x
+- roll = local y
+- yaw = local z
+
+Right handed coordinate system -> rotation angles go counter-clockwise.
+
 <img src="https://www1.grc.nasa.gov/wp-content/uploads/rotations.jpg" height="400">
 
 

@@ -68,6 +68,10 @@ pub fn Vector3D(comptime T: type) type {
             };
         }
 
+        pub fn opposite(self: Self) Self {
+            return self.scale(-1);
+        }
+
         pub fn length(self: Self) T {
             return math.sqrt(self.lengthSquared());
         }

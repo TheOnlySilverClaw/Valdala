@@ -5,7 +5,8 @@ const assert = std.debug.assert;
 
 pub fn Quaternion(comptime T: type) type {
 
-    const Vector3D = @import("vector.zig").Vector3D(T);
+    const Vector = @import("vector.zig").Vector3D(T);
+    const Matrix = @import("matrix.zig").Matrix(T).Sized(4, 4);
     
     return struct {
         
@@ -20,7 +21,7 @@ pub fn Quaternion(comptime T: type) type {
             return .{ .x = 0, .y = 0, .z = 0, .w = 1 };
         }
 
-        pub fn aroundAxis(axis: Vector3D, angle: T) Self {
+        pub fn aroundAxis(axis: Vector, angle: T) Self {
 
             const half = angle * 0.5;
             const sin = math.sin(half);
@@ -56,12 +57,12 @@ pub fn Quaternion(comptime T: type) type {
             };    
         }
 
-        pub fn rotate(self: Self, position: Vector3D) Vector3D {
+        pub fn rotate(self: Self, position: Vector) Vector {
             
             assert(self.isNormalized());
 
             const w = self.w;
-            const axis = Vector3D.of(self.x, self.y, self.z);
+            const axis = Vector.of(self.x, self.y, self.z);
 
             return position.scale(w * w - axis.dot(axis))
                 .add(axis.scale(position.dot(axis) * 2.0))
@@ -108,6 +109,32 @@ pub fn Quaternion(comptime T: type) type {
 
         fn lengthSquared(self: Self) T {
             return self.dot(self);
+        }
+
+        pub fn matrix(self: Self) Matrix {
+
+            const w = self.w;
+            const x = self.x;
+            const y = self.y;
+            const z = self.z;
+
+            var m = Matrix.zeros();
+            
+            m.set(0, 0, w * w  + x * x - y * y - z * z);
+            m.set(1, 0, 2 * x * y - 2 * w * z);
+            m.set(2, 0, 2 * x * z + 2 * w * y);
+
+            m.set(0, 1, 2 * x * y + 2 * w * z);
+            m.set(1, 1, w * w - x * x + y * y - z * z);
+            m.set(2, 1, 2 * y * z - 2 * w * x);
+
+            m.set(0, 2, 2 * x * z - 2 * w * y);
+            m.set(1, 2, 2 * y * z + 2 * w * x);
+            m.set(2, 2, w * w - x * x - y * y + z * z);
+
+            m.set(3, 3, 1);
+
+            return m;
         }
     };
 }

@@ -2,3 +2,4 @@ pub const Quaternion = @import("quaternion.zig").Quaternion;
 pub const Vector3D = @import("vector.zig").Vector3D;
 pub const Axis = @import("axis.zig").Axis;
 pub const Matrix = @import("matrix.zig").Matrix;
+pub const Transform = @import("transform.zig").Transform;
