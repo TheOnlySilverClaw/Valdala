@@ -1,5 +1,4 @@
 const std = @import("std");
-const transform = @import("transform.zig");
 const glfw = @import("glfw");
 const Controller = @import("input/controller.zig").Controller;
 const Renderer = @import("graphics/renderer.zig").Renderer;
