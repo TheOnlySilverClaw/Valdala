@@ -23,7 +23,7 @@ pub const Window = struct {
         
         const instance = webgpu.instance.create(null);
 
-        var surface = try Surface.create(handle, instance);
+        const surface = try Surface.create(handle, instance);
         instance.release();
 
         window.handle = handle;
@@ -33,7 +33,7 @@ pub const Window = struct {
         _ = handle.setSizeCallback(&sizeCallback);
         _ = handle.setKeyCallback(&keyCallback);
 
-        surface.resize(width, height);
+        window.surface.resize(width, height);
     }
 
 

@@ -20,7 +20,7 @@ pub const RenderPipeline = struct {
 
     pub fn create(allocator: Allocator, surface: Surface) !RenderPipeline {
 
-        const device = surface.getDevice();
+        const device = surface.device;
 
         const block_sampler = createSampler(device, .repeat, .nearest);
 
@@ -36,7 +36,7 @@ pub const RenderPipeline = struct {
 
         var block_texture = texture.TextureArray {
             .label = "blocks",
-            .format = surface.getColorTextureFormat(),
+            .format = surface.color_texture_format,
             .width = 16,
             .height = 16,
             .layers = 4
@@ -86,7 +86,7 @@ pub const RenderPipeline = struct {
 
         const handle = createRenderPipeline(device, 
             pipeline_layout,
-            surface.getColorTextureFormat(),
+            surface.color_texture_format,
             &.{ VertexBuffer.layout() },
             vertex_shader,
             fragment_shader,

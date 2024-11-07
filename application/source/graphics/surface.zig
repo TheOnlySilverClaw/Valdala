@@ -15,8 +15,12 @@ pub const Surface = struct {
 
     handle: binding.Surface,
     capabilities: binding.SurfaceCapabilities,
-    configuration: binding.SurfaceConfiguration,
+    alpha_mode: webgpu.texture.AlphaMode,
+    color_texture_format: webgpu.texture.TextureFormat,
+    device: webgpu.device.Device,
     queue: webgpu.queue.Queue,
+    width: u32,
+    height: u32,
 
     pub fn create(window: glfw.window.Window,
         instance: webgpu.instance.Instance) !Surface {
@@ -36,57 +40,46 @@ pub const Surface = struct {
 
         const queue = device.getQueue();
 
-        const configuration = binding.SurfaceConfiguration {
-            .alpha_mode = capabilities.alpha_modes[0],
-            .format = capabilities.formats[0],
-            .device = device,
-            .width = 0,
-            .height = 0,
-            .present_mode = .fifo,
-            .usage = .{ .render_attachment = true },
-            .view_format_count = 0,
-            .view_formats = null
-        };
-
         const surface = Surface {
             .handle = handle,
             .capabilities = capabilities,
-            .configuration = configuration,
-            .queue = queue
+            .alpha_mode = capabilities.alpha_modes[0],
+            .color_texture_format = capabilities.formats[0],
+            .device = device,
+            .queue = queue,
+            .width = 0,
+            .height = 0
         };
         return surface;
     }
 
     pub fn resize(self: *Surface, new_width: u32, new_height: u32) void {
         
-        self.configuration.width = new_width;
-        self.configuration.height = new_height;
+        self.width = new_width;
+        self.height = new_height;
         
         self.configure();
     }
 
-    pub fn configure(self: *Surface) void {
-        self.handle.configure(&self.configuration);
-    }
+    pub fn configure(self: Surface) void {
+        
+        const configuration = binding.SurfaceConfiguration {
+            .alpha_mode = self.alpha_mode,
+            .format = self.color_texture_format,
+            .device = self.device,
+            .width = self.width,
+            .height = self.height,
+            .present_mode = .fifo,
+            .usage = .{ .render_attachment = true },
+            .view_format_count = 0,
+            .view_formats = null
+        };
 
-    pub fn getWidth(self: Surface) u32 {
-        return self.configuration.width;
-    }
-
-    pub fn getHeight(self: Surface) u32 {
-        return self.configuration.height;
-    }
-
-    pub fn getDevice(self: Surface) webgpu.device.Device {
-        return self.configuration.device;
+        self.handle.configure(&configuration);
     }
 
     pub fn getQueue(self: Surface) webgpu.queue.Queue {
         return self.queue;
-    }
-
-    pub fn getColorTextureFormat(self: Surface) webgpu.texture.TextureFormat {
-        return self.configuration.format;
     }
 
     pub fn getColorTexture(self: Surface) SurfaceError!webgpu.texture.Texture {
