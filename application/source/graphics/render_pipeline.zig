@@ -188,7 +188,6 @@ fn createBindGroupLayout(device: Device, label: ?[*:0]const u8) webgpu.bind_grou
         },
         .visibility = .{ .vertex =  true }
     };
-    _ = vertexBufferEntry;
 
     const samplerEntry = Entry {
         .binding = 1,
@@ -209,7 +208,7 @@ fn createBindGroupLayout(device: Device, label: ?[*:0]const u8) webgpu.bind_grou
     };
 
     const entries = [_]Entry {
-        // vertexBufferEntry,
+        vertexBufferEntry,
         textureEntry,
         samplerEntry
     };

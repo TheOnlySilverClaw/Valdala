@@ -50,12 +50,16 @@ pub const Renderer = struct {
             projection_buffer.release();
         }
 
+        const projection = @import("algebra").Matrix(f32).Sized(4, 4).identity();
+
+        queue.writeBuffer(projection_buffer, f32, &projection.values, 0);
+
         const bind_group_entries = [_]webgpu.bind_group.BindGroupEntry {
-            // .{
-            //     .binding = 0,
-            //     .buffer = projection_buffer,
-            //     .size = projection_buffer.size()
-            // },
+            .{
+                .binding = 0,
+                .buffer = projection_buffer,
+                .size = projection_buffer.size()
+            },
             .{
                 .binding = 1,
                 .sampler = pipeline.block_sampler
