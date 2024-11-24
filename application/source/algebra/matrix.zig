@@ -4,14 +4,17 @@ const assert = std.debug.assert;
 
 pub fn Matrix(comptime T: type) type {
 
+    
     return struct {
         
-        pub fn Sized(comptime C: u32, comptime R: u32) type {
+        const Typed = @This();
+        
+        pub fn Sized(comptime R: u32, comptime C: u32) type {
 
             return struct {
                 
                 const Self = @This();
-                const length = C * R;
+                const length = R * C;
 
                 values: [length]T,
 
@@ -32,44 +35,48 @@ pub fn Matrix(comptime T: type) type {
                 pub fn identity() Self {
                     
                     var m = zeros();
-                    m.setDiagonal(.{ 1 } ** C);
+                    m.setDiagonal(.{ 1 } ** R);
                     return m;
                 }
 
+                inline fn indexOf(column: u32, row: u32) usize {
+                    return R * column + row;
+                }
+
                 pub inline fn get(self: Self, column: u32, row: u32) T {
-                    return self.values[C * column + row];
+                    return self.values[indexOf(column, row)];
                 }
 
                 pub inline fn set(self: *Self, column: u32, row: u32, value: T) void {
-                    self.values[C * column + row] = value;
+                    self.values[indexOf(column, row)] = value;
                 }
 
-                pub fn setColumn(self: *Self, column: u32, values: [C]T) void {
+                pub fn setColumn(self: *Self, column: u32, values: [R]T) void {
                     
                     inline for(0..R) |row| {
                         self.set( column, row, values[row]);
                     }
                 }
 
-                pub fn setRow(self: *Self, row: u32, values: [R]T) void {
+                pub fn setRow(self: *Self, row: u32, values: [C]T) void {
                     
                     inline for(0..C) |column| {
                         self.set( column, row, values[column]);
                     }
                 }
 
-                pub fn setDiagonal(self: *Self, values: [C]T) void {
-                    
-                    inline for(0..C) |diagonal| {
+                pub fn setDiagonal(self: *Self, values: [R]T) void {
+
+                    inline for(0..R) |diagonal| {
                         self.set( diagonal, diagonal, values[diagonal]);
                     }
                 }
 
                 pub fn transpose(self: Self) Self {
 
-                    var new = self;
-                    inline for(0..C) |column| {
-                        inline for(0..R) |row| {
+                    var new: Self = undefined;
+                    inline for(0..R) |row| {
+                        inline for(0..C) |column| {
                             const value = self.get(column, row);
                             new.set(row, column, value);
                         }
@@ -79,7 +86,7 @@ pub fn Matrix(comptime T: type) type {
 
                 pub fn add(self: Self, other: Self) Self {
 
-                    var new = self;
+                    var new: Self = undefined;
                     inline for(&new.values, self.values, other.values) |*value, a, b| {
                         value.* = a + b;
                     }
@@ -95,23 +102,40 @@ pub fn Matrix(comptime T: type) type {
                     return new;
                 }
 
-                // TODO figure out different dimensions
                 pub fn multiply(self: Self, other: Self) Self {
+                    
+                    var new: Self = undefined;
+                    inline for(0..R) |row| {
+                        inline for(0..C) |column| {
+                            var sum: T = 0;
+                            inline for(0..C) |i| {
+                                const a = self.get(i, column);
+                                const b = other.get(row, i);
+                                sum += a * b;
+                            }
+                            new.set(row, column, sum);
+                        }
+                    }
+                    return new;
+                }
 
-                    var new = self;
-                    inline for(0..C) |column| {
-                        inline for(0..R) |row| {
+                pub fn multiplyResize(self: Self, comptime C2: u32, other: Typed.Sized(C, C2)) Typed.Sized(R, C2) {
+                    
+                    var new: Typed.Sized(R, C2) = undefined;
+
+                    inline for(0..R) |row| {
+                        inline for(0..C2) |column| {
                             var sum: T = 0;
                             inline for(0..C) |i| {
                                 const a = self.get(i, row);
                                 const b = other.get(column, i);
-                                sum += a * b;
+                                sum = sum + a * b;
                             }
                             new.set(column, row, sum);
                         }
                     }
                     return new;
-                }
+                } 
 
                 pub fn print(self: Self) void {
 

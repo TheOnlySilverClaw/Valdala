@@ -105,20 +105,40 @@ test "scale" {
     }, m.transpose().values);
 }
 
-test "multiply" {
+test "multiply same shape" {
 
-    var m = Matrix4x4.ofValue(3);
-    
-    // try expectEqual(m, m.multiply(Matrix4x4.identity()));
-    // try expectEqual(Matrix4x4.zeros(), m.multiply(Matrix4x4.zeros()));
-
-    var o = Matrix4x4.zeros();
-    o.setColumn(1, .{ 1, 2, 3, 4 });
+    const m1 = Matrix4x4.ofValue(3);
+    var m2 = Matrix4x4.zeros();
+    m2.setColumn(1, .{ 1, 2, 3, 4 });
+    const m3 = m1.multiply(m2);
 
     try expectEqual(.{
         0, 30, 0, 0,
         0, 30, 0, 0,
         0, 30, 0, 0,
         0, 30, 0, 0
-    }, m.multiply(o).transpose().values);
+    }, m3.transpose().values);
+}
+
+test "multiply resize" {
+
+    const m3x2 = Matrix.Sized(3, 2).ofValues(.{ 0, 1, 2, 3, 4, 5 });
+    const m2x3 = Matrix.Sized(2, 3).ofValues(m3x2.values);
+    const m3x3 = m3x2.multiplyResize(3, m2x3);
+    
+    try expectEqual(.{
+        3,  9, 15,
+        4, 14, 24,
+        5, 19, 33
+    }, m3x3.transpose().values);
+}
+
+test "multiply vector" {
+
+    const Vector3D = @import("vector.zig").Vector3D(f32);
+    const vector4d = Vector3D.of(1, 2, 3).toMatrix4x1(4);
+    const matrix = Matrix4x4.ofValue(1);
+    const result = matrix.multiplyResize(1, vector4d);
+    
+    try expectEqual(.{ 10 } ** 4, result.values);
 }

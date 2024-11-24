@@ -1,7 +1,7 @@
 const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
-
+const matrix = @import("matrix.zig");
 
 pub fn Vector3D(comptime T: type) type {
     
@@ -78,6 +78,20 @@ pub fn Vector3D(comptime T: type) type {
 
         fn lengthSquared(self: Self) T {
             return self.dot(self);
+        }
+
+        const Matrix4x1 = matrix.Matrix(T).Sized(4, 1);
+
+        pub fn toMatrix4x1(self: Self, w: T) Matrix4x1 {
+            
+            var m = Matrix4x1.zeros();
+            m.setColumn(0, .{
+                self.x,
+                self.y,
+                self.z,
+                w
+            });
+            return m;
         }
     };
 }
