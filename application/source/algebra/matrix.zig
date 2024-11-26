@@ -9,12 +9,12 @@ pub fn Matrix(comptime T: type) type {
         
         const Typed = @This();
         
-        pub fn Sized(comptime R: u32, comptime C: u32) type {
+        pub fn Sized(comptime C: u32, comptime R: u32) type {
 
             return struct {
                 
                 const Self = @This();
-                const length = R * C;
+                const length = C * R;
 
                 values: [length]T,
 
@@ -35,7 +35,7 @@ pub fn Matrix(comptime T: type) type {
                 pub fn identity() Self {
                     
                     var m = zeros();
-                    m.setDiagonal(.{ 1 } ** R);
+                    m.setDiagonal(.{ 1 } ** C);
                     return m;
                 }
 
@@ -65,9 +65,11 @@ pub fn Matrix(comptime T: type) type {
                     }
                 }
 
-                pub fn setDiagonal(self: *Self, values: [R]T) void {
+                pub fn setDiagonal(self: *Self, values: [C]T) void {
 
-                    inline for(0..R) |diagonal| {
+                    comptime assert(C == R);
+
+                    inline for(0..C) |diagonal| {
                         self.set( diagonal, diagonal, values[diagonal]);
                     }
                 }
@@ -119,9 +121,9 @@ pub fn Matrix(comptime T: type) type {
                     return new;
                 }
 
-                pub fn multiplyResize(self: Self, comptime C2: u32, other: Typed.Sized(C, C2)) Typed.Sized(R, C2) {
+                pub fn multiplyResize(self: Self, comptime C2: u32, other: Typed.Sized(C2, C)) Typed.Sized(C2, R) {
                     
-                    var new: Typed.Sized(R, C2) = undefined;
+                    var new: Typed.Sized(C2, R) = undefined;
 
                     inline for(0..R) |row| {
                         inline for(0..C2) |column| {

@@ -80,11 +80,11 @@ pub fn Vector3D(comptime T: type) type {
             return self.dot(self);
         }
 
-        const Matrix4x1 = matrix.Matrix(T).Sized(4, 1);
+        const Matrix1x4 = matrix.Matrix(T).Sized(1, 4);
 
-        pub fn toMatrix4x1(self: Self, w: T) Matrix4x1 {
+        pub fn toMatrix4x1(self: Self, w: T) Matrix1x4 {
             
-            var m = Matrix4x1.zeros();
+            var m = Matrix1x4.zeros();
             m.setColumn(0, .{
                 self.x,
                 self.y,

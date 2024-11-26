@@ -124,13 +124,12 @@ test "multiply resize" {
 
     const m3x2 = Matrix.Sized(3, 2).ofValues(.{ 0, 1, 2, 3, 4, 5 });
     const m2x3 = Matrix.Sized(2, 3).ofValues(m3x2.values);
-    const m3x3 = m3x2.multiplyResize(3, m2x3);
+    const m2x2 = m3x2.multiplyResize(2, m2x3);
     
     try expectEqual(.{
-        3,  9, 15,
-        4, 14, 24,
-        5, 19, 33
-    }, m3x3.transpose().values);
+        10, 28,
+        13, 40
+    }, m2x2.transpose().values);
 }
 
 test "multiply vector" {
