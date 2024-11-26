@@ -60,7 +60,7 @@ pub fn Vector3D(comptime T: type) type {
             };
         }
 
-        pub fn scale(self: Self, value: T) Self {
+        pub fn scaleUniform(self: Self, value: T) Self {
             return .{
                 .x = self.x * value,
                 .y = self.y * value,
@@ -68,8 +68,16 @@ pub fn Vector3D(comptime T: type) type {
             };
         }
 
+        pub fn scaleBy(self: Self, dimensions: Self) Self {
+            return .{
+                .x = self.x * dimensions.x,
+                .y = self.y * dimensions.y,
+                .z = self.z * dimensions.z
+            };
+        }
+
         pub fn opposite(self: Self) Self {
-            return self.scale(-1);
+            return self.scaleUniform(-1);
         }
 
         pub fn length(self: Self) T {
@@ -82,7 +90,7 @@ pub fn Vector3D(comptime T: type) type {
 
         const Matrix1x4 = matrix.Matrix(T).Sized(1, 4);
 
-        pub fn toMatrix4x1(self: Self, w: T) Matrix1x4 {
+        pub fn asMatrix4x1(self: Self, w: T) Matrix1x4 {
             
             var m = Matrix1x4.zeros();
             m.setColumn(0, .{
@@ -92,6 +100,18 @@ pub fn Vector3D(comptime T: type) type {
                 w
             });
             return m;
+        }
+
+        pub inline fn asDirection(self: Self) Matrix1x4 {
+            return self.asMatrix4x1(1);
+        }
+
+        pub inline fn asPoint(self: Self) Matrix1x4 {
+            return self.asMatrix4x1(0);
+        }
+
+        pub fn print(self: Self) void {
+            std.debug.print("({d}, {d}, {d})\n", .{self.x, self.y, self.z});
         }
     };
 }

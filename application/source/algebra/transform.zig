@@ -43,15 +43,15 @@ pub fn Transform(T: type) type {
         }
 
         pub fn translateRoll(self: *Self, amount: T) void {
-            self.translate(self.rollAxis().scale(amount));
+            self.translate(self.rollAxis().scaleUniform(amount));
         }
 
         pub fn translatePitch(self: *Self, amount: T) void {
-            self.translate(self.pitchAxis().scale(amount));
+            self.translate(self.pitchAxis().scaleUniform(amount));
         }
 
         pub fn translateYaw(self: *Self, amount: T) void {
-            self.translate(self.yawAxis().scale(amount));
+            self.translate(self.yawAxis().scaleUniform(amount));
         }
 
         pub fn rotateRoll(self: *Self, angle: T) void {
@@ -72,16 +72,26 @@ pub fn Transform(T: type) type {
             self.rotation = self.rotation.multiply(rotation);
         }
 
-        pub fn scaleFactor(self: *Self, factor: T) void {
-            self.scale = self.scale.scale(factor);
+        pub fn scaleUniform(self: *Self, factor: T) void {
+            self.scale = self.scale.scaleUniform(factor);
         }
 
-        pub fn scaleDimensions(self: *Self, dimensions: Vector) void {
+        pub fn scaleBy(self: *Self, dimensions: Vector) void {
             self.scale = self.scale.multiply(dimensions);
         }
 
-        pub fn matrix() Matrix {
-            return undefined;
+        pub fn matrix(self: Self) Matrix {
+            _ = self;
+            return Matrix.identity();
+        }
+
+        // mainly for debugging
+        pub fn apply(self: Self, point: Vector) Vector {
+
+            const scaled = point.scaleBy(self.scale);
+            const rotated = self.rotation.rotate(scaled);
+            const translated = rotated.add(self.position);
+            return translated;
         }
     };
 }

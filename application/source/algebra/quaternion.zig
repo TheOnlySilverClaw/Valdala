@@ -64,9 +64,9 @@ pub fn Quaternion(comptime T: type) type {
             const w = self.w;
             const axis = Vector.of(self.x, self.y, self.z);
 
-            return position.scale(w * w - axis.dot(axis))
-                .add(axis.scale(position.dot(axis) * 2.0))
-                .add(axis.cross(position).scale(w * 2.0));
+            return position.scaleUniform(w * w - axis.dot(axis))
+                .add(axis.scaleUniform(position.dot(axis) * 2.0))
+                .add(axis.cross(position).scaleUniform(w * 2.0));
         }
 
         pub fn inverse(self: Self) Self {

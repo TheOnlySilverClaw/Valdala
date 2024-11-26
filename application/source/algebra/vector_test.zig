@@ -37,7 +37,7 @@ test "vector normalize" {
 test "to 1x4 matrix" {
 
     const vector = Vector3D.of(0, 1, 2);
-    const matrix = vector.toMatrix4x1(3);
+    const matrix = vector.asMatrix4x1(3);
     
     try expectClose(@as(f32, 0), matrix.get(0, 0));
     try expectClose(@as(f32, 1), matrix.get(0, 1));
