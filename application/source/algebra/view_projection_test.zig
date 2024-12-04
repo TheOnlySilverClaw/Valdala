@@ -1,7 +1,10 @@
 const std = @import("std");
+const expect = std.testing.expect;
+const expectClose = @import("test.zig").expectClose;
 const math = std.math;
 const algebra = @import("algebra.zig");
 const Matrix4x4 = algebra.Matrix(f32).Sized(4, 4);
+const Vector = algebra.Vector3D(f32);
 
 test "view projection" {
 
@@ -28,9 +31,26 @@ test "view projection" {
         const cameraMatrix = camera.matrix();
         const viewProjection = projection.multiply(cameraMatrix);
 
-        const vertex = algebra.Vector3D(f32).of(0.5, 0.5, 0);
+        const top = viewProjection.multiplyResize(1, Vector.of(0, 0.5, 0).asPoint());
+        const right = viewProjection.multiplyResize(1, Vector.of(0.5, 0, 0).asPoint());
+        const left = viewProjection.multiplyResize(1, Vector.of(-0.5, 0, 0).asPoint());
 
-        const projected = viewProjection.multiplyResize(1, vertex.asDirection());
+        // x = 0, y = 1, z = 2, w = 3
+        try expectClose(@as(f32, 0), top.values[0]);
+        try expectClose(@as(f32, 0), top.values[3]);
+        // top y is bigger than the other two
+        try expect(top.values[1] > right.values[1]);
+        try expect(top.values[1] > left.values[1]);
 
-        projected.print();
+        try expectClose(@as(f32, 0), right.values[1]);
+        try expectClose(@as(f32, 0), right.values[3]);
+        // right x is bigger than the other two
+        try expect(right.values[0] > top.values[0]);
+        try expect(right.values[0] > left.values[0]);
+        
+        try expectClose(@as(f32, 0), left.values[1]);
+        try expectClose(@as(f32, 0), left.values[3]);
+        // left x is smaller than the other two
+        try expect(left.values[0] < top.values[0]);
+        try expect(left.values[0] < right.values[0]);
 }
