@@ -30,7 +30,7 @@ test "view projection" {
 
         const vertex = algebra.Vector3D(f32).of(0.5, 0.5, 0);
 
-        const projected = viewProjection.multiplyResize(1, vertex.toMatrix4x1(1));
+        const projected = viewProjection.multiplyResize(1, vertex.asDirection());
 
         projected.print();
 }
