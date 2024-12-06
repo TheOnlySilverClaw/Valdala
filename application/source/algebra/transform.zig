@@ -42,6 +42,18 @@ pub fn Transform(T: type) type {
             self.position = self.position.add(direction);
         }
 
+        pub fn translateX(self: *Self, amount: T) void {
+            self.position = Vector.of(self.position.x + amount, self.position.y, self.position.z);
+        }
+
+        pub fn translateY(self: *Self, amount: T) void {
+            self.position = Vector.of(self.position.x, self.position.y + amount, self.position.z);
+        }
+
+        pub fn translateZ(self: *Self, amount: T) void {
+            self.position = Vector.of(self.position.x, self.position.y, self.position.z + amount);
+        }
+
         pub fn translateRoll(self: *Self, amount: T) void {
             self.translate(self.rollAxis().scaleUniform(amount));
         }

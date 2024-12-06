@@ -1,6 +1,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
+const Camera = @import("camera.zig").Camera;
 const Surface = @import("surface.zig").Surface;
 const webgpu = @import("webgpu");
 const RenderPipeline = @import("render_pipeline.zig").RenderPipeline;
@@ -14,7 +15,8 @@ pub const RenderError = error {
 pub const Renderer = struct {
 
     allocator: Allocator,
-    surface: *Surface,
+    surface: *const Surface,
+    camera: *const Camera,
     pipeline: *const RenderPipeline,
 
     pub fn render(self: Renderer) !void {
@@ -51,26 +53,7 @@ pub const Renderer = struct {
         }
 
         
-        var projection = @import("algebra").Matrix(f32).Sized(4, 4).zeros();
-        
-        const math = std.math;
-
-        const fov: f32 = math.degreesToRadians(120);
-        const f: f32 = math.tan((math.pi - fov) / 2.0);
-        const aspect_ratio: f32 = @as(f32, @floatFromInt(surface.width)) / @as(f32, @floatFromInt(surface.height));
-        const near = 0.001;
-        const far = 1000.0;
-        const range_inverse = 1.0 / (near - far);
-
-        std.debug.print("fov {d} f {d} w {d} h {d}\n", 
-        .{fov, f, surface.width, surface.height });
-        projection.set(0, 0, f / aspect_ratio);
-        projection.set(1, 1, f);
-        projection.set(2, 2, far * range_inverse);
-        projection.set(2, 3, -1);
-        projection.set(3, 3, near * far * range_inverse);
-
-        projection.print();
+        var projection = self.camera.asMatrix();
 
         queue.writeBuffer(projection_buffer, f32, &projection.values, 0);
 

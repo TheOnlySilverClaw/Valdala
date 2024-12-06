@@ -19,7 +19,7 @@ tasks:
   
   test:
     dir: application
-    cmd: zig test source/test.zig
+    cmd: zig build test
 
   start:
     desc: Start the application from an existing binary.

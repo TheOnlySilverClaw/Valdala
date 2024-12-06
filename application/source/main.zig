@@ -2,6 +2,7 @@ const std = @import("std");
 const glfw = @import("glfw");
 const Controller = @import("input/controller.zig").Controller;
 const Renderer = @import("graphics/renderer.zig").Renderer;
+const Camera = @import("graphics/camera.zig").Camera;
 const Window = @import("input/window.zig").Window;
 const webgpu = @import("webgpu");
 const glfw_webgpu = @import("glfw-webgpu.zig");
@@ -40,8 +41,13 @@ pub fn main() !void {
     const pipeline = try @import("graphics/render_pipeline.zig").RenderPipeline
         .create(allocator, window.surface);
 
+    var camera = Camera.new(2.0,1000, 800, 100.0);
+    camera.transform.translateZ(-3);
+    camera.transform.rotatePitch(std.math.degreesToRadians(90));
+
     const renderer = Renderer {
         .surface = &window.surface,
+        .camera = &camera,
         .pipeline = &pipeline,
         .allocator = allocator
     };
