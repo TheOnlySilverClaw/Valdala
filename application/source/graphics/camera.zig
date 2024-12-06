@@ -1,4 +1,5 @@
 const algebra = @import("algebra");
+const math = @import("std").math;
 
 const Transform = algebra.Transform(f32);
 const Vector = algebra.Vector3D(f32);
@@ -12,11 +13,11 @@ const Axis = algebra.Axis(f32);
 pub const Camera = struct {
     
     transform: Transform,
-    focalLength: f32,
+    fov: f32,
 
-    pub fn new(focal: f32, width: f32, height: f32, distance: f32) Camera {
+    pub fn new(fieldOfView: f32, width: f32, height: f32, distance: f32) Camera {
         return .{
-            .focalLength = focal,
+            .fov = fieldOfView,
             .transform = .{
                 .position = Vector.all(0),
                 .rotation = Quaternion.identity(),
@@ -48,25 +49,39 @@ pub const Camera = struct {
 
     pub fn projectionMatrix(self: Camera) Matrix4x4 {
 
-        const focalLength = 2.0;
         const width = self.transform.scale.x;
         const height = self.transform.scale.y;
-        const ratio = width / height;
-        const near = 0.001;
+        const near = 0.1;
         const far = self.transform.scale.z;
-        const divider = 1 / (focalLength * (far - near));
-        
+        const inverseRange = 1 / (near - far);
+        const aspect = width / height;
+        const f = math.tan(math.pi * 0.5 - 0.5 * self.fov);
         var m = Matrix4x4.zeros();
-        m.set(0, 0, 1.0);
-        m.set(1, 1, ratio);
-        m.set(2, 2, far * divider);
-        m.set(3, 2, -far * near * divider);
-        m.set(2, 3, 1.0 / focalLength);
+
+        m.values[0] = f / aspect;
+        m.values[1] = 0;
+        m.values[2] = 0;
+        m.values[3] = 0;
+        
+        m.values[4] = 0;
+        m.values[5] = f;
+        m.values[6] = 0;
+        m.values[7] = 0;
+
+        m.values[8] = 0;
+        m.values[9] = 0;
+        m.values[10] = far * inverseRange;
+        m.values[11] = -1;
+        
+        m.values[12] = 0;
+        m.values[13] = 0;
+        m.values[14] = far * near * inverseRange;
+        m.values[15] = 0;
         
         return m;
     }
 
     pub fn asMatrix(self: Camera) Matrix4x4 {
-        return self.viewMatrix().multiply(self.projectionMatrix());
+        return self.projectionMatrix().multiply(self.viewMatrix());
     }
 };
