@@ -16,7 +16,7 @@ pub const Renderer = struct {
 
     allocator: Allocator,
     surface: *const Surface,
-    camera: *const Camera,
+    camera: *Camera,
     pipeline: *const RenderPipeline,
 
     pub fn render(self: Renderer) !void {
@@ -52,6 +52,7 @@ pub const Renderer = struct {
             projection_buffer.release();
         }
 
+        self.camera.transform.rotateRoll(0.01);
         
         var projection = self.camera.asMatrix();
 
