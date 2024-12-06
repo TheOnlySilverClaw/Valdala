@@ -30,13 +30,19 @@ pub const Camera = struct {
         const right = self.transform.pitchAxis();
         const up = self.transform.yawAxis();
         const forward = self.transform.rollAxis();
-        const offset = self.transform.position.opposite();
+        
+        const position = self.transform.position;
+        const translation = Vector {
+            .x = -position.dot(right),
+            .y = -position.dot(up),
+            .z = -position.dot(forward)
+        };
 
         var m = Matrix4x4.zeros();
-        m.setRow(0, right.asMatrix4x1(0).values);
-        m.setRow(1, up.asMatrix4x1(0).values);
-        m.setRow(2, forward.asMatrix4x1(0).values);
-        m.setRow(3, offset.asMatrix4x1(1).values);
+        m.setColumn(0, right.asMatrix4x1(0).values);
+        m.setColumn(1, up.asMatrix4x1(0).values);
+        m.setColumn(2, forward.asMatrix4x1(0).values);
+        m.setRow(3, translation.asMatrix4x1(1).values);
         return m;
     }
 
@@ -46,7 +52,7 @@ pub const Camera = struct {
         const width = self.transform.scale.x;
         const height = self.transform.scale.y;
         const ratio = width / height;
-        const near = 0.01;
+        const near = 0.001;
         const far = self.transform.scale.z;
         const divider = 1 / (focalLength * (far - near));
         
