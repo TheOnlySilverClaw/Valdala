@@ -57,7 +57,7 @@ pub const Window = struct {
         while (!self.handle.should_close()) {
             glfw.pollEvents();
             try self.renderer.render();
-            std.Thread.sleep(10 * std.time.ns_per_s / 60);
+            std.Thread.sleep(std.time.ns_per_s / 60);
         }
     }
 

@@ -12,48 +12,54 @@ const quarter = math.degreesToRadians(90);
 const half = quarter * 2;
 
 test "translate cardinal axes" {
+    
     var t = Transform.origin();
+    const base = t.position;
 
     t.translate(Axis.x.scaleUniform(-0.5));
-    try expectClose(Vector.of(-0.5, 0, 0), t.position);
+    try expectClose(Vector.of(-0.5, 0, 0), t.apply(base));
 
     t.translate(Axis.x.scaleUniform(1.5));
-    try expectClose(Vector.of(1, 0, 0), t.position);
+    try expectClose(Vector.of(1, 0, 0), t.apply(base));
 
     t.translate(Axis.y.scaleUniform(2));
-    try expectClose(Vector.of(1, 2, 0), t.position);
+    try expectClose(Vector.of(1, 2, 0), t.apply(base));
 
     t.translate(Axis.z.scaleUniform(3));
-    try expectClose(Vector.of(1, 2, 3), t.position);
+    try expectClose(Vector.of(1, 2, 3), t.apply(base));
 }
 
 test "translate original angle axes" {
+    
     var t = Transform.origin();
+    const base = t.position;
 
     t.translateRoll(-0.5);
-    try expectClose(Vector.of(0, -0.5, 0), t.position);
+    try expectClose(Vector.of(0, -0.5, 0), t.apply(base));
 
     t.translateRoll(1.5);
-    try expectClose(Vector.of(0, 1, 0), t.position);
+    try expectClose(Vector.of(0, 1, 0), t.apply(base));
 
     t.translatePitch(2);
-    try expectClose(Vector.of(2, 1, 0), t.position);
+    try expectClose(Vector.of(2, 1, 0), t.apply(base));
 
     t.translateYaw(3);
-    try expectClose(Vector.of(2, 1, 3), t.position);
+    try expectClose(Vector.of(2, 1, 3), t.apply(base));
 }
 
 test "rotate original postition" {
+
     var t = Transform.origin();
+    const base = t.position;
 
     t.rotateAround(Axis.x, 0.5);
-    try expectClose(Vector.all(0), t.position);
+    try expectClose(Vector.all(0), t.apply(base));
 
     t.rotateAround(Axis.x, -0.5);
-    try expectClose(Vector.all(0), t.position);
+    try expectClose(Vector.all(0), t.apply(base));
 
     t.rotateAround(t.pitchAxis(), 1);
-    try expectClose(Vector.all(0), t.position);
+    try expectClose(Vector.all(0), t.apply(base));
 }
 
 test "flip angle axes" {
@@ -92,46 +98,51 @@ test "flip angle axes" {
 }
 
 test "rotate position around one angle axis" {
+
     var t = Transform.origin();
+    const base = t.position;
 
     t.translateRoll(1);
-    try expectClose(Vector.of(0, 1, 0), t.position);
+    try expectClose(Vector.of(0, 1, 0), t.apply(base));
 
     t.rotateYaw(half);
-    try expectClose(Vector.of(0, -1, 0), t.position);
+    try expectClose(Vector.of(0, -1, 0), t.apply(base));
 
     t.rotateYaw(quarter);
-    try expectClose(Vector.of(1, 0, 0), t.position);
+    try expectClose(Vector.of(1, 0, 0), t.apply(base));
 
     t.rotateYaw(math.degreesToRadians(45));
-    try expectClose(Vector.of(0.7071, 0.7071, 0), t.position);
+    try expectClose(Vector.of(0.7071, 0.7071, 0), t.apply(base));
 
     t.rotateYaw(quarter);
-    try expectClose(Vector.of(-0.7071, 0.7071, 0), t.position);
+    try expectClose(Vector.of(-0.7071, 0.7071, 0), t.apply(base));
 
     t.rotateYaw(half);
-    try expectClose(Vector.of(0.7071, -0.7071, 0), t.position);
+    try expectClose(Vector.of(0.7071, -0.7071, 0), t.apply(base));
 
     t.rotateYaw(math.degreesToRadians(45));
-    try expectClose(Vector.of(1, 0, 0), t.position);
+    try expectClose(Vector.of(1, 0, 0), t.apply(base));
 }
 
 test "rotate position around multiple angle axes" {
+
     var t = Transform.origin();
+    const base = t.position;
 
     t.translateRoll(1);
 
     t.rotatePitch(half);
-    try expectClose(Vector.of(0, -1, 0), t.position);
+    try expectClose(Vector.of(0, -1, 0), t.apply(base));
 
     t.rotateYaw(quarter);
-    try expectClose(Vector.of(-1, 0, 0), t.position);
+    try expectClose(Vector.of(-1, 0, 0), t.apply(base));
 
     t.rotateRoll(quarter);
-    try expectClose(Vector.of(-1, 0, 0), t.position);
+    try expectClose(Vector.of(-1, 0, 0), t.apply(base));
 }
 
 test "apply combined transform to point" {
+
     const position = Vector.of(1, 2, 3);
 
     var transform = Transform.origin();

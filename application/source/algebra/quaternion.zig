@@ -49,12 +49,13 @@ pub fn Quaternion(comptime T: type) type {
             assert(self.isNormalized());
             assert(other.isNormalized());
 
-            return .{
+            const result = Self {
                 .x = self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
                 .y = self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,
                 .z = self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w,
                 .w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
-            };    
+            };
+            return result.normalize();
         }
 
         pub fn rotate(self: Self, position: Vector) Vector {
@@ -66,7 +67,8 @@ pub fn Quaternion(comptime T: type) type {
 
             return position.scaleUniform(w * w - axis.dot(axis))
                 .add(axis.scaleUniform(position.dot(axis) * 2.0))
-                .add(axis.cross(position).scaleUniform(w * 2.0));
+                .add(axis.cross(position).scaleUniform(w * 2.0))
+                .normalize();
         }
 
         pub fn inverse(self: Self) Self {
@@ -113,6 +115,8 @@ pub fn Quaternion(comptime T: type) type {
 
         pub fn matrix(self: Self) Matrix {
 
+            assert(self.isNormalized());
+            
             const w = self.w;
             const x = self.x;
             const y = self.y;

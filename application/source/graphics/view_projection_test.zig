@@ -1,8 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectClose = @import("test.zig").expectClose;
 const math = std.math;
-const algebra = @import("algebra.zig");
+const algebra = @import("algebra");
 const Matrix4x4 = algebra.Matrix(f32).Sized(4, 4);
 const Vector = algebra.Vector3D(f32);
 const Camera = @import("camera.zig").Camera;

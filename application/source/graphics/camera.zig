@@ -55,7 +55,7 @@ pub const Camera = struct {
         const far = self.transform.scale.z;
         const inverseRange = 1 / (near - far);
         const aspect = width / height;
-        const f = math.tan(math.pi * 0.5 - 0.5 * self.fov);
+        const f = math.tan((math.pi - self.fov) / 2.0);
         var m = Matrix4x4.zeros();
 
         m.values[0] = f / aspect;

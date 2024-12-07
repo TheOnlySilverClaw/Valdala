@@ -41,9 +41,9 @@ pub fn main() !void {
     const pipeline = try @import("graphics/render_pipeline.zig").RenderPipeline
         .create(allocator, window.surface);
 
-    var camera = Camera.new(2.0,1000, 800, 100.0);
-    camera.transform.translateZ(-3);
-    camera.transform.rotatePitch(std.math.degreesToRadians(90));
+    var camera = Camera.new(std.math.degreesToRadians(90),1000, 800, 100.0);
+    camera.transform.translateY(-30);
+    camera.transform.rotatePitch(-std.math.degreesToRadians(90));
 
     const renderer = Renderer {
         .surface = &window.surface,

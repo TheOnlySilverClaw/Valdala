@@ -80,7 +80,7 @@ pub fn Transform(T: type) type {
 
         pub fn rotateAround(self: *Self, axis: Vector, angle: T) void {
             const rotation = Quaternion.aroundAxis(axis, angle);
-            self.position = rotation.rotate(self.position);
+            // self.position = rotation.rotate(self.position);
             self.rotation = self.rotation.multiply(rotation);
         }
 
@@ -97,12 +97,16 @@ pub fn Transform(T: type) type {
             return Matrix.identity();
         }
 
-        // mainly for debugging
+        // mainly for testing and debugging
         pub fn apply(self: Self, point: Vector) Vector {
 
+            @import("std").debug.print("-------\n", .{});
             const scaled = point.scaleBy(self.scale);
+            scaled.print();
             const rotated = self.rotation.rotate(scaled);
+            rotated.print();
             const translated = rotated.add(self.position);
+            translated.print();
             return translated;
         }
     };
