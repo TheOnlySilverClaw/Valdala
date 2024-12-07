@@ -29,6 +29,18 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/graphics/module.zig")
     });
 
+    const input = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/input//module.zig")
+    });
+
+    const application = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/application//module.zig")
+    });
+
     const zigimg = b.dependency("zigimg", .{});
     const TrueType = b.dependency("TrueType", .{});
 
@@ -44,12 +56,22 @@ pub fn build(b: *std.Build) void {
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
     exe.addObjectFile(.{ .cwd_relative = "libraries/libwgpu_native.a" });
 
-    exe.root_module.addImport("glfw", glfw);
-    exe.root_module.addImport("webgpu", webgpu);
-    exe.root_module.addImport("algebra", algebra);
-    exe.root_module.addImport("graphics", graphics);
-    exe.root_module.addImport("zigimg", zigimg.module("zigimg"));
-    exe.root_module.addImport("TrueType", TrueType.module("TrueType"));
+    graphics.addImport("glfw", glfw);
+    graphics.addImport("webgpu", webgpu);
+    graphics.addImport("algebra", algebra);
+
+    input.addImport("glfw", glfw);
+    input.addImport("webgpu", webgpu);
+    input.addImport("graphics", graphics);
+
+    application.addImport("glfw", glfw);
+    application.addImport("webgpu", webgpu);
+    application.addImport("graphics", graphics);
+    application.addImport("input", input);
+    application.addImport("zigimg", zigimg.module("zigimg"));
+    application.addImport("TrueType", TrueType.module("TrueType"));
+
+    exe.root_module.addImport("application", application);
 
     b.installArtifact(exe);
 

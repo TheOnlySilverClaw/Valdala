@@ -5,9 +5,10 @@ const glfw = @import("glfw");
 const log = std.log;
 const input = glfw.input;
 const binding = glfw.window;
+const graphics = @import("graphics");
 
-const Surface = @import("../graphics/surface.zig").Surface;
-const Renderer = @import("../graphics/renderer.zig").Renderer;
+const Surface = graphics.Surface;
+const Renderer = graphics.Renderer;
 const Controller = @import("controller.zig").Controller;
 
 pub const Window = struct {

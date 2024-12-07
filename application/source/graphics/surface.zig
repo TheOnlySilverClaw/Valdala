@@ -1,6 +1,6 @@
 const webgpu = @import("webgpu");
 const glfw = @import("glfw");
-const glfw_webgpu = @import("../glfw-webgpu.zig");
+const glfw_webgpu = @import("glfw-webgpu.zig");
 const binding = webgpu.surface;
 
 pub const SurfaceError = error {
