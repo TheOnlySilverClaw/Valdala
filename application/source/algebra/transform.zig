@@ -1,7 +1,7 @@
 const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
-const algebra = @import("algebra.zig");
+const algebra = @import("module.zig");
 
 pub fn Transform(T: type) type {
 

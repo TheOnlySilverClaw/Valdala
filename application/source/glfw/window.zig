@@ -1,7 +1,6 @@
-const glfw = @import("glfw.zig");
+const glfw = @import("module.zig");
 const input = @import("input.zig");
 const Monitor = @import("monitor.zig").Monitor;
-
 
 
 pub fn hint(key: HintKey, value: i32) void {

@@ -8,19 +8,25 @@ pub fn build(b: *std.Build) void {
     const glfw = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/glfw/glfw.zig")
+        .root_source_file = b.path("source/glfw/module.zig")
     });
 
     const webgpu = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/webgpu/webgpu.zig")
+        .root_source_file = b.path("source/webgpu/module.zig")
     });
 
     const algebra = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/algebra/algebra.zig")
+        .root_source_file = b.path("source/algebra/module.zig")
+    });
+
+    const graphics = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/graphics/module.zig")
     });
 
     const zigimg = b.dependency("zigimg", .{});
@@ -41,6 +47,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("glfw", glfw);
     exe.root_module.addImport("webgpu", webgpu);
     exe.root_module.addImport("algebra", algebra);
+    exe.root_module.addImport("graphics", graphics);
     exe.root_module.addImport("zigimg", zigimg.module("zigimg"));
     exe.root_module.addImport("TrueType", TrueType.module("TrueType"));
 

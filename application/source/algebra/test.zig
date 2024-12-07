@@ -1,6 +1,6 @@
 const std = @import("std");
 const math = std.math;
-const algebra = @import("algebra.zig");
+const algebra = @import("module.zig");
 const expect = std.testing.expect;
 
 const Vector3D = algebra.Vector3D(f32);
