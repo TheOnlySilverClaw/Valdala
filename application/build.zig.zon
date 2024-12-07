@@ -4,6 +4,9 @@
     .dependencies = .{
         .zigimg = .{
             .path = "submodules/zigimg"
+        },
+        .TrueType = .{
+            .path = "submodules/TrueType"
         }
     },
     .paths = .{

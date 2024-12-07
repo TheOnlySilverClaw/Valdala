@@ -8,7 +8,7 @@ const webgpu = @import("webgpu");
 const glfw_webgpu = @import("glfw-webgpu.zig");
 const log = std.log;
 const zigimg = @import("zigimg");
-
+const TrueType = @import("TrueType");
 
 pub fn main() !void {
 
@@ -24,6 +24,23 @@ pub fn main() !void {
 
     log.info("Launch", .{});
 
+    const font_bytes = try std.fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 320 * 1024);
+    defer allocator.free(font_bytes);
+
+    const font = try TrueType.load(font_bytes);
+    log.info("font length {}", .{font.glyphs_len});
+
+    const code_points = std.unicode.Utf8View.initComptime("H");
+    var iterator = code_points.iterator();
+    const cp = iterator.nextCodepoint().?;
+    const scale = font.scaleForPixelHeight(16);
+    const glyph = font.codepointGlyphIndex(cp).?;
+    var pixels: std.ArrayListUnmanaged(u8) = .empty;
+    const bitmap = try font.glyphBitmap(allocator, &pixels, glyph, scale, scale);
+    log.info("bitmap: {} * {} scale: {} bytes: {}", .{bitmap.width, bitmap.height, scale, pixels.items.len});
+    defer pixels.deinit(allocator);
+
+    
     try glfw.initialize();
     defer glfw.terminate();
     

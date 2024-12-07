@@ -24,6 +24,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const zigimg = b.dependency("zigimg", .{});
+    const TrueType = b.dependency("TrueType", .{});
 
     const exe = b.addExecutable(.{
         .name = "Valdala",
@@ -41,6 +42,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("webgpu", webgpu);
     exe.root_module.addImport("algebra", algebra);
     exe.root_module.addImport("zigimg", zigimg.module("zigimg"));
+    exe.root_module.addImport("TrueType", TrueType.module("TrueType"));
 
     b.installArtifact(exe);
 
