@@ -6,6 +6,7 @@ const glfw = @import("glfw");
 const Allocator = std.mem.Allocator;
 const Window = input.Window;
 const Controller = input.Controller;
+const FontLoader = @import("graphics").FontLoader;
 
 const Self = @This();
 
@@ -34,7 +35,9 @@ pub fn deinit(self: Self) void {
 
 pub fn launch(self: Self) !void {
 
-    _ = self;
     log.info("Launch", .{});
+    
+    try FontLoader.loadFont(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 16);
+
 }
 

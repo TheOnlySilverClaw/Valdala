@@ -59,6 +59,8 @@ pub fn build(b: *std.Build) void {
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("algebra", algebra);
+    graphics.addImport("TrueType", TrueType.module("TrueType"));
+    graphics.addImport("zigimg", zigimg.module("zigimg"));
 
     input.addImport("glfw", glfw);
     input.addImport("webgpu", webgpu);
@@ -68,8 +70,6 @@ pub fn build(b: *std.Build) void {
     application.addImport("webgpu", webgpu);
     application.addImport("graphics", graphics);
     application.addImport("input", input);
-    application.addImport("zigimg", zigimg.module("zigimg"));
-    application.addImport("TrueType", TrueType.module("TrueType"));
 
     exe.root_module.addImport("application", application);
 
