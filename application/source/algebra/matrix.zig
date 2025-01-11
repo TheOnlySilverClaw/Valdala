@@ -3,20 +3,22 @@ const assert = std.debug.assert;
 
 
 pub fn Matrix(comptime T: type) type {
-
     
     return struct {
         
         const Typed = @This();
         
-        pub fn Sized(comptime C: u32, comptime R: u32) type {
+        pub fn Sized(comptime columns: u32, comptime rows: u32) type {
 
             return struct {
                 
                 const Self = @This();
+
+                pub const C = columns;
+                pub const R = rows;
                 const length = C * R;
 
-                values: [length]T,
+                values: [C * R]T,
 
                 pub fn ofValue(value: T) Self {
                     return ofValues(.{ value } ** length);
@@ -74,7 +76,13 @@ pub fn Matrix(comptime T: type) type {
                     }
                 }
 
+                pub fn isDiagonal() bool {
+                    return C == R;
+                }
+
                 pub fn transpose(self: Self) Self {
+
+                    comptime assert(Self.isDiagonal());
 
                     var new: Self = undefined;
                     inline for(0..R) |row| {
@@ -104,29 +112,14 @@ pub fn Matrix(comptime T: type) type {
                     return new;
                 }
 
-                pub fn multiply(self: Self, other: Self) Self {
+                pub fn multiply(self: Self, other: anytype) Typed.Sized(@TypeOf(other).C, R) {
                     
-                    var new: Self = undefined;
-                    inline for(0..R) |row| {
-                        inline for(0..C) |column| {
-                            var sum: T = 0;
-                            inline for(0..C) |i| {
-                                const a = self.get(i, column);
-                                const b = other.get(row, i);
-                                sum += a * b;
-                            }
-                            new.set(row, column, sum);
-                        }
-                    }
-                    return new;
-                }
-
-                pub fn multiplyResize(self: Self, comptime C2: u32, other: Typed.Sized(C2, C)) Typed.Sized(C2, R) {
-                    
-                    var new: Typed.Sized(C2, R) = undefined;
+                    const Other = @TypeOf(other);
+                    comptime assert(Self.C == Other.R);
+                    var new: Typed.Sized(Other.C, R) = undefined;
 
                     inline for(0..R) |row| {
-                        inline for(0..C2) |column| {
+                        inline for(0..Other.C) |column| {
                             var sum: T = 0;
                             inline for(0..C) |i| {
                                 const a = self.get(i, row);
@@ -137,7 +130,7 @@ pub fn Matrix(comptime T: type) type {
                         }
                     }
                     return new;
-                } 
+                }
 
                 pub fn print(self: Self) void {
 

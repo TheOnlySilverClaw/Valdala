@@ -124,7 +124,10 @@ test "multiply resize" {
 
     const m3x2 = Matrix.Sized(3, 2).ofValues(.{ 0, 1, 2, 3, 4, 5 });
     const m2x3 = Matrix.Sized(2, 3).ofValues(m3x2.values);
-    const m2x2 = m3x2.multiplyResize(2, m2x3);
+    const m2x2 = m3x2.multiply(m2x3);
+    const M2x2 = @TypeOf(m2x2);
+    try expectEqual(2, M2x2.C);
+    try expectEqual(2, M2x2.R);
     
     try expectEqual(.{
         10, 28,
@@ -137,7 +140,7 @@ test "multiply vector" {
     const Vector3D = @import("vector.zig").Vector3D(f32);
     const vector4d = Vector3D.of(1, 2, 3).asMatrix4x1(4);
     const matrix = Matrix4x4.ofValue(1);
-    const result = matrix.multiplyResize(1, vector4d);
+    const result = matrix.multiply(vector4d);
     
     try expectEqual(.{ 10 } ** 4, result.values);
 }
