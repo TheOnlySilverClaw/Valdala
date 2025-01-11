@@ -25,45 +25,45 @@ test "quaternion rotation" {
     
     var rotation = Quaternion.aroundAxis(Axis.x, rad90);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, -3, 2), vector);
+    try expectClose(Vector3D.of(1, -3, 2).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, -2, -3), vector);
+    try expectClose(Vector3D.of(1, -2, -3).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, 3, -2), vector);
+    try expectClose(Vector3D.of(1, 3, -2).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, 2, 3), vector);
+    try expectClose(Vector3D.of(1, 2, 3).normalize(), vector);
     
     rotation = Quaternion.aroundAxis(Axis.y, rad90);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(3, 2, -1), vector);
+    try expectClose(Vector3D.of(3, 2, -1).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(-1, 2, -3), vector);
+    try expectClose(Vector3D.of(-1, 2, -3).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(-3, 2, 1), vector);
+    try expectClose(Vector3D.of(-3, 2, 1).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, 2, 3), vector);
+    try expectClose(Vector3D.of(1, 2, 3).normalize(), vector);
 
     rotation = Quaternion.aroundAxis(Axis.z, rad90);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(-2, 1, 3), vector);
+    try expectClose(Vector3D.of(-2, 1, 3).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(-1, -2, 3), vector);
+    try expectClose(Vector3D.of(-1, -2, 3).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(2, -1, 3), vector);
+    try expectClose(Vector3D.of(2, -1, 3).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, 2, 3), vector);
+    try expectClose(Vector3D.of(1, 2, 3).normalize(), vector);
     
     rotation = Quaternion.aroundAxis(Vector3D.all(1).normalize(), rad90 * 2);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(3, 2, 1), vector);
+    try expectClose(Vector3D.of(3, 2, 1).normalize(), vector);
     vector = rotation.rotate(vector);
-    try expectClose(Vector3D.of(1, 2, 3), vector);
+    try expectClose(Vector3D.of(1, 2, 3).normalize(), vector);
 
     rotation = Quaternion.aroundAxis(Vector3D.of(-1, 2, 4).normalize(), math.degreesToRadians(18));
     for(0..20) |_| {
         vector = rotation.rotate(vector);
     }
-    try expectClose( Vector3D.of(1, 2, 3), vector);
+    try expectClose( Vector3D.of(1, 2, 3).normalize(), vector);
 }
 
 test "matrix" {
