@@ -37,7 +37,7 @@ pub fn launch(self: Self) !void {
 
     log.info("Launch", .{});
     
-    try FontLoader.loadFont(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 16);
+    try @import("worldgen.zig").generate(self.allocator);
 
 }
 

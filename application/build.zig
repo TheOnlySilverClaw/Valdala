@@ -66,6 +66,7 @@ pub fn build(b: *std.Build) void {
     input.addImport("webgpu", webgpu);
     input.addImport("graphics", graphics);
 
+    application.addImport("zigimg", zigimg.module("zigimg"));
     application.addImport("glfw", glfw);
     application.addImport("webgpu", webgpu);
     application.addImport("graphics", graphics);
