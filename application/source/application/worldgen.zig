@@ -86,14 +86,12 @@ pub const HeightMap = struct {
             map.set(i, size - 1, seedBytes[3]);
         }
 
-        // const steps = math.log2(@min(map.width, map.height));
+        const steps = math.log2(@min(map.width, map.height));
 
         var scale: f32 = 1;
         const h = 0.2;
 
-        for(0..7) |step| {
-
-            std.debug.print("scale {d}\n", .{scale});
+        for(0..steps) |step| {
 
             const stepLength = size / (math.pow(u32, 2, @intCast(step + 1)));
 
@@ -112,7 +110,6 @@ pub const HeightMap = struct {
                     const p4: u32 = map.getWrapped(xd + stepLength, yd + stepLength);
                     const r: f32 = @floatFromInt(@as(u16, @truncate(random.next())));
                     const sc: u32 = @intFromFloat(scale * r);
-                    // std.debug.print("sc {d}\n", .{sc});
                     const v: u64 = (p1 + p2 + p3 + p4) / 4 + sc;
                     map.set(xd, yd, @truncate(v));
                 }
