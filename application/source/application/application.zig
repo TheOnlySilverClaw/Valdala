@@ -2,11 +2,12 @@ const std = @import("std");
 const log = std.log;
 const input = @import("input");
 const glfw = @import("glfw");
+const grapics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
 const Window = input.Window;
 const Controller = input.Controller;
-const FontLoader = @import("graphics").FontLoader;
+
 
 pub const Application = struct {
 
@@ -37,7 +38,8 @@ pub const Application = struct {
 
         log.info("Launch", .{});
         
-        try @import("worldgen").generate(self.allocator);
-
+        var font = try grapics.Font.init(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 24);
+        try font.loadASCII();
+        font.deinit();
     }
 };

@@ -11,6 +11,14 @@ pub fn Grid2D(T: type) type {
         height: usize,
         values: []T,
 
+        pub fn fromSlice(values: []T, width: usize, height: usize) Self {
+            return .{
+                .width = width,
+                .height = height,
+                .values = values
+            };
+        }
+
         pub fn init(allocator: Allocator, width: usize, height: usize) Allocator.Error!Self {
 
             const values = try allocator.alloc(T, width * height);

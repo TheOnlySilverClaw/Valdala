@@ -68,6 +68,7 @@ pub fn build(b: *std.Build) void {
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
     exe.addObjectFile(.{ .cwd_relative = "libraries/libwgpu_native.a" });
 
+    graphics.addImport("common", common);
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("algebra", algebra);
