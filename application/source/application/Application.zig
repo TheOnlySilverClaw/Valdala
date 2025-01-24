@@ -37,7 +37,7 @@ pub fn launch(self: Self) !void {
 
     log.info("Launch", .{});
     
-    try @import("worldgen.zig").generate(self.allocator);
+    try @import("worldgen").generate(self.allocator);
 
 }
 

@@ -181,23 +181,22 @@ pub const HeightMap = struct {
 
 pub fn generate(allocator: Allocator) !void {
 
-    var hm1 = try HeightMap.fromPoints(allocator, 400, @intCast(random.next()));
-    var hm2 = try HeightMap.fromDiamondSquare(allocator, 400, @intCast(random.next()));
-
-    defer hm1.deinit(allocator);
-    defer hm2.deinit(allocator);
-
+    var hm = try @import("heightmap.zig").HeightMap.init(allocator, 1024, 1024, @bitCast(std.time.milliTimestamp()));
+    hm.randomize();
+    defer hm.deinit();
     const Image = @import("zigimg").ImageUnmanaged;
+
+    const values = hm.grid.values;
     
-    var pixels = try allocator.alloc(u8, 3 * hm1.values.len);
-    for(0..hm1.values.len) |v| {
-        const h: u8 = @truncate(hm1.values[v]);
-        pixels[v * 3] = @truncate(hm2.values[v] / 400);
+    var pixels = try allocator.alloc(u8, 3 * values.len);
+    for(0..values.len) |v| {
+        const h: u8 = values[v];
+        pixels[v * 3] = 0;
         pixels[v * 3 + 1] = h;
-        pixels[v * 3 + 2] = @truncate(hm2.values[v] / 100);
+        pixels[v * 3 + 2] = 0;
     }
 
-    var image = try Image.fromRawPixelsOwned(hm1.width, hm1.height, pixels, .rgb24);
+    var image = try Image.fromRawPixelsOwned(hm.grid.width, hm.grid.height, pixels, .rgb24);
     try image.writeToFilePath(allocator, "height.png", .{.png = .{}});
     image.deinit(allocator);
 

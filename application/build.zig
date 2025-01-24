@@ -23,6 +23,12 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/algebra/module.zig")
     });
 
+    const common = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/common//module.zig")
+    });
+
     const graphics = b.createModule(.{
         .target = target,
         .optimize = optimize,
@@ -35,14 +41,20 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/input//module.zig")
     });
 
+    const worldgen = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("source/worldgen/module.zig")
+    });
+
     const application = b.createModule(.{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("source/application//module.zig")
     });
 
-    const zigimg = b.dependency("zigimg", .{});
-    const TrueType = b.dependency("TrueType", .{});
+    const zigimg = b.dependency("zigimg", .{}).module("zigimg");
+    const TrueType = b.dependency("TrueType", .{}).module("TrueType");
 
     const exe = b.addExecutable(.{
         .name = "Valdala",
@@ -59,18 +71,24 @@ pub fn build(b: *std.Build) void {
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("algebra", algebra);
-    graphics.addImport("TrueType", TrueType.module("TrueType"));
-    graphics.addImport("zigimg", zigimg.module("zigimg"));
+    graphics.addImport("TrueType", TrueType);
+    graphics.addImport("zigimg", zigimg);
 
     input.addImport("glfw", glfw);
     input.addImport("webgpu", webgpu);
     input.addImport("graphics", graphics);
 
-    application.addImport("zigimg", zigimg.module("zigimg"));
+    worldgen.addImport("common", common);
+    // temporarily, for output verification
+    worldgen.addImport("zigimg", zigimg);
+
+    application.addImport("common", common);
+    application.addImport("zigimg", zigimg);
     application.addImport("glfw", glfw);
     application.addImport("webgpu", webgpu);
     application.addImport("graphics", graphics);
     application.addImport("input", input);
+    application.addImport("worldgen", worldgen);
 
     exe.root_module.addImport("application", application);
 
