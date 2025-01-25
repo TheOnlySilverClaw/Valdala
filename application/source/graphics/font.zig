@@ -7,15 +7,17 @@ const zigimg = @import("zigimg");
 const List = std.ArrayListUnmanaged;
 const Map = std.AutoHashMapUnmanaged;
 const Grid2D = @import("common").Grid2D;
+const Image = @import("zigimg").ImageUnmanaged;
 
 pub const CodePoint = u21;
 
 pub const Glyph = struct {
     width: u16,
     height: u16,
-    xOffset: i16,
-    yOffset: i16,
-    pixels: []u8
+    offsetX: i16,
+    offsetY: i16,
+    advance: i16,
+    pixels: ?[]u8
 };
 
 pub const Font = struct {
@@ -51,7 +53,9 @@ pub const Font = struct {
         self.allocator.free(self._data);
         var glyphIterator = self.glyphByCodePoint.valueIterator();
         while(glyphIterator.next()) |g| {
-            self.allocator.free(g.pixels);
+            if(g.pixels) |pixels| {
+                self.allocator.free(pixels);
+            }
         }
         self.glyphByCodePoint.deinit(self.allocator);
         self.allocator.destroy(self.glyphByCodePoint);
@@ -68,32 +72,51 @@ pub const Font = struct {
 
     pub fn loadASCII(self: *Font) !void {
 
-        for(33..127) |i| {
+        for(32..127) |i| {
             try self.loadGlyph(@intCast(i));
         }
     }
 
+
     fn loadGlyph(self: *Font, codePoint: CodePoint) !void {
 
-        const index = self._trueType.codepointGlyphIndex(codePoint) orelse return GlyphError.Unknown;
+        const trueType = self._trueType;
+        const index = trueType.codepointGlyphIndex(codePoint) orelse return GlyphError.Unknown;
         var pixels: List(u8) = .empty;
-        const bitmap = try self._trueType.glyphBitmap(
-            self.allocator, &pixels, index, self.scale, self.scale);
         
-        const slice = try pixels.toOwnedSlice(self.allocator);
-        const glyph = Glyph {
-            .width = bitmap.width,
-            .height = bitmap.height,
-            .xOffset = bitmap.off_x,
-            .yOffset = bitmap.off_y,
-            .pixels = slice
-        };
+        const metrics = trueType.glyphHMetrics(index);
+        // advance seem to be the same for all?
+        const advance: i16 = @intFromFloat(self.scale * @as(f32, @floatFromInt(metrics.advance_width)));
+        var glyph: Glyph = undefined;
+        
+        if(trueType.glyphBitmap(self.allocator, &pixels, index, 
+            self.scale, self.scale)) |bitmap| {
+            
+            const slice = try pixels.toOwnedSlice(self.allocator);
+            glyph = .{
+                .width = bitmap.width,
+                .height = bitmap.height,
+                .offsetX = bitmap.off_x,
+                .offsetY = bitmap.off_y,
+                .advance = advance,
+                .pixels = slice
+            };
+        } else |_| {
+            glyph = .{
+                .width = 0,
+                .height = 0,
+                .offsetX = 0,
+                .offsetY = 0,
+                .advance = advance,
+                .pixels = null
+            };
+        }
         
         try self.glyphByCodePoint.put(self.allocator, @intCast(codePoint), glyph);
     }
 
 
-    pub fn renderUTF8(self: *Font, text: []const u8) !@import("zigimg").ImageUnmanaged {
+    pub fn renderUTF8(self: *Font, text: []const u8) !Image {
 
         const utf8 = try std.unicode.Utf8View.init(text);
 
@@ -102,15 +125,8 @@ pub const Font = struct {
 
         var iterator = utf8.iterator();
         while (iterator.nextCodepoint()) |codePoint| {
-            if(codePoint == ' ') {
-                const index = self._trueType.codepointGlyphIndex(codePoint).?;
-                const advance = self._trueType.glyphHMetrics(index).advance_width;
-                const scaledAdvance: i16 = @intFromFloat(self.scale * @as(f32, @floatFromInt(advance)));
-                textureWidth = @intCast(@as(i32, @intCast(textureWidth)) + scaledAdvance);
-                continue;
-            }
             const glyph = self.glyphByCodePoint.get(codePoint) orelse return GlyphError.Unknown;
-            textureWidth += @intCast(@as(i32, @intCast(glyph.width)) + glyph.xOffset);
+            textureWidth += @intCast(glyph.advance);
             textureHeight = @max(textureHeight, glyph.height);
         }
 
@@ -121,25 +137,23 @@ pub const Font = struct {
 
         while (iterator.nextCodepoint()) |codePoint| {
 
-            if(codePoint == ' ') {
-                textureOffsetX += 12;
-                continue;
-            }
-
             const glyph = self.glyphByCodePoint.get(codePoint) orelse return GlyphError.Unknown;
-            const glyphGrid = Grid2D(u8).fromSlice(glyph.pixels, glyph.width, glyph.height);
-            const glyphWidth: usize = @as(usize, @intCast(@as(i32, @intCast(glyph.width)) + glyph.xOffset));
-            const textureOffsetY: usize = textureHeight - glyph.height;
             
-            for(0..glyph.width) |x| {
-                const offsetX = x + textureOffsetX;
-                for(0..glyph.height) |y| {
-                    textureGrid.set(offsetX, y + textureOffsetY, glyphGrid.get(x, y));
+            if(glyph.pixels) |pixels| {
+                
+                const glyphGrid = Grid2D(u8).fromSlice(pixels, glyph.width, glyph.height);
+                const textureOffsetY: usize = textureHeight - glyph.height;
+                
+                for(0..glyph.width) |x| {
+                    const offsetX = x + textureOffsetX;
+                    for(0..glyph.height) |y| {
+                        textureGrid.set(offsetX, y + textureOffsetY, glyphGrid.get(x, y));
+                    }
                 }
             }
-            textureOffsetX += glyphWidth;
+            textureOffsetX += @intCast(glyph.advance);
         }
 
-        return try @import("zigimg").ImageUnmanaged.fromRawPixelsOwned(textureWidth, textureHeight, textureGrid.values, .grayscale8);
+        return try Image.fromRawPixelsOwned(textureWidth, textureHeight, textureGrid.values, .grayscale8);
     }
 };
