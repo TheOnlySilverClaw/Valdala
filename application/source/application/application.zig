@@ -39,8 +39,14 @@ pub const Application = struct {
         log.info("Launch", .{});
         
         var font = try grapics.Font.init(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 24);
+        const color = grapics.Color(f32) {
+            .red = 0.5,
+            .blue = 0.5,
+            .green = 1.0,
+            .alpha = 1.0
+        };
         try font.loadASCII();
-        var image = try font.renderUTF8("Test blah blub!?.");
+        var image = try font.renderUTF8("Test blah blub!?.", color);
         defer image.deinit(self.allocator);
 
         try image.writeToFilePath(self.allocator, "text.png", .{ .png = .{}});

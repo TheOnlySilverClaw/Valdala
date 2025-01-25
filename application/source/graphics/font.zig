@@ -8,6 +8,7 @@ const List = std.ArrayListUnmanaged;
 const Map = std.AutoHashMapUnmanaged;
 const Grid2D = @import("common").Grid2D;
 const Image = @import("zigimg").ImageUnmanaged;
+const Color = @import("color.zig").Color;
 
 pub const CodePoint = u21;
 
@@ -116,7 +117,7 @@ pub const Font = struct {
     }
 
 
-    pub fn renderUTF8(self: *Font, text: []const u8) !Image {
+    pub fn renderUTF8(self: *Font, text: []const u8, color: Color(f32)) !Image {
 
         const utf8 = try std.unicode.Utf8View.init(text);
 
@@ -131,6 +132,7 @@ pub const Font = struct {
         }
 
         var textureGrid = try Grid2D(u8).init(self.allocator, textureWidth, textureHeight);
+        @memset(textureGrid.values, 0);
 
         var textureOffsetX: usize = 0;
         iterator.i = 0;
@@ -154,6 +156,21 @@ pub const Font = struct {
             textureOffsetX += @intCast(glyph.advance);
         }
 
-        return try Image.fromRawPixelsOwned(textureWidth, textureHeight, textureGrid.values, .grayscale8);
+        const colorPixels: []u8 = try self.allocator.alloc(u8, textureGrid.size() * 4);
+        
+        for(0..textureWidth) |x| {
+            for(0..textureHeight) |y| {
+                const target = (x + y * textureWidth) * 4;
+                const value: f32 = @floatFromInt(textureGrid.get(x, y));
+                colorPixels[target + 0] = @intFromFloat(color.red * value);
+                colorPixels[target + 1] = @intFromFloat(color.green * value);
+                colorPixels[target + 2] = @intFromFloat(color.blue * value);
+                colorPixels[target + 3] = @intFromFloat(color.alpha * value);
+
+            }
+        }
+        textureGrid.deinit(self.allocator);
+
+        return try Image.fromRawPixelsOwned(textureWidth, textureHeight, colorPixels, .rgba32);
     }
 };
