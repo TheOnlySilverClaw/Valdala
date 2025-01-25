@@ -46,7 +46,7 @@ pub const Application = struct {
             .alpha = 1.0
         };
         try font.loadASCII();
-        var image = try font.renderUTF8("Test blah blub!?.", color);
+        var image = try font.renderUTF8("Käsekuchen mit Öl und Streußeln :)", color);
         defer image.deinit(self.allocator);
 
         try image.writeToFilePath(self.allocator, "text.png", .{ .png = .{}});

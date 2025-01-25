@@ -126,7 +126,13 @@ pub const Font = struct {
 
         var iterator = utf8.iterator();
         while (iterator.nextCodepoint()) |codePoint| {
-            const glyph = self.glyphByCodePoint.get(codePoint) orelse return GlyphError.Unknown;
+            
+            if(!self.glyphByCodePoint.contains(codePoint)) {
+                try self.loadGlyph(codePoint);
+            }
+            
+            const glyph: Glyph = self.glyphByCodePoint.get(codePoint).?;
+
             textureWidth += @intCast(glyph.advance);
             textureHeight = @max(textureHeight, glyph.height);
         }
