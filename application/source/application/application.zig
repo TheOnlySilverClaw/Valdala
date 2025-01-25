@@ -40,6 +40,10 @@ pub const Application = struct {
         
         var font = try grapics.Font.init(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 24);
         try font.loadASCII();
+        var image = try font.renderUTF8("Test blah blub!?.");
+        defer image.deinit(self.allocator);
+
+        try image.writeToFilePath(self.allocator, "text.png", .{ .png = .{}});
         font.deinit();
     }
 };
