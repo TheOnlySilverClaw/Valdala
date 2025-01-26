@@ -1,8 +1,10 @@
+# Valdala
+
 Valdala is supposed to become a game... eventually.
 Currently, it is primarly my excuse to tinker with technologies I'm interested in.
 
 
-# Reason
+## Reason
 
 Like most of my projects, the idea started with me being unhappy about something. In this case, Minecraft.
 I liked building houses and towns, but after a construction project was finished, it was just... there... decoratively.
@@ -20,7 +22,7 @@ And while I'm aware I could just be modding one of those... I don't wanna.
 And on top of that, provide core plugins forming a coherent and distinct game experience.
 
 
-# Idea
+## Idea
 
 Valdala plays in a procedurally generated 3D world made of blocks.
 
@@ -35,7 +37,7 @@ Countless hostile creatures roam the world and most villagers are willing to wor
 You can guide your loyal villagers to develop their settlement, establish diplomatic ties with friendly neighbors and fight monsters and bandits to protect your towns and trade routes.
 
 
-# Technology
+## Technology
 
 I want to build Valdala on a foundation of high quality, future-proof technologies and as few external dependencies as reasonably possible.
 
@@ -48,7 +50,7 @@ Currently, the tech stack looks like this:
 - well supported open source file formats for everything, like [QOI](https://qoiformat.org/) for textures, [glTF](https://www.khronos.org/gltf/) for 3D assets, etc.
 
 
-# Help Appreciated
+## Help Appreciated
 
 Valdala is a passion project and I'm willing to spend countless hours trying to make it work on my own.
 
@@ -59,9 +61,9 @@ Since this project does not generate revenue and probably never will, there's no
 Currently in demand:
 
 
-## 3D Engine Developer
+### 3D Engine Developer
 
-Let's build a fast and maintanable 3d rendering engine. Maybe even a pretty one!
+Let's build a fast and maintanable 3D rendering engine. Maybe even a pretty one!
 
 Required skills:
 
@@ -71,7 +73,7 @@ Required skills:
 - using git and build tools
 
 
-# Current State
+## Current State
 
 This section is for showing update screenshots and holding myself accountable.
 
