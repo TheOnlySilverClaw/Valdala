@@ -39,17 +39,12 @@ pub const Application = struct {
         log.info("Launch", .{});
         
         var font = try grapics.Font.init(self.allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 24);
-        const color = grapics.Color(f32) {
-            .red = 0.5,
-            .blue = 0.5,
-            .green = 1.0,
-            .alpha = 1.0
-        };
+        const color = grapics.Color(f32).rgb(1.0, 1.0, 1.0);
+
         try font.loadASCII();
         var image = try font.renderUTF8("Käsekuchen mit Öl und Streußeln :)", color);
         defer image.deinit(self.allocator);
 
-        try image.writeToFilePath(self.allocator, "text.png", .{ .png = .{}});
         font.deinit();
     }
 };
