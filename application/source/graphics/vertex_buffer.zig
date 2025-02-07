@@ -1,7 +1,6 @@
 const webgpu = @import("webgpu");
-const binding = webgpu.buffer;
-const Attribute = webgpu.render_pipeline.VertexAttribute;
-const Format = webgpu.render_pipeline.VertexFormat;
+const Attribute = webgpu.VertexAttribute;
+const Format = webgpu.VertexFormat;
 
 
 pub fn VertexBuffer(comptime T: type, attribute_formats: []const Format) type {
@@ -25,7 +24,7 @@ pub fn VertexBuffer(comptime T: type, attribute_formats: []const Format) type {
         length: usize,
         label: ?[*:0]const u8 = null,
 
-        handle: binding.Buffer = undefined,
+        handle: webgpu.Buffer = undefined,
 
 
         pub fn layout() webgpu.render_pipeline.VertexBufferLayout {

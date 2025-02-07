@@ -10,12 +10,12 @@ const texture = @import("texture.zig");
 
 pub const RenderPipeline = struct {
 
-    block_sampler: webgpu.sampler.Sampler,
+    block_sampler: webgpu.Sampler,
     block_texture: texture.TextureArray,
     vertex_buffer: VertexBuffer,
-    index_buffer: webgpu.buffer.Buffer,
-    bind_group_layout: webgpu.bind_group_layout.BindGroupLayout,
-    handle: webgpu.render_pipeline.RenderPipeline,
+    index_buffer: webgpu.Buffer,
+    bind_group_layout: webgpu.BindGroupLayout,
+    handle: webgpu.RenderPipeline,
 
 
     pub fn create(allocator: Allocator, surface: Surface) !RenderPipeline {

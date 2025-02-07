@@ -2,11 +2,10 @@ const std = @import("std");
 const fs = std.fs;
 const webgpu = @import("webgpu");
 const img = @import("zigimg");
-const binding = webgpu.texture;
 const Allocator = std.mem.Allocator;
-const Extent3D = webgpu.shared.Extent3D;
-const Device = webgpu.device.Device;
-const Queue = webgpu.queue.Queue;
+const Extent3D = webgpu.Extent3D;
+const Device = webgpu.Device;
+const Queue = webgpu.Queue;
 const assert = std.debug.assert;
 
 pub const texture_size_limit = 64 * 1024 * 1024;
@@ -21,16 +20,16 @@ pub const TextureArray = struct {
     width: u32,
     height: u32,
     layers: u32,
-    format: binding.TextureFormat,
+    format: webgpu.TextureFormat,
     mip_levels: u32 = 1,
     samples: u32 = 1,
     label: ?[*:0]const u8 = null,
 
-    handle: binding.Texture = undefined,
+    handle: webgpu.Texture = undefined,
 
     pub fn create(self: *TextureArray, device: Device) void {
 
-        const descriptor = binding.TextureDescriptor {
+        const descriptor = webgpu.TextureDescriptor {
             .label = self.label,
             .dimension = .@"2d",
             .format = self.format,
@@ -78,7 +77,7 @@ pub const TextureArray = struct {
         // TODO map from surface texture format?
         try image.convert(allocator, .bgra32);
 
-        const destination = binding.ImageCopyTexture {
+        const destination = webgpu.ImageCopyTexture {
             .aspect = .all,
             .mip_level = 0,
             .origin = .{
@@ -89,7 +88,7 @@ pub const TextureArray = struct {
             .texture = self.handle
         };
 
-        const layout = binding.TextureDataLayout {
+        const layout = webgpu.TextureDataLayout {
             .offset = 0,
             .bytes_per_row = @intCast(image.rowByteSize()),
             .rows_per_image = self.height
@@ -105,9 +104,9 @@ pub const TextureArray = struct {
         queue.writeTexture(&destination, pixel_bytes.ptr, pixel_bytes.len, &layout, &extent);
     }
 
-    pub fn createView(self: TextureArray) binding.view.TextureView {
+    pub fn createView(self: TextureArray) webgpu.view.TextureView {
     
-        const descriptor = binding.view.TextureViewDescriptor {
+        const descriptor = webgpu.view.TextureViewDescriptor {
             .array_layer_count = self.layers,
             .aspect = .all,
             .base_array_layer = 0,
