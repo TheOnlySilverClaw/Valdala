@@ -37,7 +37,7 @@ pub fn byteSize(comptime format: webgpu.VertexFormat) u8 {
     };
 }
 
-pub fn createBufferLayout(formats: []webgpu.VertexFormat, stepMode: webgpu.VertexStepMode) webgpu.VertexBufferLayout {
+pub fn createBufferLayout(formats: []const webgpu.VertexFormat, stepMode: webgpu.VertexStepMode) webgpu.VertexBufferLayout {
     
     const attributes = computeAttributes(formats);
     const arrayStride = computeArrayStride(formats);
@@ -51,7 +51,7 @@ pub fn createBufferLayout(formats: []webgpu.VertexFormat, stepMode: webgpu.Verte
 }
 
 
-pub fn computeAttributes(formats: []webgpu.VertexFormat) []webgpu.VertexAttribute {
+pub fn computeAttributes(formats: []const webgpu.VertexFormat) []webgpu.VertexAttribute {
 
     var mapped: [formats.len]webgpu.VertexAttribute = undefined;
     var offset: u64 = 0;
@@ -72,7 +72,7 @@ pub fn computeAttributes(formats: []webgpu.VertexFormat) []webgpu.VertexAttribut
     return mapped;
 }
 
-pub fn computeArrayStride(formats: []webgpu.VertexFormat) u64 {
+pub fn computeArrayStride(formats: []const webgpu.VertexFormat) u64 {
 
     var sum = 0;
     for(formats) |format| {
