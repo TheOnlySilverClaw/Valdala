@@ -3,7 +3,7 @@ const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Device = webgpu.device.Device;
 const Surface = @import("surface.zig").Surface;
-const VertexBuffer = @import("vertex_buffer.zig").VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32 });
+const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer(Vertex, &.{.float32x3, .unorm16x2, .uint32 });
 const Shader = @import("shader.zig").Shader;
 const texture = @import("texture.zig");
 
