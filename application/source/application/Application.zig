@@ -3,12 +3,12 @@ const log = std.log;
 const glfw = @import("glfw");
 
 const Allocator = std.mem.Allocator;
-const ApplicationRenderer = @import("ApplciationRenderer.zig");
+const Renderer = @import("Renderer.zig");
 
 const Self = @This();
 
 allocator: Allocator,
-renderer: ApplicationRenderer,
+renderer: Renderer,
 
 
 pub fn init(allocator: Allocator) !Self {
@@ -22,7 +22,7 @@ pub fn init(allocator: Allocator) !Self {
     glfw.windowHint(.ClientApi, glfw.no_api);
 
     log.debug("Create application renderer", .{});
-    const renderer = try ApplicationRenderer.init(allocator, 60);
+    const renderer = try Renderer.init(allocator, 60);
 
     log.debug("Initialized successfully", .{});
 

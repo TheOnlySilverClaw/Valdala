@@ -76,7 +76,7 @@ pub fn configure(self: Self) void {
     self.handle.configure(&configuration);
 }
 
-pub fn getQueue(self: Self) webgpu.queue.Queue {
+pub fn getQueue(self: Self) webgpu.Queue {
     return self.queue;
 }
 
