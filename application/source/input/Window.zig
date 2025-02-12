@@ -6,7 +6,6 @@ const log = std.log;
 const graphics = @import("graphics");
 
 const Surface = graphics.Surface;
-const Renderer = graphics.Renderer;
 const Controller = @import("Controller.zig");
 
 const Self = @This();
@@ -14,7 +13,6 @@ const Self = @This();
 handle: glfw.Window,
 surface: Surface,
 controller: *const Controller,
-renderer: *const Renderer,
 
 pub fn create(window: *Self, title: [*:0]const u8, width: u32, height: u32) !void {
 
@@ -35,7 +33,6 @@ pub fn create(window: *Self, title: [*:0]const u8, width: u32, height: u32) !voi
     window.surface.resize(width, height);
 }
 
-
 fn sizeCallback(handle: glfw.Window, width: i32, height: i32) callconv(.C) void {
 
     var window = getSelfPointer(handle);
@@ -49,6 +46,10 @@ fn keyCallback(handle: glfw.Window, key: glfw.Key, _: u32,
     const window = getSelfPointer(handle);
     const controller = window.controller;
     controller.onKey(key, action, modifiers);
+}
+
+pub fn shouldClose(self: Self) bool {
+    return self.handle.shouldClose();
 }
 
 pub fn destroy(self: Self) void {

@@ -5,31 +5,29 @@ struct Vertex {
 
 struct Fragment {
     @builtin(position) position: vec4<f32>,
-    @location(1) uv: vec2<f32>
+    @location(0) uv: vec2<f32>
 }
 
 // never changes
-@group(0) @binding(0) var<uniform> textureSampler: sampler;
+@group(0) @binding(0) var textureSampler: sampler;
 
 // changes if current texture cannot hold all glyphs
-@group(1) @binding(0) var<uniform> glyphTexture: texture_2d<f32>;
-
-// changes on screen resize
-@group(2) @binding(0) var<uniform> screenSize: vec2<u32>;
+@group(1) @binding(0) var glyphTexture: texture_2d<f32>;
 
 // changes per group of colored texts
-@group(3) binding(0) var<uniform> textColor: vec4<f32>;
+@group(2) @binding(0) var<uniform> textColor: vec4<f32>;
 
 
-@vertex()
+@vertex
 fn vertex(vertex: Vertex) -> Fragment {
 
     var fragment: Fragment;
     fragment.position = vec4<f32>(vertex.position, 0.0, 1.0);
+    return fragment;
 }
 
 @fragment
-fn fragment(fragment: Fragment) -> vec4<f32> {
+fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
     let textureColor = textureSample(glyphTexture, textureSampler, fragment.uv);
     return textureColor * textColor;

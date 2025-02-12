@@ -22,7 +22,7 @@ pub fn init(allocator: Allocator) !Self {
     glfw.windowHint(.ClientApi, glfw.no_api);
 
     log.debug("Create application renderer", .{});
-    const renderer = try ApplicationRenderer.init(allocator);
+    const renderer = try ApplicationRenderer.new(allocator, 60);
 
     log.debug("Initialized successfully", .{});
 
@@ -40,11 +40,14 @@ pub fn deinit(self: Self) void {
 }
 
 
-pub fn launch(self: Self) !void {
+pub fn launch(self: *Self) !void {
 
     log.info("Launch", .{});
 
-    _= self;
+    log.debug("Start renderer", .{});
+    self.renderer.start() catch |err| {
+        log.err("Renderer crashed: {}", .{ err });
+    };
 
     log.info("Shutdown", .{});
 }

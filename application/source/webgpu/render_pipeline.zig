@@ -197,7 +197,7 @@ pub const FragmentState = extern struct {
 pub const PrimitiveState = extern struct {
     next: ?*const shared.ChainedStruct = null,
     topology: PrimitiveTopology,
-    strip_index_format: buffer.IndexFormat,
+    strip_index_format: buffer.IndexFormat = .undefined,
     front_face: FrontFace,
     cull_mode: CullMode
 };

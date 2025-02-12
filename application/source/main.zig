@@ -8,7 +8,7 @@ pub fn main() void {
 
     const allocator = gpa.allocator();
 
-    const application = Application.init(allocator) catch |err| {
+    var application = Application.init(allocator) catch |err| {
         log.err("Failed to initialize: {}", .{ err });
         return;
     };
