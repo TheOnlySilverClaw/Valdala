@@ -12,11 +12,12 @@ pub fn main() void {
         log.err("Failed to initialize: {}", .{ err });
         return;
     };
-    defer application.deinit();
 
     application.launch() catch |err| {
         log.err("Crashed with error: {}", .{ err });
     };
+    
+    application.deinit();
     
     const check = gpa.deinit();
     if(check == .leak) {

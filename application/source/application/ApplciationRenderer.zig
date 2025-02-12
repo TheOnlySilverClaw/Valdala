@@ -18,7 +18,7 @@ targetFrameTime: u64,
 lastFrameEndTime: i64 = undefined,
 textRenderer: TextRenderer,
 
-pub fn new(allocator: Allocator, targetFrameRate: u64) !Self {
+pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
 
     const targetFrameTime = time.ms_per_s / targetFrameRate;
 
@@ -33,6 +33,12 @@ pub fn new(allocator: Allocator, targetFrameRate: u64) !Self {
         .targetFrameTime = targetFrameTime,
         .textRenderer = textRenderer
     };
+}
+
+pub fn deinit(self: Self) void {
+
+    self.window.destroy();
+    self.allocator.destroy(self.window);
 }
 
 pub fn start(self: *Self) !void {
