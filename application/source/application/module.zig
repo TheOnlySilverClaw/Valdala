@@ -1,1 +1,1 @@
-pub const Application = @import("application.zig").Application;
+pub const Application = @import("Application.zig");

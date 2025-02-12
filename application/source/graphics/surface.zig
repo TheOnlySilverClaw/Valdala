@@ -21,8 +21,7 @@ pub const Surface = struct {
     width: u32,
     height: u32,
 
-    pub fn create(window: glfw.window.Window,
-        instance: webgpu.Instance) !Surface {
+    pub fn create(window: glfw.Window, instance: webgpu.Instance) !Surface {
         
         const handle = try glfw_webgpu.createSurface(window, instance);
         

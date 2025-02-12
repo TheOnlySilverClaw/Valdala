@@ -1,7 +1,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
-const Camera = @import("camera.zig").Camera;
+const Camera = @import("Camera.zig");
 const Surface = @import("surface.zig").Surface;
 const webgpu = @import("webgpu");
 const RenderPipeline = @import("render_pipeline.zig").RenderPipeline;

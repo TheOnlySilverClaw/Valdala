@@ -2,9 +2,7 @@ const shared = @import("shared.zig");
 const adapter = @import("adapter.zig");
 const surface = @import("surface.zig");
 
-pub fn create(descriptor: ?*const InstanceDescriptor) Instance {
-    return wgpuCreateInstance(descriptor);
-}
+pub const createInstance = wgpuCreateInstance;
 
 pub const Instance = *opaque {
 

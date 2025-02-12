@@ -2,18 +2,19 @@ const glfw = @import("module.zig");
 const input = @import("input.zig");
 const Monitor = @import("monitor.zig").Monitor;
 
-
-pub fn hint(key: HintKey, value: i32) void {
+// opaque structs currently cannot have functions atttached directly
+pub fn windowHint(key: HintKey, value: i32) void {
     glfwWindowHint(@intFromEnum(key), value);
 }
 
-pub fn create(width: u32, height: u32, title: [*:0] const u8, monitor: ?Monitor, share: ?Window) Window {
+// opaque structs currently cannot have functions atttached directly
+pub fn createWindow(width: u32, height: u32, title: [*:0] const u8, monitor: ?Monitor, share: ?Window) Window {
     return glfwCreateWindow(@intCast(width), @intCast(height), title, monitor, share);
 }
 
 pub const Window = *opaque {
 
-    pub fn should_close(window: Window) bool {
+    pub fn shouldClose(window: Window) bool {
         return glfwWindowShouldClose(window) == glfw.TRUE;
     }
     
