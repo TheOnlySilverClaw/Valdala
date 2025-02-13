@@ -13,16 +13,15 @@ struct Fragment {
 
 // changes if current texture cannot hold all glyphs
 @group(1) @binding(0) var glyphTexture: texture_2d<f32>;
-
-// changes per group of colored texts
-@group(2) @binding(0) var<uniform> textColor: vec4<f32>;
+@group(1) @binding(1) var<uniform> textColor: vec4<f32>;
 
 
 @vertex
 fn vertex(vertex: Vertex) -> Fragment {
 
     var fragment: Fragment;
-    fragment.position = vec4<f32>(vertex.position, 0.0, 1.0);
+    fragment.position = vec4<f32>(vertex.position, 0, 1);
+    fragment.uv = vertex.uv;
     return fragment;
 }
 
@@ -30,5 +29,5 @@ fn vertex(vertex: Vertex) -> Fragment {
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
     let textureColor = textureSample(glyphTexture, textureSampler, fragment.uv);
-    return textureColor * textColor;
+    return textureColor;
 }

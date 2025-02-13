@@ -30,31 +30,28 @@ pub fn create(
             .view_dimension = .@"2d"
         }
     };
-
-    const glyphTextureBindGroup = device.createBindGroupLayout(&.{
-        .entries = &.{ glyphTextureEntry },
-        .entry_count = 1
-    });
-
+    
     const textColorEntry = webgpu.BindGroupLayoutEntry {
-        .binding = 0,
+        .binding = 1,
         .visibility = .{ .fragment = true },
-        .buffer = .{ .type = .uniform }
+        .buffer = .{
+            .type = .uniform,
+            .min_binding_size = 4 * 4
+        }
     };
 
-    const textColorBindGroup = device.createBindGroupLayout(&.{
-        .entries = &.{ textColorEntry },
-        .entry_count = 1
+    const variableBindGroup = device.createBindGroupLayout(&.{
+        .entries = &.{ glyphTextureEntry, textColorEntry },
+        .entry_count = 2
     });
 
     const bindGroupLayouts: [*]const webgpu.BindGroupLayout = &.{
         samplerBindGroup,
-        glyphTextureBindGroup,
-        textColorBindGroup
+        variableBindGroup,
     };
 
     const layoutDescriptor = webgpu.PipelineLayoutDescriptor {
-        .bind_group_layout_count = 3,
+        .bind_group_layout_count = 2,
         .bind_group_layouts = bindGroupLayouts
     };
 
@@ -74,7 +71,7 @@ pub fn create(
     };
 
     const vertexBuffer = VertexLayout.createBufferLayout(
-        &.{ .float32x2, .float16x2 }, .vertex);
+        &.{ .float32x2, .float32x2 }, .vertex);
 
     const vertex = webgpu.VertexState {
         .constant_count = 0,

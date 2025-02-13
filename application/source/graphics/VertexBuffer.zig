@@ -19,18 +19,18 @@ pub fn VertexBuffer(comptime T: type, formats: []const webgpu.VertexFormat) type
             }
         }
 
-        length: usize,
+        length: u32,
         label: ?[*:0]const u8 = null,
         handle: webgpu.Buffer = undefined,
 
 
         pub fn create(self: *Self, device: webgpu.Device) void {
             
-            const descriptor = webgpu.buffer.BufferDescriptor {
+            const descriptor = webgpu.BufferDescriptor {
                 .label = self.label,
                 .size = self.size(),
                 .usage = .{ .vertex = true, .copy_dst = true },
-                .mapped_at_creation = false
+                .mappedAtCreation = 0
             };
 
             self.handle = device.createBuffer(&descriptor);
@@ -45,7 +45,7 @@ pub fn VertexBuffer(comptime T: type, formats: []const webgpu.VertexFormat) type
             self.handle.release();
         }
 
-        pub fn upload(self: Self, queue: webgpu.queue.Queue, data: []const T, offset: u64) void {
+        pub fn upload(self: Self, queue: webgpu.Queue, data: []const T, offset: u64) void {
             queue.writeBuffer(self.handle, T, data, offset);
         }
     };

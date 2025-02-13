@@ -44,7 +44,7 @@ pub const BufferDescriptor = extern struct {
     label: ?[*:0]const u8 = null,
     usage: BufferUsage,
     size: u64,
-    mapped_at_creation: bool = false,
+    mappedAtCreation: u32 = 0
 };
 
 pub const BufferMapAsyncStatus = enum(u32) {
