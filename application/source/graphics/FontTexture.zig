@@ -33,6 +33,7 @@ pub const CodePoint = u21;
 
 const Self = @This();
 
+const glyphTexturePadding = 2;
 
 const maxTextureWidth = 255.0;
 // bitmap saved in red channel
@@ -51,7 +52,7 @@ offsetY: u32,
 
 pub fn init(allocator: Allocator, device: webgpu.Device, fontBytes: []const u8, fontHeight: f32, expectedGlyphs: u32) !Self {
 
-    if(fontHeight > maxTextureWidth) return Error.TextureSize;
+    if(fontHeight + glyphTexturePadding * 2 > maxTextureWidth) return Error.TextureSize;
 
     const trueType = try TrueType.load(fontBytes);
     const fontScale = trueType.scaleForPixelHeight(fontHeight);
@@ -84,8 +85,8 @@ pub fn init(allocator: Allocator, device: webgpu.Device, fontBytes: []const u8, 
         .fontScale = fontScale,
         .texture = texture,
         .glyphByCodePoint = glyphByCodePoint,
-        .offsetX = 0,
-        .offsetY = 0
+        .offsetX = glyphTexturePadding,
+        .offsetY = glyphTexturePadding
     };
 }
 
@@ -114,7 +115,6 @@ pub fn loadASCII(self: *Self) !void {
 pub fn getGlyph(self: *Self, codeCpoint: CodePoint) !Glyph {
 
     return self.glyphByCodePoint.get(codeCpoint) orelse {
-        std.log.debug("load new glyph {c}", .{ @as(u8, @intCast(codeCpoint)) });
         try self.loadGlyph(codeCpoint);
         return self.glyphByCodePoint.get(codeCpoint).?;
     };
@@ -132,8 +132,8 @@ fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
     const bitmap = try self.trueType.glyphBitmap(self.allocator, &pixels, index, self.fontScale, self.fontScale);
     
     if(self.offsetX + bitmap.width > maxTextureWidth) {
-        self.offsetX = 0;
-        self.offsetY += @as(u32, @intFromFloat(@ceil(self.fontHeight)));
+        self.offsetX = glyphTexturePadding;
+        self.offsetY += @as(u32, @intFromFloat(self.fontHeight)) + glyphTexturePadding;
     }
 
     try self.texture.loadImagePixelsRectangle(pixels.items, self.queue, self.offsetX, self.offsetY, bitmap.width, bitmap.height);
@@ -153,7 +153,7 @@ fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
 
     try self.glyphByCodePoint.put(self.allocator, codeCoint, glyph);
     
-    self.offsetX += bitmap.width + 1;
+    self.offsetX += bitmap.width + glyphTexturePadding;
 }
 
 
