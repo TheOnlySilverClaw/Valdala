@@ -20,7 +20,7 @@ const Vertex = extern struct {
 
 const Self = @This();
 
-
+allocator: Allocator,
 pipeline: Pipeline,
 fontTexture: FontTexture,
 surface: Surface,
@@ -109,18 +109,15 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
     };
     const variableBindGroup = device.createBindGroup(&variableGroupDescriptor);
 
-    var vertices = try generateTextMesh(allocator, "Test 123 öÄüß !?", &fontTexure, 10, 10);
 
     var vertexBuffer = VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }) {
-        .length = @intCast(vertices.items.len),
+        .length = 1024,
         .label = "text vertices"
     };
     vertexBuffer.create(device);
 
-    vertexBuffer.upload(surface.getQueue(), vertices.items, 0);
-    vertices.deinit(allocator);
-
     return .{
+        .allocator = allocator,
         .pipeline = pipeline,
         .fontTexture = fontTexure,
         .surface = surface,
@@ -201,13 +198,20 @@ fn generateGlyphMesh(glyph: FontTexture.Glyph, x: f32, y: f32) ![6]Vertex {
     };
 }
 
-pub fn render(self: Self, delta: u64) !void {
-
-    _ = delta;
+pub fn render(self: *Self, delta: u64) !void {
 
     const surface = self.surface;
     const device = surface.device;
     const queue = surface.getQueue();
+
+    const fps: f32 = @as(f32, @floatFromInt(std.time.ms_per_s)) / @as(f32, @floatFromInt(delta));
+    var buffer: [20]u8 = undefined;
+    const slice = try std.fmt.bufPrint(&buffer, "{d:4} ms {d:3.2} FPS", .{ delta, fps });
+
+    var vertices = try generateTextMesh(self.allocator, slice, &self.fontTexture, 10, 10);
+    // TODO handle multiple different offsets
+    self.vertexBuffer.upload(queue, vertices.items, 0);
+    vertices.deinit(self.allocator);
 
     const commandEncoder = device.createCommandEncoder(null);
     

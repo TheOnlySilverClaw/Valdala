@@ -71,7 +71,7 @@ fn renderFrame(self: *Self) !void {
     }
 }
 
-fn renderApplication(self: Self, delta: u64) !void {
+fn renderApplication(self: *Self, delta: u64) !void {
 
     if(delta == 0) return;
 
