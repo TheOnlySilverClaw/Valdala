@@ -87,6 +87,7 @@ Even worse, I had to brush up my maths and nearly non-existent graphics programm
 
 Could I just use an engine instead? Sure, but where's the fun in that?
 
-So, currently, there's a floating textured quad:
+I decided it's probably easier to debug camera issues with some information on the screen.
+So I dived into the mysterious world of text rendering and got a performance counter working:
 
 ![screenshot](screenshot.png)
