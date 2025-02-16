@@ -137,6 +137,8 @@ fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, 
     var vertices = try ArrayList(Vertex).initCapacity(allocator, text.len * 6);
 
     var offsetX: f32 = x;
+    // TODO figure out recommended way to find the baseline
+    const baseLine: f32 = y + font.fontHeight / 2;
 
     while(iterator.nextCodepoint()) |codePoint| {
         if(codePoint == ' ') {
@@ -144,7 +146,7 @@ fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, 
             continue;
         }
         const glyph = try font.getGlyph(codePoint);
-        const generated = try generateGlyphMesh(glyph, offsetX, y);
+        const generated = try generateGlyphMesh(glyph, offsetX, baseLine);
         vertices.appendSliceAssumeCapacity(&generated);
         offsetX += glyph.advance;
     }
@@ -155,9 +157,9 @@ fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, 
 fn generateGlyphMesh(glyph: FontTexture.Glyph, x: f32, y: f32) ![6]Vertex {
 
     const startX: f32 = x + glyph.offsetX;
-    const startY: f32 = y + glyph.height + glyph.offsetY;
-    const endX: f32 = x + glyph.offsetX + glyph.width;
-    const endY: f32 = y + glyph.height;
+    const startY: f32 = y + glyph.offsetY;
+    const endX: f32 = startX + glyph.width;
+    const endY: f32 = startY + glyph.height;
 
     const uv = glyph.textureSlice;
 
