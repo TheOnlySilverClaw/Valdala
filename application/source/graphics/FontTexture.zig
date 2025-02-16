@@ -21,10 +21,11 @@ pub const TextureSlice = struct {
 };
 
 pub const Glyph = struct {
-    offsetX: i16,
-    offsetY: i16,
-    width: u16,
-    height: u16,
+    offsetX: f32,
+    offsetY: f32,
+    width: f32,
+    height: f32,
+    advance: f32,
     textureSlice: TextureSlice
 };
 
@@ -132,12 +133,14 @@ fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
     pixels.deinit(self.allocator);
 
     const textureSlice = calculateTextureSlice(self.texture, bitmap, @floatFromInt(self.offsetX), @floatFromInt(self.offsetY));
+    const horizontalMetrics = self.trueType.glyphHMetrics(index);
 
     const glyph = Glyph {
-        .offsetX = bitmap.off_x,
-        .offsetY = bitmap.off_y,
-        .width = bitmap.width,
-        .height = bitmap.height,
+        .offsetX = @floatFromInt(bitmap.off_x),
+        .offsetY = @floatFromInt(bitmap.off_y),
+        .width = @floatFromInt(bitmap.width),
+        .height = @floatFromInt(bitmap.height),
+        .advance = @as(f32, @floatFromInt(horizontalMetrics.advance_width)) * self.fontScale,
         .textureSlice = textureSlice
     };
 

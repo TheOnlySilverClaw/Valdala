@@ -37,7 +37,7 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
 
     const pipeline = Pipeline.create(device, surface.colorTextureFormat, shader);
 
-    const fontSize = 100;
+    const fontSize = 24;
 
     const fontBytes = try std.fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
     var fontTexure = try FontTexture.init(allocator, device, fontBytes, fontSize, 127);
@@ -86,7 +86,7 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
         .usage = .{ .uniform = true, .copy_dst = true }
     });
 
-    const color = Color.rgb(1, 1, 0);
+    const color = Color.rgb(1, 16.0 / 255.0, 240.0 / 255.0);
     surface.queue.writeBuffer(textColorBuffer, Color, &.{ color }, 0);
 
     const textColorEntry = webgpu.BindGroupEntry {
@@ -109,11 +109,7 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
     };
     const variableBindGroup = device.createBindGroup(&variableGroupDescriptor);
 
-    var vertices = try generateTextMesh(allocator, "Becca <3", &fontTexure, 10, 10);
-    // for (vertices) |v| {
-    //     std.log.debug("vertices {d} / {d} => {d:.5} / {d:.5}", .{ v.x, v.y,
-    //         (2 * v.x / @as(f32, @floatFromInt(surface.width)) - 1), (1 - 2 * v.y / @as(f32, @floatFromInt(surface.height))) });
-    // }
+    var vertices = try generateTextMesh(allocator, "Test 123 öÄüß !?", &fontTexure, 10, 10);
 
     var vertexBuffer = VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }) {
         .length = @intCast(vertices.items.len),
@@ -150,7 +146,7 @@ fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, 
         const glyph = try font.getGlyph(codePoint);
         const generated = try generateGlyphMesh(glyph, offsetX, y);
         vertices.appendSliceAssumeCapacity(&generated);
-        offsetX += @floatFromInt(glyph.width);
+        offsetX += glyph.advance;
     }
 
     return vertices;
@@ -158,16 +154,10 @@ fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, 
 
 fn generateGlyphMesh(glyph: FontTexture.Glyph, x: f32, y: f32) ![6]Vertex {
 
-    const width: f32 = @floatFromInt(glyph.width);
-    const height: f32 = @floatFromInt(glyph.height);
-    
-    const offsetX: f32 = @floatFromInt(glyph.offsetX);
-    const offsetY: f32 = @floatFromInt(glyph.offsetY);
-    
-    const startX: f32 = x + offsetX;
-    const startY: f32 = y + height + offsetY;
-    const endX: f32 = x + offsetX + width;
-    const endY: f32 = y + height;
+    const startX: f32 = x + glyph.offsetX;
+    const startY: f32 = y + glyph.height + glyph.offsetY;
+    const endX: f32 = x + glyph.offsetX + glyph.width;
+    const endY: f32 = y + glyph.height;
 
     const uv = glyph.textureSlice;
 
@@ -223,7 +213,7 @@ pub fn render(self: Self, delta: u64) !void {
     const frameTextureView = frameTexture.createView(null);
 
     const colorAttachment = webgpu.RenderPassColorAttachment {
-        .clear_value = .{ .r = 0.1, .g = 0.1, .b = 0.1, .a = 1 },
+        .clear_value = .{ .r = 0.0, .g = 0.0, .b = 0.0, .a = 1 },
         .load_op = .clear,
         .store_op = .store,
         .view = frameTextureView
