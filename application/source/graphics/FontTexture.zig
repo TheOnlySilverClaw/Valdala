@@ -124,11 +124,18 @@ fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
 
     if(self.glyphByCodePoint.contains(codeCoint)) return Error.DuplicateGlyph;
 
+
+
     const index = self.trueType.codepointGlyphIndex(codeCoint) orelse return Error.UnknownGlyph;
 
     var pixels = ArrayList(u8).empty;
     const bitmap = try self.trueType.glyphBitmap(self.allocator, &pixels, index, self.fontScale, self.fontScale);
     
+    if(self.offsetX + bitmap.width > maxTextureWidth) {
+        self.offsetX = 0;
+        self.offsetY += @as(u32, @intFromFloat(@ceil(self.fontHeight)));
+    }
+
     try self.texture.loadImagePixelsRectangle(pixels.items, self.queue, self.offsetX, self.offsetY, bitmap.width, bitmap.height);
     pixels.deinit(self.allocator);
 
@@ -146,7 +153,7 @@ fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
 
     try self.glyphByCodePoint.put(self.allocator, codeCoint, glyph);
     
-    self.offsetX = self.offsetX + bitmap.width + 1;
+    self.offsetX += bitmap.width + 1;
 }
 
 
@@ -160,7 +167,7 @@ fn calculateTextureSlice(texture: ImageTexture, bitmap: TrueType.GlyphBitmap, st
 
     return .{
         .startX = startX / textureWidth,
-        .startY = startY / textureWidth,
+        .startY = startY / textureHeight,
         .endX = (startX + glyphWidth) / textureWidth,
         .endY = (startY + glyphHeight) / textureHeight
     };

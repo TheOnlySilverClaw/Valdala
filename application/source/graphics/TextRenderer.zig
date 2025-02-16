@@ -41,7 +41,7 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
 
     const fontBytes = try std.fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
     var fontTexure = try FontTexture.init(allocator, device, fontBytes, fontSize, 127);
-    // try fontTexure.loadASCII();
+    try fontTexure.loadASCII();
 
     const sampler = Sampler.createLinearClamped(device);
     const samplerEntry = webgpu.BindGroupEntry {
