@@ -117,65 +117,65 @@ fn loadGlyph(self: *Self, codePoint: CodePoint) !void {
 }
 
 
-pub fn renderUTF8(self: *Self, text: []const u8, color: Color(f32)) !Image {
+// pub fn renderUTF8(self: *Self, text: []const u8, color: Color(f32)) !Image {
 
-    const utf8 = try std.unicode.Utf8View.init(text);
+//     const utf8 = try std.unicode.Utf8View.init(text);
 
-    var textureWidth: usize = 0;
-    var textureHeight: usize = 0;
+//     var textureWidth: usize = 0;
+//     var textureHeight: usize = 0;
 
-    var iterator = utf8.iterator();
-    while (iterator.nextCodepoint()) |codePoint| {
+//     var iterator = utf8.iterator();
+//     while (iterator.nextCodepoint()) |codePoint| {
         
-        if(!self.glyphByCodePoint.contains(codePoint)) {
-            try self.loadGlyph(codePoint);
-        }
+//         if(!self.glyphByCodePoint.contains(codePoint)) {
+//             try self.loadGlyph(codePoint);
+//         }
         
-        const glyph: Glyph = self.glyphByCodePoint.get(codePoint).?;
+//         const glyph: Glyph = self.glyphByCodePoint.get(codePoint).?;
 
-        textureWidth += @intCast(glyph.advance);
-        textureHeight = @max(textureHeight, glyph.height);
-    }
+//         textureWidth += @intCast(glyph.advance);
+//         textureHeight = @max(textureHeight, glyph.height);
+//     }
 
-    var textureGrid = try Grid2D(u8).init(self.allocator, textureWidth, textureHeight);
-    @memset(textureGrid.values, 0);
+//     var textureGrid = try Grid2D(u8).init(self.allocator, textureWidth, textureHeight);
+//     @memset(textureGrid.values, 0);
 
-    var textureOffsetX: usize = 0;
-    iterator.i = 0;
+//     var textureOffsetX: usize = 0;
+//     iterator.i = 0;
 
-    while (iterator.nextCodepoint()) |codePoint| {
+//     while (iterator.nextCodepoint()) |codePoint| {
 
-        const glyph = self.glyphByCodePoint.get(codePoint) orelse return GlyphError.Unknown;
+//         const glyph = self.glyphByCodePoint.get(codePoint) orelse return GlyphError.Unknown;
         
-        if(glyph.pixels) |pixels| {
+//         if(glyph.pixels) |pixels| {
             
-            const glyphGrid = Grid2D(u8).fromSlice(pixels, glyph.width, glyph.height);
-            const textureOffsetY: usize = textureHeight - glyph.height;
+//             const glyphGrid = Grid2D(u8).fromSlice(pixels, glyph.width, glyph.height);
+//             const textureOffsetY: usize = textureHeight - glyph.height;
             
-            for(0..glyph.width) |x| {
-                const offsetX = x + textureOffsetX;
-                for(0..glyph.height) |y| {
-                    textureGrid.set(offsetX, y + textureOffsetY, glyphGrid.get(x, y));
-                }
-            }
-        }
-        textureOffsetX += @intCast(glyph.advance);
-    }
+//             for(0..glyph.width) |x| {
+//                 const offsetX = x + textureOffsetX;
+//                 for(0..glyph.height) |y| {
+//                     textureGrid.set(offsetX, y + textureOffsetY, glyphGrid.get(x, y));
+//                 }
+//             }
+//         }
+//         textureOffsetX += @intCast(glyph.advance);
+//     }
 
-    const colorPixels: []u8 = try self.allocator.alloc(u8, textureGrid.size() * 4);
+//     const colorPixels: []u8 = try self.allocator.alloc(u8, textureGrid.size() * 4);
     
-    for(0..textureWidth) |x| {
-        for(0..textureHeight) |y| {
-            const target = (x + y * textureWidth) * 4;
-            const value: f32 = @floatFromInt(textureGrid.get(x, y));
-            colorPixels[target + 0] = @intFromFloat(color.red * value);
-            colorPixels[target + 1] = @intFromFloat(color.green * value);
-            colorPixels[target + 2] = @intFromFloat(color.blue * value);
-            colorPixels[target + 3] = @intFromFloat(color.alpha * value);
+//     for(0..textureWidth) |x| {
+//         for(0..textureHeight) |y| {
+//             const target = (x + y * textureWidth) * 4;
+//             const value: f32 = @floatFromInt(textureGrid.get(x, y));
+//             colorPixels[target + 0] = @intFromFloat(color.red * value);
+//             colorPixels[target + 1] = @intFromFloat(color.green * value);
+//             colorPixels[target + 2] = @intFromFloat(color.blue * value);
+//             colorPixels[target + 3] = @intFromFloat(color.alpha * value);
 
-        }
-    }
-    textureGrid.deinit(self.allocator);
+//         }
+//     }
+//     textureGrid.deinit(self.allocator);
 
-    return try Image.fromRawPixelsOwned(textureWidth, textureHeight, colorPixels, .rgba32);
-}
+//     return try Image.fromRawPixelsOwned(textureWidth, textureHeight, colorPixels, .rgba32);
+// }

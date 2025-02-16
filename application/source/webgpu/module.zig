@@ -22,3 +22,4 @@ pub usingnamespace @import("shader.zig");
 pub usingnamespace @import("support.zig");
 pub usingnamespace @import("surface.zig");
 pub usingnamespace @import("texture.zig");
+pub usingnamespace @import("texture_view.zig");

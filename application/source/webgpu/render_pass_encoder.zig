@@ -6,6 +6,7 @@ const bind_group = @import("bind_group.zig");
 const render_pipeline = @import("render_pipeline.zig");
 const query = @import("query.zig");
 const render_bundle = @import("render_bundle.zig");
+const texture_view = @import("texture_view.zig");
 
 
 pub const RenderPassEncoder = *opaque {
@@ -124,9 +125,9 @@ pub const LoadOperation = enum(u32) {
 
 pub const RenderPassColorAttachment = extern struct {
     next: ?*const shared.ChainedStruct = null,
-    view: ?texture.view.TextureView,
+    view: ?texture_view.TextureView,
     depth_slice: u32 = shared.Undefined,
-    resolve_target: ?texture.view.TextureView = null,
+    resolve_target: ?texture_view.TextureView = null,
     load_op: LoadOperation,
     store_op: StoreOperation,
     clear_value: shared.Color
@@ -144,7 +145,7 @@ pub const RenderPassDescriptor = extern struct {
 };
 
 pub const RenderPassDepthStencilAttachment = extern struct {
-    view: texture.view.TextureView,
+    view: texture_view.TextureView,
     depth_load_operation: LoadOperation = .undefined,
     depth_store_operation: StoreOperation = .undefined,
     depth_clear_value: f32 = 0.0,

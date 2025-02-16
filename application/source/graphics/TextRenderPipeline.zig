@@ -30,9 +30,18 @@ pub fn create(
             .view_dimension = .@"2d"
         }
     };
-    
-    const textColorEntry = webgpu.BindGroupLayoutEntry {
+
+    const screenSizeEntry = webgpu.BindGroupLayoutEntry {
         .binding = 1,
+        .visibility = .{ .vertex = true },
+        .buffer = .{
+            .type = .uniform,
+            .min_binding_size = @sizeOf([2]f32)
+        }
+    };
+
+    const textColorEntry = webgpu.BindGroupLayoutEntry {
+        .binding = 2,
         .visibility = .{ .fragment = true },
         .buffer = .{
             .type = .uniform,
@@ -40,19 +49,25 @@ pub fn create(
         }
     };
 
+    const variableEntries = [_] webgpu.BindGroupLayoutEntry {
+        glyphTextureEntry,
+        screenSizeEntry,
+        textColorEntry
+    };
+
     const variableBindGroup = device.createBindGroupLayout(&.{
-        .entries = &.{ glyphTextureEntry, textColorEntry },
-        .entry_count = 2
+        .entries = variableEntries[0..],
+        .entry_count = variableEntries.len
     });
 
-    const bindGroupLayouts: [*]const webgpu.BindGroupLayout = &.{
+    const bindGroupLayouts = [_] webgpu.BindGroupLayout {
         samplerBindGroup,
         variableBindGroup,
     };
 
     const layoutDescriptor = webgpu.PipelineLayoutDescriptor {
-        .bind_group_layout_count = 2,
-        .bind_group_layouts = bindGroupLayouts
+        .bind_group_layout_count = bindGroupLayouts.len,
+        .bind_group_layouts = bindGroupLayouts[0..]
     };
 
     const layout = device.createPipelineLayout(&layoutDescriptor);
@@ -83,7 +98,7 @@ pub fn create(
     };
 
     const primitive = webgpu.PrimitiveState {
-        .cull_mode = .none,
+        .cull_mode = .back,
         .front_face = .counter_clockwise,
         .topology = .triangle_list
     };

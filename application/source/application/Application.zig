@@ -33,7 +33,7 @@ pub fn init(allocator: Allocator) !Self {
 }
 
 
-pub fn deinit(self: Self) void {
+pub fn deinit(self: *Self) void {
     
     self.renderer.deinit();
     

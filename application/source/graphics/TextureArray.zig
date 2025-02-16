@@ -50,6 +50,40 @@ pub fn create(self: *Self, device: Device) void {
     self.handle =  device.createTexture(&descriptor);
 }
 
+pub fn loadImagePixels(self: Self, queue: Queue, pixels: []const u8, channels: u32, layer: u32) !void {
+    
+    try self.loadImagePixelsRectangle(queue, pixels, channels, 0, 0, self.width, self.height, layer);
+}
+
+pub fn loadImagePixelsRectangle(self: Self, queue: Queue, pixels: []const u8, channels: u32, x: u32, y: u32, width: u32, height: u32, layer: u32) !void {
+    
+    const destination = webgpu.ImageCopyTexture {
+        .aspect = .all,
+        .mip_level = 0,
+        .origin = .{
+            .x = x,
+            .y = y,
+            .z = layer
+        },
+        .texture = self.handle
+    };
+
+    const layout = webgpu.TextureDataLayout {
+        .offset = 0,
+        // TODO map from format channels
+        .bytes_per_row = width * channels,
+        .rows_per_image = height
+    };
+
+    const extent = Extent3D {
+        .width = width,
+        .height = height,
+        .depth = 1
+    };
+    
+    queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
+}
+
 pub fn loadImageFiles(self: Self, allocator: Allocator, queue: Queue, paths: []const []const u8) !void {
 
     if(paths.len > self.layers) return Error.LayersExceeded;
@@ -76,31 +110,8 @@ pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []con
     // TODO map from surface texture format?
     try image.convert(allocator, .bgra32);
 
-    const destination = webgpu.ImageCopyTexture {
-        .aspect = .all,
-        .mip_level = 0,
-        .origin = .{
-            .x = 0,
-            .y = 0,
-            .z = layer
-        },
-        .texture = self.handle
-    };
-
-    const layout = webgpu.TextureDataLayout {
-        .offset = 0,
-        .bytes_per_row = @intCast(image.rowByteSize()),
-        .rows_per_image = self.height
-    };
-
-    const extent = Extent3D {
-        .width = self.width,
-        .height = self.height,
-        .depth = 1
-    };
-    
-    const pixel_bytes = image.pixels.asConstBytes();
-    queue.writeTexture(&destination, pixel_bytes.ptr, pixel_bytes.len, &layout, &extent);
+    const pixels = image.pixels.asConstBytes();
+    try self.loadImagePixels(allocator, queue, pixels, layer);
 }
 
 pub fn createView(self: Self) webgpu.view.TextureView {

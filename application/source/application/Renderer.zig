@@ -25,8 +25,7 @@ pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
 
-    var textRenderer = try TextRenderer.init(allocator, window.surface);
-    try textRenderer.loadFontTexture();
+    const textRenderer = try TextRenderer.init(allocator, window.surface);
 
     return .{
         .allocator = allocator,
@@ -36,7 +35,7 @@ pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
     };
 }
 
-pub fn deinit(self: Self) void {
+pub fn deinit(self: *Self) void {
 
     self.textRenderer.deinit();
 

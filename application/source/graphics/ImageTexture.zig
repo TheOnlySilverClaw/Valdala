@@ -48,6 +48,12 @@ pub fn create(self: *Self, device: Device) void {
     self.handle =  device.createTexture(&descriptor);
 }
 
+pub fn destroy(self: Self) void {
+
+    self.handle.destroy();
+    self.handle.release();
+}
+
 pub fn loadImagePixels(self: Self, pixels: []const u8, queue: webgpu.Queue) !void {
 
     const destination = webgpu.ImageCopyTexture {
@@ -147,9 +153,9 @@ pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []con
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
-pub fn createView(self: Self) webgpu.view.TextureView {
+pub fn createView(self: Self) webgpu.TextureView {
 
-    const descriptor = webgpu.view.TextureViewDescriptor {
+    const descriptor = webgpu.TextureViewDescriptor {
         .array_layer_count = 1,
         .aspect = .all,
         .base_array_layer = 0,

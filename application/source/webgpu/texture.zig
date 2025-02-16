@@ -1,6 +1,6 @@
 const shared = @import("shared.zig");
 
-pub const view = @import("texture_view.zig");
+const view = @import("texture_view.zig");
 
 pub const Texture = *opaque {
 

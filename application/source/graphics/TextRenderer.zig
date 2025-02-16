@@ -3,25 +3,30 @@ const webgpu = @import("webgpu");
 
 const Allocator = std.mem.Allocator;
 const Pipeline = @import("TextRenderPipeline.zig");
-const Color = @import("Color.zig").Color(f32);
+const Color = @import("color.zig").Color(f32);
 const Surface = @import("Surface.zig");
 const Shader = @import("shader.zig").Shader;
-const Font = @import("Font.zig");
-const ImageTexture = @import("ImageTexture.zig");
+const FontTexture = @import("FontTexture.zig");
 const Sampler = @import("Sampler.zig");
-const VertexBuffer = @import("VertexBuffer.zig");
+const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer;
+const ArrayList = std.ArrayListUnmanaged;
+
+const Vertex = extern struct {
+    x: f32,
+    y: f32,
+    u: f32,
+    v: f32
+};
 
 const Self = @This();
 
 
 pipeline: Pipeline,
-font: Font,
-glyphTexture: ImageTexture,
+fontTexture: FontTexture,
 surface: Surface,
-lastGlyphStart: u32,
 samplerBindGroup: webgpu.BindGroup,
 variableBindGroup: webgpu.BindGroup,
-vertexBuffer: VertexBuffer.VertexBuffer([4]f32, &.{ .float32x2, .float32x2 }),
+vertexBuffer: VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }),
 
 
 pub fn init(allocator: Allocator, surface: Surface) !Self {
@@ -32,23 +37,11 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
 
     const pipeline = Pipeline.create(device, surface.colorTextureFormat, shader);
 
-    var font = try Font.init(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 16);
-    try font.loadASCII();
+    const fontSize = 100;
 
-    // reserve maximum width for all glpyhs
-    // TODO estimate for non-ASCII fonts with lazy-loaded glyphs
-    const fontHeight: u32 = @intFromFloat(@ceil(font.size));
-    const textureWidth = font.glyphByCodePoint.size * fontHeight;
-
-    var glyphTexture = ImageTexture {
-        .format = .r8_unorm,
-        .height = fontHeight,
-        .width = textureWidth,
-        .label = "glyphs",
-        .mipLevels = 1,
-        .samples = 1
-    };
-    glyphTexture.create(surface.device);
+    const fontBytes = try std.fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
+    var fontTexure = try FontTexture.init(allocator, device, fontBytes, fontSize, 127);
+    // try fontTexure.loadASCII();
 
     const sampler = Sampler.createLinearClamped(device);
     const samplerEntry = webgpu.BindGroupEntry {
@@ -64,63 +57,155 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
 
     const textureEntry = webgpu.BindGroupEntry {
         .binding = 0,
-        .texture_view = glyphTexture.createView()
+        .texture_view = fontTexure.createView()
+    };
+
+    const screenSizeBuffer = device.createBuffer(&webgpu.BufferDescriptor {
+        .label = "screen size",
+        .size = @sizeOf([2]f32),
+        .usage = .{ .uniform = true, .copy_dst = true }
+    });
+
+    const screenSize = [2]f32 {
+        @floatFromInt(surface.width),
+        @floatFromInt(surface.height)
+    };
+
+    surface.getQueue().writeBuffer(screenSizeBuffer, f32, &screenSize, 0);
+
+    const screenSizeEntry = webgpu.BindGroupEntry {
+        .binding = 1,
+        .buffer = screenSizeBuffer,
+        .size = screenSizeBuffer.size(),
+        .offset = 0
     };
 
     const textColorBuffer = device.createBuffer(&webgpu.BufferDescriptor {
         .label = "text color",
-        .mappedAtCreation = 0,
         .size = @sizeOf(Color) * 1,
         .usage = .{ .uniform = true, .copy_dst = true }
     });
-    const color = Color.rgb(1, 1, 1);
+
+    const color = Color.rgb(1, 1, 0);
     surface.queue.writeBuffer(textColorBuffer, Color, &.{ color }, 0);
 
     const textColorEntry = webgpu.BindGroupEntry {
-        .binding = 1,
+        .binding = 2,
         .buffer = textColorBuffer,
         .size = textColorBuffer.size(),
         .offset = 0
     };
 
-    const variableEntries: [*]const webgpu.BindGroupEntry = &.{
+    const variableEntries = [_] webgpu.BindGroupEntry {
         textureEntry,
+        screenSizeEntry,
         textColorEntry
     };
 
     const variableGroupDescriptor = webgpu.BindGroupDescriptor {
-        .entries = variableEntries,
-        .entry_count = 2,
+        .entries = variableEntries[0..],
+        .entry_count = variableEntries.len,
         .layout = pipeline.handle.getBindGroupLayout(1)
     };
     const variableBindGroup = device.createBindGroup(&variableGroupDescriptor);
 
-    const vertices = [_][4]f32 {
-        .{ -0.5, 0.5, 0, 0, },
-        .{ -0.5, -0.5, 0, 1, },
-        .{ 0.5, -0.5, 1, 1, },
-        .{ 0.5, -0.5, 1, 1, },
-        .{ 0.5, 0.5, 1, 0, },
-        .{ -0.5, 0.5, 0, 0 }
-    };
+    var vertices = try generateTextMesh(allocator, "Becca <3", &fontTexure, 10, 10);
+    // for (vertices) |v| {
+    //     std.log.debug("vertices {d} / {d} => {d:.5} / {d:.5}", .{ v.x, v.y,
+    //         (2 * v.x / @as(f32, @floatFromInt(surface.width)) - 1), (1 - 2 * v.y / @as(f32, @floatFromInt(surface.height))) });
+    // }
 
-    var vertexBuffer = VertexBuffer.VertexBuffer([4]f32, &.{ .float32x2, .float32x2 }) {
-        .length = vertices.len,
+    var vertexBuffer = VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }) {
+        .length = @intCast(vertices.items.len),
         .label = "text vertices"
     };
     vertexBuffer.create(device);
 
-    vertexBuffer.upload(surface.getQueue(), &vertices, 0);
+    vertexBuffer.upload(surface.getQueue(), vertices.items, 0);
+    vertices.deinit(allocator);
 
     return .{
         .pipeline = pipeline,
-        .font = font,
-        .glyphTexture = glyphTexture,
+        .fontTexture = fontTexure,
         .surface = surface,
-        .lastGlyphStart = 0,
         .samplerBindGroup = samplerBindGroup,
         .variableBindGroup = variableBindGroup,
         .vertexBuffer = vertexBuffer
+    };
+}
+
+fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, x: f32, y: f32) !ArrayList(Vertex) {
+
+    const view = try std.unicode.Utf8View.init(text);
+    var iterator = view.iterator();
+    var vertices = try ArrayList(Vertex).initCapacity(allocator, text.len * 6);
+
+    var offsetX: f32 = x;
+
+    while(iterator.nextCodepoint()) |codePoint| {
+        if(codePoint == ' ') {
+            offsetX += font.fontHeight / 2;
+            continue;
+        }
+        const glyph = try font.getGlyph(codePoint);
+        const generated = try generateGlyphMesh(glyph, offsetX, y);
+        vertices.appendSliceAssumeCapacity(&generated);
+        offsetX += @floatFromInt(glyph.width);
+    }
+
+    return vertices;
+}
+
+fn generateGlyphMesh(glyph: FontTexture.Glyph, x: f32, y: f32) ![6]Vertex {
+
+    const width: f32 = @floatFromInt(glyph.width);
+    const height: f32 = @floatFromInt(glyph.height);
+    
+    const offsetX: f32 = @floatFromInt(glyph.offsetX);
+    const offsetY: f32 = @floatFromInt(glyph.offsetY);
+    
+    const startX: f32 = x + offsetX;
+    const startY: f32 = y + height + offsetY;
+    const endX: f32 = x + offsetX + width;
+    const endY: f32 = y + height;
+
+    const uv = glyph.textureSlice;
+
+    const topLeft = Vertex {
+        .x = startX,
+        .y = startY,
+        .u = uv.startX,
+        .v = uv.startY,
+    };
+
+    const bottomLeft = Vertex {
+        .x = startX,
+        .y = endY,
+        .u = uv.startX,
+        .v = uv.endY,
+    };
+
+    const bottomRight = Vertex {
+        .x = endX,
+        .y = endY,
+        .u = uv.endX,
+        .v = uv.endY,
+    };
+
+    const topRight = Vertex {
+        .x = endX,
+        .y = startY,
+        .u = uv.endX,
+        .v = uv.startY,
+    };
+
+    return .{
+        topLeft,
+        bottomLeft,
+        bottomRight,
+        bottomRight,
+        topRight,
+        topLeft
     };
 }
 
@@ -138,7 +223,7 @@ pub fn render(self: Self, delta: u64) !void {
     const frameTextureView = frameTexture.createView(null);
 
     const colorAttachment = webgpu.RenderPassColorAttachment {
-        .clear_value = .{ .r = 0.9, .g = 0.9, .b = 0.9, .a = 1 },
+        .clear_value = .{ .r = 0.1, .g = 0.1, .b = 0.1, .a = 1 },
         .load_op = .clear,
         .store_op = .store,
         .view = frameTextureView
@@ -173,27 +258,7 @@ pub fn render(self: Self, delta: u64) !void {
     frameTexture.release();
 }
 
-pub fn loadFontTexture(self: *Self) !void {
+pub fn deinit(self: *Self) void {
 
-    for(33..127) |i| {
-        const codePoint: Font.CodePoint = @intCast(i);
-        const glyph = self.font.glyphByCodePoint.get(codePoint);
-        if(glyph) |g| {
-            try self.loadGlyphPixels(g);
-        }
-    }
-}
-
-fn loadGlyphPixels(self: *Self, glyph: Font.Glyph) !void {
-
-    if(glyph.pixels) |pixels| {
-        try self.glyphTexture.loadImagePixelsRectangle(
-            pixels, self.surface.getQueue(), self.lastGlyphStart, 0, glyph.width, glyph.height);
-        self.lastGlyphStart += glyph.width;
-    }
-}
-
-pub fn deinit(self: Self) void {
-
-    self.font.deinit();
+    self.fontTexture.deinit();
 }

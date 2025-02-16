@@ -1,4 +1,4 @@
 pub const Surface = @import("Surface.zig");
 pub const TextRenderer = @import("TextRenderer.zig");
 pub const Font = @import("Font.zig");
-pub const Color = @import("Color.zig").Color;
+pub const Color = @import("color.zig").Color;
