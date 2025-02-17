@@ -211,7 +211,7 @@ pub fn render(self: *Self, delta: u64) !void {
     var vertices = try generateTextMesh(self.allocator, slice, &self.fontTexture, 10, 10);
     // TODO handle multiple different offsets
     self.vertexBuffer.upload(queue, vertices.items, 0);
-    vertices.deinit(self.allocator);
+    defer vertices.deinit(self.allocator);
 
     const commandEncoder = device.createCommandEncoder(null);
     
@@ -237,7 +237,7 @@ pub fn render(self: *Self, delta: u64) !void {
     renderPassEncoder.setBindGroup(1, self.variableBindGroup, null);
     renderPassEncoder.setVertexBuffer(0, self.vertexBuffer.handle, 0, self.vertexBuffer.size());
     
-    renderPassEncoder.draw(self.vertexBuffer.length, 1, 0, 0);
+    renderPassEncoder.draw(@intCast(vertices.items.len), 1, 0, 0);
 
     renderPassEncoder.end();
     renderPassEncoder.release();
