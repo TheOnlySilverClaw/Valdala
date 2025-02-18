@@ -8,15 +8,9 @@ const Surface = @import("Surface.zig");
 const Shader = @import("shader.zig").Shader;
 const FontTexture = @import("FontTexture.zig");
 const Sampler = @import("Sampler.zig");
-const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer;
+const TextMesh = @import("TextMesh.zig");
 const ArrayList = std.ArrayListUnmanaged;
 
-const Vertex = extern struct {
-    x: f32,
-    y: f32,
-    u: f32,
-    v: f32
-};
 
 const Self = @This();
 
@@ -26,7 +20,6 @@ fontTexture: FontTexture,
 surface: Surface,
 samplerBindGroup: webgpu.BindGroup,
 variableBindGroup: webgpu.BindGroup,
-vertexBuffer: VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }),
 
 
 pub fn init(allocator: Allocator, surface: Surface) !Self {
@@ -108,95 +101,17 @@ pub fn init(allocator: Allocator, surface: Surface) !Self {
         .layout = pipeline.handle.getBindGroupLayout(1)
     };
     const variableBindGroup = device.createBindGroup(&variableGroupDescriptor);
-
-
-    var vertexBuffer = VertexBuffer(Vertex, &.{ .float32x2, .float32x2 }) {
-        .length = 1024,
-        .label = "text vertices"
-    };
-    vertexBuffer.create(device);
-
+    
     return .{
         .allocator = allocator,
         .pipeline = pipeline,
         .fontTexture = fontTexure,
         .surface = surface,
         .samplerBindGroup = samplerBindGroup,
-        .variableBindGroup = variableBindGroup,
-        .vertexBuffer = vertexBuffer
+        .variableBindGroup = variableBindGroup
     };
 }
 
-fn generateTextMesh(allocator: Allocator, text: []const u8, font: *FontTexture, x: f32, y: f32) !ArrayList(Vertex) {
-
-    const view = try std.unicode.Utf8View.init(text);
-    var iterator = view.iterator();
-    var vertices = try ArrayList(Vertex).initCapacity(allocator, text.len * 6);
-
-    var offsetX: f32 = x;
-    // TODO figure out recommended way to find the baseline
-    const baseLine: f32 = y + font.fontHeight / 2;
-
-    while(iterator.nextCodepoint()) |codePoint| {
-        if(codePoint == ' ') {
-            offsetX += font.fontHeight / 2;
-            continue;
-        }
-        const glyph = try font.getGlyph(codePoint);
-        const generated = try generateGlyphMesh(glyph, offsetX, baseLine);
-        vertices.appendSliceAssumeCapacity(&generated);
-        offsetX += glyph.advance;
-    }
-
-    return vertices;
-}
-
-fn generateGlyphMesh(glyph: FontTexture.Glyph, x: f32, y: f32) ![6]Vertex {
-
-    const startX: f32 = x + glyph.offsetX;
-    const startY: f32 = y + glyph.offsetY;
-    const endX: f32 = startX + glyph.width;
-    const endY: f32 = startY + glyph.height;
-
-    const uv = glyph.textureSlice;
-
-    const topLeft = Vertex {
-        .x = startX,
-        .y = startY,
-        .u = uv.startX,
-        .v = uv.startY,
-    };
-
-    const bottomLeft = Vertex {
-        .x = startX,
-        .y = endY,
-        .u = uv.startX,
-        .v = uv.endY,
-    };
-
-    const bottomRight = Vertex {
-        .x = endX,
-        .y = endY,
-        .u = uv.endX,
-        .v = uv.endY,
-    };
-
-    const topRight = Vertex {
-        .x = endX,
-        .y = startY,
-        .u = uv.endX,
-        .v = uv.startY,
-    };
-
-    return .{
-        topLeft,
-        bottomLeft,
-        bottomRight,
-        bottomRight,
-        topRight,
-        topLeft
-    };
-}
 
 pub fn render(self: *Self, delta: u64) !void {
 
@@ -208,10 +123,9 @@ pub fn render(self: *Self, delta: u64) !void {
     var buffer: [20]u8 = undefined;
     const slice = try std.fmt.bufPrint(&buffer, "{d:5} ms {d:3.0} fps", .{ delta, fps });
 
-    var vertices = try generateTextMesh(self.allocator, slice, &self.fontTexture, 10, 10);
-    // TODO handle multiple different offsets
-    self.vertexBuffer.upload(queue, vertices.items, 0);
-    defer vertices.deinit(self.allocator);
+    var performanceMesh = try TextMesh.init(self.allocator, device, queue, 
+        &self.fontTexture, .{ .x = 10, .y = 10 }, slice);
+    defer performanceMesh.destroy();
 
     const commandEncoder = device.createCommandEncoder(null);
     
@@ -230,17 +144,16 @@ pub fn render(self: *Self, delta: u64) !void {
         .color_attachments = &.{ colorAttachment }
     };
 
-    const renderPassEncoder = commandEncoder.beginRenderPass(&renderPassDescriptor);
+    const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
 
-    renderPassEncoder.setPipeline(self.pipeline.handle);
-    renderPassEncoder.setBindGroup(0, self.samplerBindGroup, null);
-    renderPassEncoder.setBindGroup(1, self.variableBindGroup, null);
-    renderPassEncoder.setVertexBuffer(0, self.vertexBuffer.handle, 0, self.vertexBuffer.size());
+    renderPass.setPipeline(self.pipeline.handle);
+    renderPass.setBindGroup(0, self.samplerBindGroup, null);
+    renderPass.setBindGroup(1, self.variableBindGroup, null);
     
-    renderPassEncoder.draw(@intCast(vertices.items.len), 1, 0, 0);
+    performanceMesh.render(renderPass);
 
-    renderPassEncoder.end();
-    renderPassEncoder.release();
+    renderPass.end();
+    renderPass.release();
 
     const commandBuffer = commandEncoder.finish(null);
     commandEncoder.release();
