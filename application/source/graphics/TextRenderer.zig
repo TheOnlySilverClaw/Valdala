@@ -206,7 +206,7 @@ pub fn render(self: *Self, delta: u64) !void {
 
     const fps: f32 = @as(f32, @floatFromInt(std.time.ms_per_s)) / @as(f32, @floatFromInt(delta));
     var buffer: [20]u8 = undefined;
-    const slice = try std.fmt.bufPrint(&buffer, "{d:4} ms {d:3.2} FPS", .{ delta, fps });
+    const slice = try std.fmt.bufPrint(&buffer, "{d:5} ms {d:3.0} fps", .{ delta, fps });
 
     var vertices = try generateTextMesh(self.allocator, slice, &self.fontTexture, 10, 10);
     // TODO handle multiple different offsets
