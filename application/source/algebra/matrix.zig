@@ -132,20 +132,35 @@ pub fn Matrix(comptime T: type) type {
                     return new;
                 }
 
-                pub fn print(self: Self) void {
+                pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
 
-                    const p = std.debug.print;
+                    _ = fmt;
+
+                    const ff = std.fmt.format_float;
+
+                    const valueOptions = ff.FormatOptions {
+                        .mode = .decimal,
+                        .precision = options.precision
+                    };
+
+                    var buffer: [ff.min_buffer_size]u8 = undefined;
 
                     inline for(0..R) |row| {
-                        p("( ", .{});
+                        _ = try writer.write("( ");
+                        
                         inline for(0..C-1) |column| {
                             const value = self.get(column, row);
-                            p("{d: >7.4}, ", .{value});
+                            const slice = try std.fmt.formatFloat(&buffer, value, valueOptions);
+                            _ = try writer.write(slice);
+                            _ = try writer.write(", ");
                         }
+                        
                         const value = self.get(C-1, row);
-                        p("{d: >7.4}", .{value});
-                        p(" )\n", .{});
+                        const slice = try std.fmt.formatFloat(&buffer, value, valueOptions);
+                        _ = try writer.write(slice);
+                        _ = try writer.write(" )\n");
                     }
+
                 }
             };
         }

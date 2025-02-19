@@ -140,5 +140,35 @@ pub fn Quaternion(comptime T: type) type {
 
             return m;
         }
+    
+
+        pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        
+            _ = fmt;
+
+            const ff = std.fmt.format_float;
+
+            const valueOptions = ff.FormatOptions {
+                .mode = .decimal,
+                .precision = options.precision
+            };
+
+            var buffer: [ff.min_buffer_size]u8 = undefined;
+            var slice: []const u8 = undefined;
+
+            _ = try writer.write("(");
+            slice = try std.fmt.formatFloat(&buffer, self.x, valueOptions);
+            _ = try writer.write(slice);
+            _ = try writer.write(", ");
+            slice = try std.fmt.formatFloat(&buffer, self.y, valueOptions);
+            _ = try writer.write(slice);
+            _ = try writer.write(", ");
+            slice = try std.fmt.formatFloat(&buffer, self.z, valueOptions);
+            _ = try writer.write(slice);
+            _ = try writer.write(", ");
+            slice = try std.fmt.formatFloat(&buffer, self.w, valueOptions);
+            _ = try writer.write(slice);
+            _ = try writer.write(")");
+        }
     };
 }
