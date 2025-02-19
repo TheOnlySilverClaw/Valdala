@@ -11,6 +11,8 @@ const Sampler = @import("Sampler.zig");
 const TextMesh = @import("TextMesh.zig");
 const ArrayList = std.ArrayListUnmanaged;
 
+// TODO move somewhere else
+const DebugOverlay = @import("DebugOverlay.zig");
 
 const Self = @This();
 
@@ -119,13 +121,9 @@ pub fn render(self: *Self, delta: u64) !void {
     const device = surface.device;
     const queue = surface.getQueue();
 
-    const fps: f32 = @as(f32, @floatFromInt(std.time.ms_per_s)) / @as(f32, @floatFromInt(delta));
-    var buffer: [20]u8 = undefined;
-    const slice = try std.fmt.bufPrint(&buffer, "{d:5} ms {d:3.0} fps", .{ delta, fps });
-
-    var performanceMesh = try TextMesh.init(self.allocator, device, queue, 
-        &self.fontTexture, .{ .x = 10, .y = 10 }, slice);
-    defer performanceMesh.destroy();
+    // TODO figure out initialization order
+    var debugOverlay = DebugOverlay.init(self.allocator, device, &self.fontTexture);
+    defer debugOverlay.deinit();
 
     const commandEncoder = device.createCommandEncoder(null);
     
@@ -150,7 +148,7 @@ pub fn render(self: *Self, delta: u64) !void {
     renderPass.setBindGroup(0, self.samplerBindGroup, null);
     renderPass.setBindGroup(1, self.variableBindGroup, null);
     
-    performanceMesh.render(renderPass);
+    try debugOverlay.render(renderPass, queue, delta, .{ .x = 1, .y = 2, .z = 3.5}, .{ .x = 0.3, .y = 0.4, .z = 0.8, .w = 0.4});
 
     renderPass.end();
     renderPass.release();
