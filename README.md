@@ -6,7 +6,7 @@ Currently, it is primarly my excuse to tinker with technologies I'm interested i
 
 ## Reason
 
-Like most of my projects, the idea started with me being unhappy about something. In this case, Minecraft.
+Like most of my projects, the idea started with me being unsatisfied with something. In this case, Minecraft.
 I liked building houses and towns, but after a construction project was finished, it was just... there... decoratively.
 There's no practical real reason in Minecraft to build anything fancy.
 A slightly bigger hole in the ground could contain everything you would need to survive the game.
@@ -87,7 +87,6 @@ Even worse, I had to brush up my maths and nearly non-existent graphics programm
 
 Could I just use an engine instead? Sure, but where's the fun in that?
 
-I decided it's probably easier to debug camera issues with some information on the screen.
-So I dived into the mysterious world of text rendering and got a performance counter working:
+Starting to get a debug overlay working. Next step: making it useful...
 
 ![screenshot](screenshot.png)
