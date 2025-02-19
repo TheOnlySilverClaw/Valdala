@@ -83,3 +83,19 @@ test "matrix" {
     try expectClose(@as(f32, 0), m.get(0, 3));
     try expectClose(@as(f32, 0), m.get(1, 3));
 }
+
+test "eulerAngles" {
+
+    var q = Quaternion.identity();
+    
+    try expectClose(Vector3D.all(0.0), q.eulerAngles());
+
+    q = Quaternion.aroundAxis(Axis.x, 0.5);
+    try expectClose(Vector3D.of(0.5, 0.0, 0.0), q.eulerAngles());
+
+    q = Quaternion.aroundAxis(Axis.y, 0.5);
+    try expectClose(Vector3D.of(0.0, 0.5, 0.0), q.eulerAngles());
+
+    q = Quaternion.aroundAxis(Axis.z, 0.5);
+    try expectClose(Vector3D.of(0.0, 0.0, 0.5), q.eulerAngles());
+}

@@ -140,6 +140,27 @@ pub fn Quaternion(comptime T: type) type {
 
             return m;
         }
+
+        pub fn eulerAngles(self: Self) Vector {
+
+            const pitch = math.atan2(
+                2 * (self.w * self.x + self.y * self.z),
+                1 - 2 * (self.x * self.x + self.y * self.y)
+            );
+
+            const roll = math.asin(2 * (self.w * self.y - self.x * self.z));
+
+            const yaw = math.atan2(
+                2 * (self.w * self.z + self.x * self.y),
+                1 - 2 * (self.y * self.y + self.z * self.z)
+            );
+
+            return .{
+                .x = pitch,
+                .y = roll,
+                .z = yaw
+            };
+        }
     
 
         pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
