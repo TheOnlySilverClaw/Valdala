@@ -19,12 +19,12 @@ const Self = @This();
 allocator: Allocator,
 pipeline: Pipeline,
 fontTexture: FontTexture,
-surface: Surface,
+surface: *const Surface,
 samplerBindGroup: webgpu.BindGroup,
 variableBindGroup: webgpu.BindGroup,
 
 
-pub fn init(allocator: Allocator, surface: Surface) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface) !Self {
 
     const device = surface.device;
 

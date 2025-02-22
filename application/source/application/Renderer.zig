@@ -8,7 +8,7 @@ const input = @import("input");
 
 const Allocator = std.mem.Allocator;
 const Window = input.Window;
-const TextRenderer = graphics.TextRenderer;
+const UserInterface = graphics.UserInterface;
 
 const Self = @This();
 
@@ -16,7 +16,7 @@ allocator: Allocator,
 window: *Window,
 targetFrameTime: u64,
 lastFrameEndTime: i64 = undefined,
-textRenderer: TextRenderer,
+userInterface: UserInterface,
 
 pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
 
@@ -25,19 +25,19 @@ pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
 
-    const textRenderer = try TextRenderer.init(allocator, window.surface);
+    const userInterface = try UserInterface.init(allocator, undefined, &window.surface);
 
     return .{
         .allocator = allocator,
         .window = window,
         .targetFrameTime = targetFrameTime,
-        .textRenderer = textRenderer
+        .userInterface = userInterface
     };
 }
 
 pub fn deinit(self: *Self) void {
 
-    self.textRenderer.deinit();
+    self.userInterface.deinit();
 
     self.window.destroy();
     self.allocator.destroy(self.window);
@@ -75,8 +75,6 @@ fn renderApplication(self: *Self, delta: u64) !void {
 
     if(delta == 0) return;
 
-    // const fps = time.ms_per_s / delta;
-    
-    try self.textRenderer.render(delta);
+    try self.userInterface.render(delta);
 
 }
