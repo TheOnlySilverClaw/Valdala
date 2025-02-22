@@ -9,6 +9,8 @@ const input = @import("input");
 const Allocator = std.mem.Allocator;
 const Window = input.Window;
 const UserInterface = graphics.UserInterface;
+const Camera = graphics.Camera;
+const Scene = graphics.Scene;
 
 const Self = @This();
 
@@ -17,6 +19,7 @@ window: *Window,
 targetFrameTime: u64,
 lastFrameEndTime: i64 = undefined,
 userInterface: UserInterface,
+scene: Scene,
 
 pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
 
@@ -25,13 +28,16 @@ pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
 
-    const userInterface = try UserInterface.init(allocator, undefined, &window.surface);
+    const camera = Camera.new(std.math.degreesToRadians(120), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
+    var scene = try Scene.init(allocator, camera);
+    const userInterface = try UserInterface.init(allocator, &scene, &window.surface);
 
     return .{
         .allocator = allocator,
         .window = window,
         .targetFrameTime = targetFrameTime,
-        .userInterface = userInterface
+        .userInterface = userInterface,
+        .scene = scene
     };
 }
 
