@@ -1,9 +1,10 @@
 const std = @import("std");
 const log = std.log;
 const glfw = @import("glfw");
+const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
-const Renderer = @import("Renderer.zig");
+const Renderer = graphics.ApplicationRenderer;
 
 const Self = @This();
 

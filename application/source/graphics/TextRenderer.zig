@@ -11,9 +11,6 @@ const Sampler = @import("Sampler.zig");
 const TextMesh = @import("TextMesh.zig");
 const ArrayList = std.ArrayListUnmanaged;
 
-// TODO move somewhere else
-const DebugOverlay = @import("DebugOverlay.zig");
-
 const Self = @This();
 
 allocator: Allocator,
@@ -117,13 +114,11 @@ pub fn init(allocator: Allocator, surface: *const Surface) !Self {
 
 pub fn render(self: *Self, delta: u64) !void {
 
+    _ = delta;
+    
     const surface = self.surface;
     const device = surface.device;
     const queue = surface.getQueue();
-
-    // TODO figure out initialization order
-    var debugOverlay = DebugOverlay.init(self.allocator, device, &self.fontTexture);
-    defer debugOverlay.deinit();
 
     const commandEncoder = device.createCommandEncoder(null);
     
@@ -148,8 +143,6 @@ pub fn render(self: *Self, delta: u64) !void {
     renderPass.setBindGroup(0, self.samplerBindGroup, null);
     renderPass.setBindGroup(1, self.variableBindGroup, null);
     
-    try debugOverlay.render(renderPass, queue, delta, .{ .x = 1, .y = 2, .z = 3.5}, .{ .x = 0.3, .y = 0.4, .z = 0.8, .w = 0.4});
-
     renderPass.end();
     renderPass.release();
 

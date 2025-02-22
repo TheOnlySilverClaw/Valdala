@@ -10,8 +10,8 @@ const Quaternion = algebra.Quaternion;
 const TextMesh = @import("TextMesh.zig");
 const FontTexture = @import("FontTexture.zig");
 
-
 const Self = @This();
+
 
 allocator: Allocator,
 performanceMesh: TextMesh,

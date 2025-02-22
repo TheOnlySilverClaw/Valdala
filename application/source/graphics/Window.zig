@@ -3,9 +3,8 @@ const webgpu = @import("webgpu");
 const glfw = @import("glfw");
 
 const log = std.log;
-const graphics = @import("graphics");
 
-const Surface = graphics.Surface;
+const Surface = @import("Surface.zig");
 const Controller = @import("Controller.zig");
 
 const Self = @This();

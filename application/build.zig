@@ -35,22 +35,16 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/graphics/module.zig")
     });
 
-    const input = b.createModule(.{
+    const ui = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/input//module.zig")
+        .root_source_file = b.path("source/ui//module.zig")
     });
 
     const worldgen = b.createModule(.{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("source/worldgen/module.zig")
-    });
-
-    const application = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("source/application//module.zig")
     });
 
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
@@ -75,23 +69,19 @@ pub fn build(b: *std.Build) void {
     graphics.addImport("TrueType", TrueType);
     graphics.addImport("zigimg", zigimg);
 
-    input.addImport("glfw", glfw);
-    input.addImport("webgpu", webgpu);
-    input.addImport("graphics", graphics);
+    ui.addImport("glfw", glfw);
+    ui.addImport("webgpu", webgpu);
+    ui.addImport("graphics", graphics);
 
     worldgen.addImport("common", common);
-    // temporarily, for output verification
-    worldgen.addImport("zigimg", zigimg);
 
-    application.addImport("common", common);
-    application.addImport("zigimg", zigimg);
-    application.addImport("glfw", glfw);
-    application.addImport("webgpu", webgpu);
-    application.addImport("graphics", graphics);
-    application.addImport("input", input);
-    application.addImport("worldgen", worldgen);
-
-    exe.root_module.addImport("application", application);
+    exe.root_module.addImport("common", common);
+    exe.root_module.addImport("zigimg", zigimg);
+    exe.root_module.addImport("glfw", glfw);
+    exe.root_module.addImport("webgpu", webgpu);
+    exe.root_module.addImport("graphics", graphics);
+    exe.root_module.addImport("ui", ui);
+    exe.root_module.addImport("worldgen", worldgen);
 
     b.installArtifact(exe);
 

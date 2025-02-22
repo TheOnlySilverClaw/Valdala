@@ -1,6 +1,6 @@
 const std = @import("std");
 const log = std.log;
-const Application = @import("application").Application;
+const Application = @import("Application.zig");
 
 pub fn main() void {
 

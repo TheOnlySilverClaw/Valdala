@@ -3,14 +3,13 @@ const log = std.log;
 const time = std.time;
 const glfw = @import("glfw");
 const webgpu = @import("webgpu");
-const graphics = @import("graphics");
-const input = @import("input");
+const ui = @import("ui");
 
 const Allocator = std.mem.Allocator;
-const Window = input.Window;
-const UserInterface = graphics.UserInterface;
-const Camera = graphics.Camera;
-const Scene = graphics.Scene;
+const Window = @import("Window.zig");
+const UserInterface = @import("UserInterface.zig");
+const Camera = @import("Camera.zig");
+const Scene = @import("Scene.zig");
 
 const Self = @This();
 
@@ -30,7 +29,7 @@ pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
 
     const camera = Camera.new(std.math.degreesToRadians(120), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
     var scene = try Scene.init(allocator, camera);
-    const userInterface = try UserInterface.init(allocator, &scene, &window.surface);
+    const userInterface = try UserInterface.init(allocator, &scene, window);
 
     return .{
         .allocator = allocator,
