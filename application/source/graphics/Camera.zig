@@ -28,23 +28,29 @@ pub fn new(fieldOfView: f32, width: f32, height: f32, distance: f32) Self {
 pub fn viewMatrix(self: Self) Matrix4x4 {
     
     const right = self.transform.pitchAxis();
-    const up = self.transform.yawAxis();
+    const up = Axis.z;
     const forward = self.transform.rollAxis();
     
     const position = self.transform.position;
 
     var m = Matrix4x4.zeros();
 
-    m.setColumn(0, right.asMatrix4x1(0).values);
-    m.setColumn(1, up.asMatrix4x1(0).values);
-    m.setColumn(2, forward.asMatrix4x1(0).values);
-    
+    m.set(0, 0, right.x);
+    m.set(0, 1, right.y);
+    m.set(0, 2, right.z);
+
+    m.set(1, 0, up.x);
+    m.set(1, 1, up.y);
+    m.set(1, 2, up.z);
+
+    m.set(2, 0, forward.x);
+    m.set(2, 1, forward.y);
+    m.set(2, 2, forward.z);
+
     m.set(0, 3, -position.dot(right));
     m.set(1, 3, -position.dot(up));
     m.set(2, 3, -position.dot(forward));
     m.set(3, 3, 1);
-
-    @import("std").log.debug("\n{d:5.3}", .{ m });
 
     return m;
 }
@@ -84,5 +90,5 @@ pub fn projectionMatrix(self: Self) Matrix4x4 {
 }
 
 pub fn asMatrix(self: Self) Matrix4x4 {
-    return self.projectionMatrix().multiply(self.viewMatrix());
+    return self.viewMatrix().multiply(self.projectionMatrix());
 }
