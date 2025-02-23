@@ -32,17 +32,20 @@ pub fn viewMatrix(self: Self) Matrix4x4 {
     const forward = self.transform.rollAxis();
     
     const position = self.transform.position;
-    const translation = Vector {
-        .x = -position.dot(right),
-        .y = -position.dot(up),
-        .z = -position.dot(forward)
-    };
 
     var m = Matrix4x4.zeros();
+
     m.setColumn(0, right.asMatrix4x1(0).values);
     m.setColumn(1, up.asMatrix4x1(0).values);
     m.setColumn(2, forward.asMatrix4x1(0).values);
-    m.setRow(3, translation.asMatrix4x1(1).values);
+    
+    m.set(0, 3, -position.dot(right));
+    m.set(1, 3, -position.dot(up));
+    m.set(2, 3, -position.dot(forward));
+    m.set(3, 3, 1);
+
+    @import("std").log.debug("\n{d:5.3}", .{ m });
+
     return m;
 }
 
