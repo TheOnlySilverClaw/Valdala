@@ -1,5 +1,6 @@
 const std = @import("std");
 const fmt = std.fmt;
+const math = std.math;
 const webgpu = @import("webgpu");
 const algebra = @import("algebra");
 
@@ -42,10 +43,13 @@ pub fn render(self: *Self, renderPass: webgpu.RenderPassEncoder, queue: webgpu.Q
     slice = try std.fmt.bufPrint(&buffer, "{d:5} ms {d:3.0} fps", .{ delta, fps });
     try self.performanceMesh.update(self.allocator, queue, slice);
 
-    slice = try fmt.bufPrint(&buffer, "position: {d:.2}", .{ position });
+    slice = try fmt.bufPrint(&buffer, "position: x {d:5.2} y {d:5.2} z {d:5.2}", .{ position.x, position.y, position.z });
     try self.positionMesh.update(self.allocator, queue, slice);
 
-    slice = try fmt.bufPrint(&buffer, "rotation: {d:.2}", .{ rotation });
+    const angles = rotation.eulerAngles();
+
+    const deg = math.radiansToDegrees;
+    slice = try fmt.bufPrint(&buffer, "rotation: x {d:4.1}° y {d:4.1}° z {d:4.1}°", .{ deg(angles.x), deg(angles.y), deg(angles.z) });
     try self.rotationMesh.update(self.allocator, queue, slice);
 
     self.performanceMesh.render(renderPass);

@@ -14,6 +14,8 @@ const FrameRenderer = @import("FrameRenderer.zig");
 const TextRenderer = @import("TextRenderer.zig");
 const FontTexture = @import("FontTexture.zig");
 const TrueType = @import("TrueType");
+const Controller = @import("Controller.zig");
+
 const Self = @This();
 
 allocator: Allocator,
@@ -25,6 +27,8 @@ fontTexture: *FontTexture,
 userInterface: *UserInterface,
 trueType: *TrueType,
 scene: *Scene,
+controller: *Controller,
+
 
 pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
@@ -38,6 +42,13 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
     self.allocator = allocator;
     self.window = window;
+
+    self.controller = try allocator.create(Controller);
+    self.controller.* = Controller {
+        .camera = self.scene.camera,
+        .window = self.window
+    };
+    self.window.controller = self.controller;
 
     const fontBytes = try fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
     
@@ -77,6 +88,8 @@ pub fn deinit(self: *Self) void {
 
     self.allocator.destroy(self.scene.camera);
     self.allocator.destroy(self.scene);
+
+    self.allocator.destroy(self.controller);
 }
 
 pub fn start(self: *Self) !void {
