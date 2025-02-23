@@ -1,5 +1,6 @@
 const std = @import("std");
 const glfw = @import("glfw");
+const algreba =  @import("algebra");
 
 const Window = @import("Window.zig");
 const Camera = @import("Camera.zig");
@@ -23,6 +24,7 @@ pub fn onKey(self: Self, key: glfw.Key, action: glfw.Action, modifiers: glfw.Mod
             .l => self.camera.transform.rotateYaw(-0.1),
             .i => self.camera.transform.rotatePitch(0.1),
             .k => self.camera.transform.rotatePitch(-0.1),
+            .zero => self.camera.transform = algreba.Transform(f32).origin(),
             else => {
                 log.debug("unmapped key {} action {s} shift: {} control: {}",
             .{ key, @tagName(action), modifiers.shift, modifiers.control});
