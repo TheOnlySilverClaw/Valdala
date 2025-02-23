@@ -87,6 +87,8 @@ Even worse, I had to brush up my maths and nearly non-existent graphics programm
 
 Could I just use an engine instead? Sure, but where's the fun in that?
 
-Starting to get a debug overlay working. Next step: making it useful...
+Some basic debugging overlay and controls are working:
 
 ![screenshot](screenshot.png)
+
+Time to finally fix the view projection...
