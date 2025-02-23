@@ -15,7 +15,7 @@ const TextRenderer = @import("TextRenderer.zig");
 const FontTexture = @import("FontTexture.zig");
 const TrueType = @import("TrueType");
 const Controller = @import("Controller.zig");
-
+const CubeRenderer = @import("CubeRenderer.zig");
 const Self = @This();
 
 allocator: Allocator,
@@ -23,6 +23,7 @@ window: *Window,
 
 frameRenderer: *FrameRenderer,
 textRenderer: *TextRenderer,
+cubeRenderer: *CubeRenderer,
 fontTexture: *FontTexture,
 userInterface: *UserInterface,
 trueType: *TrueType,
@@ -34,6 +35,8 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
+
+    const surface = &window.surface;
 
     const camera = try allocator.create(Camera);
     camera.* = Camera.new(std.math.degreesToRadians(120), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
@@ -65,8 +68,11 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
     self.userInterface = try allocator.create(UserInterface);
     self.userInterface.* = try UserInterface.init(allocator, self.scene, window, self.textRenderer);
     
+    self.cubeRenderer = try allocator.create(CubeRenderer);
+    self.cubeRenderer.* = try CubeRenderer.init(allocator, surface, self.scene.camera);
+
     self.frameRenderer = try allocator.create(FrameRenderer);
-    self.frameRenderer.* = try FrameRenderer.init(allocator, targetFrameRate, &self.window.surface, self.userInterface);
+    self.frameRenderer.* = try FrameRenderer.init(allocator, targetFrameRate, surface, self.userInterface, self.cubeRenderer);
 }
 
 pub fn deinit(self: *Self) void {
@@ -90,6 +96,9 @@ pub fn deinit(self: *Self) void {
     self.allocator.destroy(self.scene);
 
     self.allocator.destroy(self.controller);
+
+    self.allocator.destroy(self.cubeRenderer.pipeline);
+    self.allocator.destroy(self.cubeRenderer);
 }
 
 pub fn start(self: *Self) !void {

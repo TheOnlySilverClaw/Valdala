@@ -89,7 +89,7 @@ pub fn loadImageFiles(self: Self, allocator: Allocator, queue: Queue, paths: []c
     if(paths.len > self.layers) return Error.LayersExceeded;
 
     for(paths, 0..) | path, layer| {
-        try self.loadImage(allocator, queue, path, @intCast(layer));
+        try self.loadImageFile(allocator, queue, path, @intCast(layer));
     }
 }
 
@@ -101,22 +101,23 @@ pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []con
     var file = try fs.cwd().openFile(path, .{});
     defer file.close();
 
-    var image = try img.ImageUnmanaged.fromFile(allocator, file);
+    var image = try img.ImageUnmanaged.fromFile(allocator, &file);
     defer image.deinit(allocator);
 
-    if(image.width != @as(usize, self.width)) return Error.ImageDimensionMismatch;
-    if(image.height != @as(usize, self.height)) return Error.ImageDimensionMismatch;
+    if(image.width != @as(usize, self.width)) return Error.DimensionMismatch;
+    if(image.height != @as(usize, self.height)) return Error.DimensionMismatch;
 
     // TODO map from surface texture format?
     try image.convert(allocator, .bgra32);
 
     const pixels = image.pixels.asConstBytes();
-    try self.loadImagePixels(allocator, queue, pixels, layer);
+    const channels = image.pixelFormat().channelCount();
+    try self.loadImagePixels( queue, pixels, channels, layer);
 }
 
-pub fn createView(self: Self) webgpu.view.TextureView {
+pub fn createView(self: Self) webgpu.TextureView {
 
-    const descriptor = webgpu.view.TextureViewDescriptor {
+    const descriptor = webgpu.TextureViewDescriptor {
         .array_layer_count = self.layers,
         .aspect = .all,
         .base_array_layer = 0,

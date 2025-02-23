@@ -6,6 +6,8 @@ const webgpu = @import("webgpu");
 const Allocator = std.mem.Allocator;
 const Surface = @import("Surface.zig");
 const UserInterface = @import("UserInterface.zig");
+const CubeRenderer = @import("CubeRenderer.zig");
+
 const Self = @This();
 
 
@@ -16,8 +18,9 @@ targetFrameTime: u64,
 lastFrameEndTime: i64 = undefined,
 
 userInterface: *UserInterface,
+cubeRenderer: *CubeRenderer,
 
-pub fn init(allocator: Allocator, targetFrameRate: u64, surface: *const Surface, userInterface: *UserInterface) !Self {
+pub fn init(allocator: Allocator, targetFrameRate: u64, surface: *const Surface, userInterface: *UserInterface, cubeRenderer: *CubeRenderer) !Self {
 
     const targetFrameTime = time.ms_per_s / targetFrameRate;
     
@@ -26,7 +29,8 @@ pub fn init(allocator: Allocator, targetFrameRate: u64, surface: *const Surface,
         .surface = surface,
         .targetFrameTime = targetFrameTime,
         .lastFrameEndTime = time.milliTimestamp(),
-        .userInterface = userInterface
+        .userInterface = userInterface,
+        .cubeRenderer = cubeRenderer
     };
 }
 
@@ -64,6 +68,7 @@ pub fn render(self: *Self) !void{
 
     const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
     
+    try self.cubeRenderer.render(renderPass);
     try self.userInterface.render(renderPass, frameDeltaTime);
 
     renderPass.end();
