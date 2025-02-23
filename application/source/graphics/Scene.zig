@@ -5,9 +5,9 @@ const Camera = @import("Camera.zig");
 const Self = @This();
 
 allocator: Allocator,
-camera: Camera,
+camera: *Camera,
 
-pub fn init(allocator: Allocator, camera: Camera) !Self {
+pub fn init(allocator: Allocator, camera: *Camera) !Self {
 
 
     return .{

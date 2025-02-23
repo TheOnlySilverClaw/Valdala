@@ -41,23 +41,23 @@ const textureFormat = webgpu.TextureFormat.r8_unorm;
 
 allocator: Allocator,
 queue: webgpu.Queue,
-trueType: TrueType,
+trueType: *const TrueType,
 fontHeight: f32,
 fontScale: f32,
 texture: ImageTexture,
-glyphByCodePoint: HashMap(CodePoint, Glyph),
+glyphByCodePoint: *HashMap(CodePoint, Glyph),
 
 offsetX: u32,
 offsetY: u32,
 
-pub fn init(allocator: Allocator, device: webgpu.Device, fontBytes: []const u8, fontHeight: f32, expectedGlyphs: u32) !Self {
+pub fn init(allocator: Allocator, device: webgpu.Device, trueType: *const TrueType, fontHeight: f32, expectedGlyphs: u32) !Self {
 
     if(fontHeight + glyphTexturePadding * 2 > maxTextureWidth) return Error.TextureSize;
 
-    const trueType = try TrueType.load(fontBytes);
     const fontScale = trueType.scaleForPixelHeight(fontHeight);
 
-    var glyphByCodePoint = HashMap(CodePoint, Glyph) {};
+    var glyphByCodePoint = try allocator.create(HashMap(CodePoint, Glyph));
+    glyphByCodePoint.* = HashMap(CodePoint, Glyph).empty;
     try glyphByCodePoint.ensureTotalCapacity(allocator, expectedGlyphs);
 
     const requiredSize: f32 = fontHeight * @as(f32, @floatFromInt(expectedGlyphs));
@@ -92,9 +92,8 @@ pub fn init(allocator: Allocator, device: webgpu.Device, fontBytes: []const u8, 
 
 pub fn deinit(self: *Self) void {
 
-    self.allocator.free(self.trueType.ttf_bytes);
-
     self.glyphByCodePoint.deinit(self.allocator);
+    self.allocator.destroy(self.glyphByCodePoint);
 
     self.texture.destroy();
     self.queue.release();
@@ -123,8 +122,6 @@ pub fn getGlyph(self: *Self, codeCpoint: CodePoint) !Glyph {
 fn loadGlyph(self: *Self, codeCoint: CodePoint) !void {
 
     if(self.glyphByCodePoint.contains(codeCoint)) return Error.DuplicateGlyph;
-
-
 
     const index = self.trueType.codepointGlyphIndex(codeCoint) orelse return Error.UnknownGlyph;
 

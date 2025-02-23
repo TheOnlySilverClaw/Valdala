@@ -23,7 +23,8 @@ pub fn init(allocator: Allocator) !Self {
     glfw.windowHint(.ClientApi, glfw.no_api);
 
     log.debug("Create application renderer", .{});
-    const renderer = try Renderer.init(allocator, 60);
+    var renderer: Renderer = undefined;
+    try renderer.init(allocator, 60);
 
     log.debug("Initialized successfully", .{});
 

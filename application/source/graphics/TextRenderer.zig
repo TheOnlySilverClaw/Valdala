@@ -15,25 +15,19 @@ const Self = @This();
 
 allocator: Allocator,
 pipeline: Pipeline,
-fontTexture: FontTexture,
+fontTexture: *FontTexture,
 surface: *const Surface,
 samplerBindGroup: webgpu.BindGroup,
 variableBindGroup: webgpu.BindGroup,
 
 
-pub fn init(allocator: Allocator, surface: *const Surface) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, fontTexture: *FontTexture) !Self {
 
     const device = surface.device;
 
     const shader = try Shader.loadModule(allocator, device, "shaders/text.wgsl", "text");
 
     const pipeline = Pipeline.create(device, surface.colorTextureFormat, shader);
-
-    const fontSize = 24;
-
-    const fontBytes = try std.fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
-    var fontTexure = try FontTexture.init(allocator, device, fontBytes, fontSize, 127);
-    try fontTexure.loadASCII();
 
     const sampler = Sampler.createLinearClamped(device);
     const samplerEntry = webgpu.BindGroupEntry {
@@ -49,7 +43,7 @@ pub fn init(allocator: Allocator, surface: *const Surface) !Self {
 
     const textureEntry = webgpu.BindGroupEntry {
         .binding = 0,
-        .texture_view = fontTexure.createView()
+        .texture_view = fontTexture.createView()
     };
 
     const screenSizeBuffer = device.createBuffer(&webgpu.BufferDescriptor {
@@ -104,7 +98,7 @@ pub fn init(allocator: Allocator, surface: *const Surface) !Self {
     return .{
         .allocator = allocator,
         .pipeline = pipeline,
-        .fontTexture = fontTexure,
+        .fontTexture = fontTexture,
         .surface = surface,
         .samplerBindGroup = samplerBindGroup,
         .variableBindGroup = variableBindGroup
@@ -112,53 +106,15 @@ pub fn init(allocator: Allocator, surface: *const Surface) !Self {
 }
 
 
-pub fn render(self: *Self, delta: u64) !void {
-
-    _ = delta;
-    
-    const surface = self.surface;
-    const device = surface.device;
-    const queue = surface.getQueue();
-
-    const commandEncoder = device.createCommandEncoder(null);
-    
-    const frameTexture = try surface.getColorTexture();
-    const frameTextureView = frameTexture.createView(null);
-
-    const colorAttachment = webgpu.RenderPassColorAttachment {
-        .clear_value = .{ .r = 0.0, .g = 0.0, .b = 0.0, .a = 1 },
-        .load_op = .clear,
-        .store_op = .store,
-        .view = frameTextureView
-    };
-
-    const renderPassDescriptor = webgpu.RenderPassDescriptor {
-        .color_attachment_count = 1,
-        .color_attachments = &.{ colorAttachment }
-    };
-
-    const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
+pub fn bind(self: *Self, renderPass: webgpu.RenderPassEncoder) !void {
 
     renderPass.setPipeline(self.pipeline.handle);
     renderPass.setBindGroup(0, self.samplerBindGroup, null);
     renderPass.setBindGroup(1, self.variableBindGroup, null);
-    
-    renderPass.end();
-    renderPass.release();
-
-    const commandBuffer = commandEncoder.finish(null);
-    commandEncoder.release();
-
-    queue.submit(&.{ commandBuffer });
-    commandBuffer.release();
-    
-    surface.present();
-
-    frameTextureView.release();
-    frameTexture.release();
 }
 
 pub fn deinit(self: *Self) void {
 
     self.fontTexture.deinit();
+    self.allocator.destroy(self.fontTexture);
 }

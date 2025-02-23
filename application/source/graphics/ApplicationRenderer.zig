@@ -1,6 +1,6 @@
 const std = @import("std");
 const log = std.log;
-const time = std.time;
+const fs = std.fs;
 const glfw = @import("glfw");
 const webgpu = @import("webgpu");
 const ui = @import("ui");
@@ -10,76 +10,80 @@ const Window = @import("Window.zig");
 const UserInterface = @import("UserInterface.zig");
 const Camera = @import("Camera.zig");
 const Scene = @import("Scene.zig");
-
+const FrameRenderer = @import("FrameRenderer.zig");
+const TextRenderer = @import("TextRenderer.zig");
+const FontTexture = @import("FontTexture.zig");
+const TrueType = @import("TrueType");
 const Self = @This();
 
 allocator: Allocator,
 window: *Window,
-targetFrameTime: u64,
-lastFrameEndTime: i64 = undefined,
-userInterface: UserInterface,
-scene: Scene,
 
-pub fn init(allocator: Allocator, targetFrameRate: u64) !Self {
+frameRenderer: *FrameRenderer,
+textRenderer: *TextRenderer,
+fontTexture: *FontTexture,
+userInterface: *UserInterface,
+trueType: *TrueType,
+scene: *Scene,
 
-    const targetFrameTime = time.ms_per_s / targetFrameRate;
+pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
 
-    const camera = Camera.new(std.math.degreesToRadians(120), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
-    var scene = try Scene.init(allocator, camera);
-    const userInterface = try UserInterface.init(allocator, &scene, window);
+    const camera = try allocator.create(Camera);
+    camera.* = Camera.new(std.math.degreesToRadians(120), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
+    self.scene = try allocator.create(Scene);
+    self.scene.* = try Scene.init(allocator, camera);
 
-    return .{
-        .allocator = allocator,
-        .window = window,
-        .targetFrameTime = targetFrameTime,
-        .userInterface = userInterface,
-        .scene = scene
-    };
+    self.allocator = allocator;
+    self.window = window;
+
+    const fontBytes = try fs.cwd().readFileAlloc(allocator, "fonts/FiraCode/FiraCode-Regular.ttf", 1_000_000);
+    
+    self.trueType = try allocator.create(TrueType);
+    self.trueType.* = try TrueType.load(fontBytes);
+    
+    self.fontTexture = try allocator.create(FontTexture);
+    self.fontTexture.* = try FontTexture.init(allocator, window.surface.device, self.trueType, 24, 127);
+    try self.fontTexture.loadASCII();
+    
+    self.textRenderer = try allocator.create(TextRenderer);
+    self.textRenderer.* = try TextRenderer.init(allocator, &window.surface, self.fontTexture);
+
+    self.userInterface = try allocator.create(UserInterface);
+    self.userInterface.* = try UserInterface.init(allocator, self.scene, window, self.textRenderer);
+    
+    self.frameRenderer = try allocator.create(FrameRenderer);
+    self.frameRenderer.* = try FrameRenderer.init(allocator, targetFrameRate, &self.window.surface, self.userInterface);
 }
 
 pub fn deinit(self: *Self) void {
 
     self.userInterface.deinit();
+    self.allocator.destroy(self.userInterface);
 
     self.window.destroy();
     self.allocator.destroy(self.window);
+
+    self.frameRenderer.deinit();
+    self.allocator.destroy(self.frameRenderer);
+
+    self.textRenderer.deinit();
+    self.allocator.destroy(self.textRenderer);
+
+    self.allocator.free(self.trueType.ttf_bytes);
+    self.allocator.destroy(self.trueType);
+
+    self.allocator.destroy(self.scene.camera);
+    self.allocator.destroy(self.scene);
 }
 
 pub fn start(self: *Self) !void {
 
-    self.lastFrameEndTime = time.milliTimestamp();
 
     while(self.window.shouldClose() == false) {
         glfw.pollEvents();
-        try self.renderFrame();
+        try self.frameRenderer.render();
     }
-}
-
-fn renderFrame(self: *Self) !void {
-
-    const frameStartTime = time.milliTimestamp();
-    const frameDeltaTime: u64 = @intCast(frameStartTime - self.lastFrameEndTime);
-
-    try self.renderApplication(frameDeltaTime);
-
-    const currentFrameTime: u64 = @intCast(time.milliTimestamp() - frameStartTime);
-    self.lastFrameEndTime = time.milliTimestamp();
-
-    if(currentFrameTime < self.targetFrameTime) {
-        const sleepTime = self.targetFrameTime - currentFrameTime;
-        time.sleep(sleepTime * time.ns_per_ms);
-    } else {
-        log.warn("Frame rendering took {d} ms", .{ currentFrameTime });
-    }
-}
-
-fn renderApplication(self: *Self, delta: u64) !void {
-
-    if(delta == 0) return;
-
-    try self.userInterface.render(delta);
-
 }
