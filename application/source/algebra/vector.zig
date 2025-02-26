@@ -92,14 +92,14 @@ pub fn Vector3D(comptime T: type) type {
 
         pub fn asMatrix4x1(self: Self, w: T) Matrix1x4 {
             
-            var m = Matrix1x4.zeros();
-            m.setColumn(0, .{
-                self.x,
-                self.y,
-                self.z,
-                w
-            });
-            return m;
+            return Matrix1x4 {
+                .values = .{
+                    self.x,
+                    self.y,
+                    self.z,
+                    w
+                }
+            };
         }
 
         pub inline fn asDirection(self: Self) Matrix1x4 {
