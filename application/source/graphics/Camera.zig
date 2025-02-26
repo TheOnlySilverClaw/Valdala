@@ -28,7 +28,7 @@ pub fn new(fieldOfView: f32, width: f32, height: f32, distance: f32) Self {
 pub fn viewMatrix(self: Self) Matrix4x4 {
     
     const right = self.transform.pitchAxis();
-    const up = Axis.z;
+    const up = self.transform.yawAxis();
     const forward = self.transform.rollAxis();
     
     const position = self.transform.position;
@@ -90,5 +90,5 @@ pub fn projectionMatrix(self: Self) Matrix4x4 {
 }
 
 pub fn asMatrix(self: Self) Matrix4x4 {
-    return self.viewMatrix().multiply(self.projectionMatrix());
+    return self.projectionMatrix().multiply(self.viewMatrix());
 }
