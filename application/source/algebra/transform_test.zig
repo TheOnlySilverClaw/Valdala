@@ -1,7 +1,7 @@
 const std = @import("std");
 const math = std.math;
 const expect = std.testing.expect;
-const expectClose = @import("test.zig").expectClose;
+const expectClose = @import("test_expect.zig").expectClose;
 
 const Axis = @import("axis.zig").Axis(f32);
 const Vector = @import("vector.zig").Vector3D(f32);

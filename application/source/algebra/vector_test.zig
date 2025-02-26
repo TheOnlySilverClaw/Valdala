@@ -3,7 +3,7 @@ const math = std.math;
 const assert = std.debug.assert;
 const Vector3D = @import("vector.zig").Vector3D(f32);
 const expect = std.testing.expect;
-const expectClose = @import("test.zig").expectClose;
+const expectClose = @import("test_expect.zig").expectClose;
 
 test "vector add" {
     try expectClose(Vector3D.of(2, 3, 4),

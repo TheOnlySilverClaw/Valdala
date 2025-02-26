@@ -4,8 +4,9 @@ const Vector3D = @import("vector.zig").Vector3D(f32);
 const Axis = @import("axis.zig").Axis(f32);
 const Quaternion = @import("quaternion.zig").Quaternion(f32);
 
-const expectClose = @import("test.zig").expectClose;
+const expectClose = @import("test_expect.zig").expectClose;
 const expect = std.testing.expect;
+
 pub const rad90: f32 = math.degreesToRadians(90.0);
 
 test "quaternion is normalized" {
