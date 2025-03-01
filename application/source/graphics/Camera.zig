@@ -55,36 +55,24 @@ pub fn viewMatrix(self: Self) Matrix4x4 {
     return m;
 }
 
+// see https://github.com/g-truc/glm/blob/master/glm/ext/matrix_clip_space.inl perspectiveRH_ZO
 pub fn projectionMatrix(self: Self) Matrix4x4 {
 
-    const width = self.transform.scale.x;
-    const height = self.transform.scale.y;
+    const scale = self.transform.scale;
+    const width = scale.x;
+    const height = scale.y;
+    const far = scale.z;
     const near = 0.1;
-    const far = self.transform.scale.z;
-    const inverseRange = 1 / (near - far);
     const aspect = width / height;
-    const f = math.tan((self.fov) / 2.0);
+    const tan_half_fov = math.tan(self.fov / 2.0);
+    
     var m = Matrix4x4.zeros();
 
-    m.values[0] = f / aspect;
-    m.values[1] = 0;
-    m.values[2] = 0;
-    m.values[3] = 0;
-    
-    m.values[4] = 0;
-    m.values[5] = f;
-    m.values[6] = 0;
-    m.values[7] = 0;
-
-    m.values[8] = 0;
-    m.values[9] = 0;
-    m.values[10] = far * inverseRange;
-    m.values[11] = -1;
-    
-    m.values[12] = 0;
-    m.values[13] = 0;
-    m.values[14] = far * near * inverseRange;
-    m.values[15] = 0;
+    m.set(0, 0, 1 / (aspect * tan_half_fov));
+    m.set(1, 1, 1 / tan_half_fov);
+    m.set(2, 2, far / (near - far));
+    m.set(2, 3, -1.0);
+    m.set(3, 2, -(far * near) / (far - near));
     
     return m;
 }
