@@ -63,7 +63,7 @@ pub fn projectionMatrix(self: Self) Matrix4x4 {
     const far = self.transform.scale.z;
     const inverseRange = 1 / (near - far);
     const aspect = width / height;
-    const f = math.tan((math.pi - self.fov) / 2.0);
+    const f = math.tan((self.fov) / 2.0);
     var m = Matrix4x4.zeros();
 
     m.values[0] = f / aspect;
