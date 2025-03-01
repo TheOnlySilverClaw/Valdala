@@ -27,32 +27,16 @@ pub fn new(fieldOfView: f32, width: f32, height: f32, distance: f32) Self {
 
 pub fn viewMatrix(self: Self) Matrix4x4 {
     
-    const right = self.transform.pitchAxis();
-    const up = self.transform.yawAxis();
-    const forward = self.transform.rollAxis();
-    
-    const position = self.transform.position;
+    const offset = self.transform.position.opposite();
 
-    var m = Matrix4x4.zeros();
+    var translation = Matrix4x4.identity();
+    translation.set(3, 0, offset.x);
+    translation.set(3, 1, offset.y);
+    translation.set(3, 2, offset.z);
 
-    m.set(0, 0, right.x);
-    m.set(0, 1, right.y);
-    m.set(0, 2, right.z);
+    const rotation = self.transform.rotation.inverse().matrix();
 
-    m.set(1, 0, up.x);
-    m.set(1, 1, up.y);
-    m.set(1, 2, up.z);
-
-    m.set(2, 0, forward.x);
-    m.set(2, 1, forward.y);
-    m.set(2, 2, forward.z);
-
-    m.set(0, 3, -position.dot(right));
-    m.set(1, 3, -position.dot(up));
-    m.set(2, 3, -position.dot(forward));
-    m.set(3, 3, 1);
-
-    return m;
+    return rotation.multiply(translation);
 }
 
 // see https://github.com/g-truc/glm/blob/master/glm/ext/matrix_clip_space.inl perspectiveRH_ZO
