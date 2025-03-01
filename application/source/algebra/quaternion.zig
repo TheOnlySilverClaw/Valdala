@@ -23,9 +23,8 @@ pub fn Quaternion(comptime T: type) type {
 
         pub fn aroundAxis(axis: Vector, angle: T) Self {
 
-            const half = angle * 0.5;
-            const sin = math.sin(half);
-            const cos = math.cos(half);
+            const sin = math.sin(angle / 2.0);
+            const cos = math.cos(angle / 2.0);
 
             return .{
                 .x = axis.x * sin,
@@ -51,9 +50,9 @@ pub fn Quaternion(comptime T: type) type {
 
             const result = Self {
                 .x = self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
-                .y = self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,
-                .z = self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w,
-                .w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
+                .y = self.w * other.y + self.y * other.w + self.z * other.x - self.x * other.z,
+                .z = self.w * other.z + self.z * other.w + self.x * other.y - self.y * other.x,
+                .w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
             };
             return result.normalize();
         }

@@ -138,7 +138,7 @@ test "multiply resize" {
 test "multiply vector" {
 
     const Vector3D = @import("vector.zig").Vector3D(f32);
-    const vector4d = Vector3D.of(1, 2, 3).asMatrix4x1(4);
+    const vector4d = Vector3D.of(1, 2, 3).asColumnMatrix(4);
     const matrix = Matrix4x4.ofValue(1);
     const result = matrix.multiply(vector4d);
     

@@ -34,13 +34,24 @@ test "vector normalize" {
     try expect(vector.isNormalized());
 }
 
-test "to 1x4 matrix" {
+test "as column matrix" {
 
     const vector = Vector3D.of(0, 1, 2);
-    const matrix = vector.asMatrix4x1(3);
+    const matrix = vector.asColumnMatrix(3);
     
     try expectClose(@as(f32, 0), matrix.get(0, 0));
     try expectClose(@as(f32, 1), matrix.get(0, 1));
     try expectClose(@as(f32, 2), matrix.get(0, 2));
     try expectClose(@as(f32, 3), matrix.get(0, 3));
+}
+
+test "as row matrix" {
+
+    const vector = Vector3D.of(0, 1, 2);
+    const matrix = vector.asRowMatrix(3);
+    
+    try expectClose(@as(f32, 0), matrix.get(0, 0));
+    try expectClose(@as(f32, 1), matrix.get(1, 0));
+    try expectClose(@as(f32, 2), matrix.get(2, 0));
+    try expectClose(@as(f32, 3), matrix.get(3, 0));
 }

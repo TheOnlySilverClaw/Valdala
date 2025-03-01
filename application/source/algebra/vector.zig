@@ -88,26 +88,14 @@ pub fn Vector3D(comptime T: type) type {
             return self.dot(self);
         }
 
-        const Matrix1x4 = matrix.Matrix(T).Sized(1, 4);
+        const Matrix = matrix.Matrix(T);
 
-        pub fn asMatrix4x1(self: Self, w: T) Matrix1x4 {
-            
-            return Matrix1x4 {
-                .values = .{
-                    self.x,
-                    self.y,
-                    self.z,
-                    w
-                }
-            };
+        pub fn asRowMatrix(self: Self, w: T) Matrix.Sized(4, 1) {
+            return Matrix.Sized(4, 1).ofValues(.{ self.x, self.y, self.z, w });
         }
 
-        pub inline fn asDirection(self: Self) Matrix1x4 {
-            return self.asMatrix4x1(1);
-        }
-
-        pub inline fn asPoint(self: Self) Matrix1x4 {
-            return self.asMatrix4x1(0);
+        pub fn asColumnMatrix(self: Self, w: T) Matrix.Sized(1, 4) {
+            return Matrix.Sized(1, 4).ofValues(.{ self.x, self.y, self.z, w });
         }
 
         pub fn print(self: Self) void {
