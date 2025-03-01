@@ -40,6 +40,8 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
     const camera = try allocator.create(Camera);
     camera.* = Camera.new(std.math.degreesToRadians(60), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
+    camera.*.transform.translateRoll(-2);
+    
     self.scene = try allocator.create(Scene);
     self.scene.* = try Scene.init(allocator, camera);
 
