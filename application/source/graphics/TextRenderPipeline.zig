@@ -103,10 +103,16 @@ pub fn create(
         .topology = .triangle_list
     };
 
+    // TODO split renderers into 2D and 3D? UI probably does not need depth 
+    const depth = webgpu.DepthStencilState {
+        .format = .depth24_plus,
+        .depth_compare = .less
+    };
+
     const descriptor = webgpu.RenderPipelineDescriptor {
         .label = "text renderer",
         .layout = layout,
-        .depth_stencil = null,
+        .depth_stencil = &depth,
         .fragment = &fragment,
         .vertex = vertex,
         .primitive = primitive,

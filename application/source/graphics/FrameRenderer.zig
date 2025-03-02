@@ -53,6 +53,14 @@ pub fn render(self: *Self) !void{
     
     const colorTexture = try surface.getColorTexture();
     const colorTextureView = colorTexture.createView(null);
+    const depth_texture = surface.getDepthTexture().?;
+    const depth_texture_view_descriptor = webgpu.TextureViewDescriptor {
+        .label = "depth",
+        .aspect = .depth_only,
+        .dimension = .@"2d",
+        .format = surface.depth_texture_format,
+    };
+    const depth_texture_view = depth_texture.createView(&depth_texture_view_descriptor);
 
     const colorAttachment = webgpu.RenderPassColorAttachment {
         .clear_value = self.clearColor,
@@ -61,9 +69,17 @@ pub fn render(self: *Self) !void{
         .view = colorTextureView
     };
 
+    const depth_stencil_attachment = webgpu.RenderPassDepthStencilAttachment {
+        .depth_load_operation = .clear,
+        .depth_store_operation = .store,
+        .depth_clear_value = 1.0,
+        .view = depth_texture_view
+    };
+
     const renderPassDescriptor = webgpu.RenderPassDescriptor {
         .color_attachment_count = 1,
-        .color_attachments = &.{ colorAttachment }
+        .color_attachments = &.{ colorAttachment },
+        .depth_stencil_attachment = &depth_stencil_attachment
     };
 
     const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
@@ -84,6 +100,7 @@ pub fn render(self: *Self) !void{
 
     colorTextureView.release();
     colorTexture.release();
+    depth_texture_view.release();
 
     const currentFrameTime: u64 = @intCast(time.milliTimestamp() - frameStartTime);
     self.lastFrameEndTime = time.milliTimestamp();

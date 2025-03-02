@@ -90,6 +90,7 @@ pub const TextureFormat = enum(u32) {
     rgba8_sint,
     bgra8_unorm,
     bgra8_unorm_srgb,
+    rgb10_a2_uint,
     rgb10_a2_unorm,
     rg11_b10_ufloat,
     rgb9_e5_ufloat,

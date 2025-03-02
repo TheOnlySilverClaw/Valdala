@@ -52,7 +52,9 @@ pub fn shouldClose(self: Self) bool {
 }
 
 pub fn destroy(self: Self) void {
+    
     self.handle.destroy();
+    self.surface.destroy();
 }
 
 fn getSelfPointer(handle: glfw.Window) *Self {

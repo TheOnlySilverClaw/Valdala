@@ -212,7 +212,7 @@ pub const StencilFaceState = extern struct {
 pub const DepthStencilState = extern struct {
     next: ?*const shared.ChainedStruct = null,
     format: texture.TextureFormat,
-    depth_write_enabled: bool = false,
+    depth_write_enabled: u32 = 1.0,
     depth_compare: shared.CompareFunction = .always,
     stencil_front: StencilFaceState = .{},
     stencil_back: StencilFaceState = .{},

@@ -153,13 +153,18 @@ fn createRenderPipeline(device: webgpu.Device,
         .strip_index_format = .undefined
     };
 
+    const depth = webgpu.DepthStencilState {
+        .format = .depth24_plus,
+        .depth_compare = .less,
+    };
+
     const descriptor = webgpu.RenderPipelineDescriptor {
         .label = label,
         .layout = layout,
         .vertex = vertex,
         .fragment = &fragment,
         .primitive = primitive,
-        .depth_stencil = null,
+        .depth_stencil = &depth,
         .multisample = .{}
     };
 
