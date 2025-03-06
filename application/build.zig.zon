@@ -1,5 +1,5 @@
 .{
-    .name = "Valdala",
+    .name = .Valdala,
     .version = "0.0.1",
     .dependencies = .{
         .zigimg = .{
@@ -9,6 +9,8 @@
             .path = "submodules/TrueType"
         }
     },
+    .fingerprint = 0x4caff166888c6c5b,
+    .minimum_zig_version = "0.14.0",
     .paths = .{
         // TODO
         "source"
