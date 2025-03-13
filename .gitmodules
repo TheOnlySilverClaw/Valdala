@@ -8,12 +8,3 @@
 	url = https://github.com/gfx-rs/wgpu-native
 	branch = trunk
 
-[submodule "zigimg"]
-	path = application/submodules/zigimg
-	url = https://github.com/zigimg/zigimg.git
-	branch = master
-
-[submodule "TrueType"]
-	path = application/submodules/TrueType
-	url = https://codeberg.org/andrewrk/TrueType.git
-	branch = main
