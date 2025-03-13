@@ -3,10 +3,17 @@
     .version = "0.0.1",
     .dependencies = .{
         .zigimg = .{
-            .path = "submodules/zigimg"
+            // TODO switch back to main repository as soon as that works with Zig 0.14.0
+            .url = "https://github.com/TUSF/zigimg/archive/refs/heads/master.zip",
+            .hash = "zigimg-0.1.0-lly-O4heEADSRxoTwJwrD3TBfUob9052sIgb9SL8Iz-A",
         },
         .TrueType = .{
-            .path = "submodules/TrueType"
+            .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
+             .hash = "TrueType-0.0.0-AAAAAL4FAQCl7eLNhMnRN_JDnm2svCyrlltjoVQiZLs3"
+        },
+        .webgpu = .{
+            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
+            .hash = "wgpu_native-1.0.0-dKjiOPEIAQA393yMGsqClO6-RQzwv4dT6M9H7CcNJKVA"
         }
     },
     .fingerprint = 0x4caff166888c6c5b,
