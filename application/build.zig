@@ -11,11 +11,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/glfw/module.zig")
     });
 
-    const webgpu = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("source/webgpu/module.zig")
-    });
+    const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
     const algebra = b.createModule(.{
         .target = target,
