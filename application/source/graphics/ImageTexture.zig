@@ -22,9 +22,9 @@ mipLevels: u32 = 1,
 samples: u32 = 1,
 label: ?[*:0]const u8 = null,
 
-handle: webgpu.Texture = undefined,
+handle: *webgpu.Texture = undefined,
 
-pub fn create(self: *Self, device: Device) void {
+pub fn create(self: *Self, device: *Device) void {
 
     const descriptor = webgpu.TextureDescriptor {
         .label = self.label,
@@ -83,7 +83,7 @@ pub fn loadImagePixels(self: Self, pixels: []const u8, queue: webgpu.Queue) !voi
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
-pub fn loadImagePixelsRectangle(self: Self, pixels: []const u8, queue: webgpu.Queue, x: u32, y: u32, width: u32, height: u32) !void {
+pub fn loadImagePixelsRectangle(self: Self, pixels: []const u8, queue: *webgpu.Queue, x: u32, y: u32, width: u32, height: u32) !void {
 
     const destination = webgpu.ImageCopyTexture {
         .aspect = .all,
@@ -153,7 +153,7 @@ pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []con
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
-pub fn createView(self: Self) webgpu.TextureView {
+pub fn createView(self: Self) *webgpu.TextureView {
 
     const descriptor = webgpu.TextureViewDescriptor {
         .array_layer_count = 1,

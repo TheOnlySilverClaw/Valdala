@@ -20,7 +20,7 @@ positionMesh: TextMesh,
 rotationMesh: TextMesh,
 
 
-pub fn init(allocator: Allocator, device: webgpu.Device, fontTexture: *FontTexture) Self {
+pub fn init(allocator: Allocator, device: *webgpu.Device, fontTexture: *FontTexture) Self {
 
     const performance = TextMesh.reserve(device, 32, fontTexture, .{ .x = 10, .y = 10 });
     const position = TextMesh.reserve(device, 64, fontTexture, .{ .x = 10, .y = 40 });
@@ -34,7 +34,7 @@ pub fn init(allocator: Allocator, device: webgpu.Device, fontTexture: *FontTextu
     };
 }
 
-pub fn render(self: *Self, renderPass: webgpu.RenderPassEncoder, queue: webgpu.Queue, delta: u64, position: Vector3D(f32), rotation: Quaternion(f32)) !void {
+pub fn render(self: *Self, renderPass: *webgpu.RenderPassEncoder, queue: *webgpu.Queue, delta: u64, position: Vector3D(f32), rotation: Quaternion(f32)) !void {
 
     var buffer: [64]u8 = undefined;
     var slice: []const u8 = undefined;

@@ -16,27 +16,27 @@ pub const Error = error {
 const Self = @This();
 
 
-handle: webgpu.Surface,
+handle: *webgpu.Surface,
 capabilities: webgpu.SurfaceCapabilities,
 alphaMode: webgpu.AlphaMode,
 colorTextureFormat: webgpu.TextureFormat,
 depth_texture_format: webgpu.TextureFormat,
-depth_texture: ?webgpu.Texture,
-device: webgpu.Device,
-queue: webgpu.Queue,
+depth_texture: ?*webgpu.Texture,
+device: *webgpu.Device,
+queue: *webgpu.Queue,
 width: u32,
 height: u32,
 
-pub fn create(window: glfw.Window, instance: webgpu.Instance) !Self {
+pub fn create(window: glfw.Window, instance: *webgpu.Instance) !Self {
     
     const handle = try glfw_webgpu.createSurface(window, instance);
     
-    const adapter = try instance.requestAdapter(&.{
+    const adapter = try instance.requestAdapterSync(&.{
         .compatible_surface = handle,
         .power_preference = .high_performance
     });
 
-    const device = try adapter.requestDevice(null);
+    const device = try adapter.requestDeviceSync(null);
 
     var capabilities: webgpu.SurfaceCapabilities = undefined;
     handle.getCapabilities(adapter, &capabilities);
@@ -110,11 +110,11 @@ fn createDepthTexture(self: *Self) void {
     self.depth_texture = self.device.createTexture(&descriptor);
 }
 
-pub fn getQueue(self: Self) webgpu.Queue {
+pub fn getQueue(self: Self) *webgpu.Queue {
     return self.queue;
 }
 
-pub fn getColorTexture(self: Self) Error!webgpu.Texture {
+pub fn getColorTexture(self: Self) Error!*webgpu.Texture {
     
     var surface_texture : webgpu.SurfaceTexture = undefined;
     self.handle.getCurrentTexture(&surface_texture);
@@ -130,7 +130,7 @@ pub fn getColorTexture(self: Self) Error!webgpu.Texture {
 }
 
 /// should always be set after surface is configured
-pub fn getDepthTexture(self: Self) ?webgpu.Texture {
+pub fn getDepthTexture(self: Self) ?*webgpu.Texture {
     return self.depth_texture;
 }
 

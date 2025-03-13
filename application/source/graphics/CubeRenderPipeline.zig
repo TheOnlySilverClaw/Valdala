@@ -10,12 +10,12 @@ const TextureArray = @import("TextureArray.zig");
 const Self = @This();
 
 
-block_sampler: webgpu.Sampler,
+block_sampler: *webgpu.Sampler,
 block_texture: TextureArray,
 vertex_buffer: VertexBuffer,
-index_buffer: webgpu.Buffer,
-bind_group_layout: webgpu.BindGroupLayout,
-handle: webgpu.RenderPipeline,
+index_buffer: *webgpu.Buffer,
+bind_group_layout: *webgpu.BindGroupLayout,
+handle: *webgpu.RenderPipeline,
 
 
 pub fn create(allocator: Allocator, surface: *const Surface) !Self {
@@ -115,12 +115,12 @@ const Vertex = extern struct {
     }
 };
 
-fn createRenderPipeline(device: webgpu.Device,
-    layout: webgpu.PipelineLayout,
+fn createRenderPipeline(device: *webgpu.Device,
+    layout: *webgpu.PipelineLayout,
     color_texture_format: webgpu.TextureFormat,
     vertex_shader: Shader,
     fragment_shader: Shader,
-    label: ?[*:0]const u8) webgpu.RenderPipeline {
+    label: ?[*:0]const u8) *webgpu.RenderPipeline {
 
     const bufferLayout = VertexLayout.createBufferLayout(&.{.float32x3, .unorm16x2, .uint32 }, .vertex);
 
@@ -171,7 +171,7 @@ fn createRenderPipeline(device: webgpu.Device,
     return device.createRenderPipeline(&descriptor);
 }
 
-fn createPipelineLayout(device: webgpu.Device, bind_group_layouts: []const webgpu.BindGroupLayout, label: ?[*:0]const u8) webgpu.PipelineLayout {
+fn createPipelineLayout(device: *webgpu.Device, bind_group_layouts: []const *webgpu.BindGroupLayout, label: ?[*:0]const u8) *webgpu.PipelineLayout {
 
     const descriptor = webgpu.PipelineLayoutDescriptor {
         .label = label,
@@ -182,7 +182,7 @@ fn createPipelineLayout(device: webgpu.Device, bind_group_layouts: []const webgp
     return device.createPipelineLayout(&descriptor);
 }
 
-fn createBindGroupLayout(device: webgpu.Device, label: ?[*:0]const u8) webgpu.BindGroupLayout {
+fn createBindGroupLayout(device: *webgpu.Device, label: ?[*:0]const u8) *webgpu.BindGroupLayout {
 
     const Entry = webgpu.BindGroupLayoutEntry;
 
@@ -228,9 +228,9 @@ fn createBindGroupLayout(device: webgpu.Device, label: ?[*:0]const u8) webgpu.Bi
 }
 
 
-fn createSampler(device: webgpu.Device,
+fn createSampler(device: *webgpu.Device,
     addressMode: webgpu.AddressMode,
-    filter: webgpu.FilterMode) webgpu.Sampler {
+    filter: webgpu.FilterMode) *webgpu.Sampler {
 
 	const descriptor = webgpu.SamplerDescriptor {
 	    .address_mode_u  = addressMode,

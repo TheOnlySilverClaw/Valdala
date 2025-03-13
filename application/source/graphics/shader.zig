@@ -6,12 +6,12 @@ const Allocator = std.mem.Allocator;
 pub const Shader = struct {
     
     entry: [*:0]const u8,
-    module: webgpu.ShaderModule,
+    module: *webgpu.ShaderModule,
 
 
     pub const source_size_limit = 64 * 1024;
 
-    pub fn loadModule(allocator: Allocator, device: webgpu.Device, path: []const u8, label: [*:0]const u8) !webgpu.ShaderModule {
+    pub fn loadModule(allocator: Allocator, device: *webgpu.Device, path: []const u8, label: [*:0]const u8) !*webgpu.ShaderModule {
 
         const file = try fs.cwd().openFile(path, .{});
         defer file.close();

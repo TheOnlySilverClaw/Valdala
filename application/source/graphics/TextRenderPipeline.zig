@@ -2,12 +2,12 @@ const webgpu = @import("webgpu");
 
 const VertexLayout = @import("VertexLayout.zig");
 
-handle: webgpu.RenderPipeline,
+handle: *webgpu.RenderPipeline,
 
 pub fn create(
-    device: webgpu.Device,
+    device: *webgpu.Device,
     textureFormat: webgpu.TextureFormat,
-    shader: webgpu.ShaderModule,
+    shader: *webgpu.ShaderModule,
 ) @This() {
     
     const samplerEntry = webgpu.BindGroupLayoutEntry {
@@ -60,7 +60,7 @@ pub fn create(
         .entry_count = variableEntries.len
     });
 
-    const bindGroupLayouts = [_] webgpu.BindGroupLayout {
+    const bindGroupLayouts = [_] *webgpu.BindGroupLayout {
         samplerBindGroup,
         variableBindGroup,
     };

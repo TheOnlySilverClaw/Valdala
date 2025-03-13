@@ -2,7 +2,7 @@ const webgpu = @import("webgpu");
 
 const Self = @This();
 
-pub fn createLinearClamped(device: webgpu.Device) webgpu.Sampler {
+pub fn createLinearClamped(device: *webgpu.Device) *webgpu.Sampler {
 
     const descriptor = webgpu.SamplerDescriptor {
         .address_mode_u = .clamp_to_edge,

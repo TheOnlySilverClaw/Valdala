@@ -17,8 +17,8 @@ allocator: Allocator,
 pipeline: Pipeline,
 fontTexture: *FontTexture,
 surface: *const Surface,
-samplerBindGroup: webgpu.BindGroup,
-variableBindGroup: webgpu.BindGroup,
+samplerBindGroup: *webgpu.BindGroup,
+variableBindGroup: *webgpu.BindGroup,
 
 
 pub fn init(allocator: Allocator, surface: *const Surface, fontTexture: *FontTexture) !Self {
@@ -106,7 +106,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, fontTexture: *FontTex
 }
 
 
-pub fn bind(self: *Self, renderPass: webgpu.RenderPassEncoder) !void {
+pub fn bind(self: *Self, renderPass: *webgpu.RenderPassEncoder) !void {
 
     renderPass.setPipeline(self.pipeline.handle);
     renderPass.setBindGroup(0, self.samplerBindGroup, null);

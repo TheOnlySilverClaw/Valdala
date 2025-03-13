@@ -31,7 +31,7 @@ pub const SurfaceDescriptorFromXlibWindow = extern struct {
     window: glfw.native.X11Window,
 };
 
-pub fn createSurface(window: glfw.Window, instance: webgpu.Instance) SurfaceError!webgpu.Surface {
+pub fn createSurface(window: glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
     
     const descriptor = try createDescriptor(window);
     return instance.createSurface(&descriptor);

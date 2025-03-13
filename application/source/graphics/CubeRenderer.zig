@@ -28,7 +28,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, camera: *const Camera
     };
 }
 
-pub fn render(self: Self, renderPass: webgpu.RenderPassEncoder) !void {
+pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
 
     const surface = self.surface;
     const device = surface.device;
@@ -77,7 +77,7 @@ pub fn render(self: Self, renderPass: webgpu.RenderPassEncoder) !void {
 }
 
 
-fn createUniformBuffer(device: webgpu.Device, size: usize, label: ?[*:0]const u8) webgpu.Buffer {
+fn createUniformBuffer(device: *webgpu.Device, size: usize, label: ?[*:0]const u8) *webgpu.Buffer {
     
     const descriptor = webgpu.BufferDescriptor {
         .label = label,

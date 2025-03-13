@@ -40,7 +40,7 @@ const maxTextureWidth = 255.0;
 const textureFormat = webgpu.TextureFormat.r8_unorm;
 
 allocator: Allocator,
-queue: webgpu.Queue,
+queue: *webgpu.Queue,
 trueType: *const TrueType,
 fontHeight: f32,
 fontScale: f32,
@@ -50,7 +50,7 @@ glyphByCodePoint: *HashMap(CodePoint, Glyph),
 offsetX: u32,
 offsetY: u32,
 
-pub fn init(allocator: Allocator, device: webgpu.Device, trueType: *const TrueType, fontHeight: f32, expectedGlyphs: u32) !Self {
+pub fn init(allocator: Allocator, device: *webgpu.Device, trueType: *const TrueType, fontHeight: f32, expectedGlyphs: u32) !Self {
 
     if(fontHeight + glyphTexturePadding * 2 > maxTextureWidth) return Error.TextureSize;
 
@@ -99,7 +99,7 @@ pub fn deinit(self: *Self) void {
     self.queue.release();
 }
 
-pub fn createView(self: Self) webgpu.TextureView {
+pub fn createView(self: Self) *webgpu.TextureView {
     return self.texture.createView();
 }
 

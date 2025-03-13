@@ -24,9 +24,9 @@ mipLevels: u32 = 1,
 samples: u32 = 1,
 label: ?[*:0]const u8 = null,
 
-handle: webgpu.Texture = undefined,
+handle: *webgpu.Texture = undefined,
 
-pub fn create(self: *Self, device: Device) void {
+pub fn create(self: *Self, device: *Device) void {
 
     const descriptor = webgpu.TextureDescriptor {
         .label = self.label,
@@ -50,12 +50,12 @@ pub fn create(self: *Self, device: Device) void {
     self.handle =  device.createTexture(&descriptor);
 }
 
-pub fn loadImagePixels(self: Self, queue: Queue, pixels: []const u8, channels: u32, layer: u32) !void {
+pub fn loadImagePixels(self: Self, queue: *Queue, pixels: []const u8, channels: u32, layer: u32) !void {
     
     try self.loadImagePixelsRectangle(queue, pixels, channels, 0, 0, self.width, self.height, layer);
 }
 
-pub fn loadImagePixelsRectangle(self: Self, queue: Queue, pixels: []const u8, channels: u32, x: u32, y: u32, width: u32, height: u32, layer: u32) !void {
+pub fn loadImagePixelsRectangle(self: Self, queue: *Queue, pixels: []const u8, channels: u32, x: u32, y: u32, width: u32, height: u32, layer: u32) !void {
     
     const destination = webgpu.ImageCopyTexture {
         .aspect = .all,
@@ -84,7 +84,7 @@ pub fn loadImagePixelsRectangle(self: Self, queue: Queue, pixels: []const u8, ch
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
-pub fn loadImageFiles(self: Self, allocator: Allocator, queue: Queue, paths: []const []const u8) !void {
+pub fn loadImageFiles(self: Self, allocator: Allocator, queue: *Queue, paths: []const []const u8) !void {
 
     if(paths.len > self.layers) return Error.LayersExceeded;
 
@@ -94,7 +94,7 @@ pub fn loadImageFiles(self: Self, allocator: Allocator, queue: Queue, paths: []c
 }
 
 
-pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []const u8, layer: u32) !void {
+pub fn loadImageFile(self: Self, allocator: Allocator, queue: *Queue, path: []const u8, layer: u32) !void {
 
     if(layer >= self.layers) return Error.LayersExceeded;
     
@@ -115,7 +115,7 @@ pub fn loadImageFile(self: Self, allocator: Allocator, queue: Queue, path: []con
     try self.loadImagePixels( queue, pixels, channels, layer);
 }
 
-pub fn createView(self: Self) webgpu.TextureView {
+pub fn createView(self: Self) *webgpu.TextureView {
 
     const descriptor = webgpu.TextureViewDescriptor {
         .array_layer_count = self.layers,

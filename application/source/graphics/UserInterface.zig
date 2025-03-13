@@ -35,7 +35,7 @@ pub fn deinit(self: *Self) void {
     self.debugOverlay.deinit();
 }
 
-pub fn render(self: *Self, renderPass: webgpu.RenderPassEncoder, delta: u64) !void {
+pub fn render(self: *Self, renderPass: *webgpu.RenderPassEncoder, delta: u64) !void {
     
     try self.textRenderer.bind(renderPass);
     try self.debugOverlay.render(renderPass, self.window.surface.getQueue(), delta, self.scene.camera.transform.position, self.scene.camera.transform.rotation);

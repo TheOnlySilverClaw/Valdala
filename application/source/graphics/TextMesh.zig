@@ -22,13 +22,13 @@ const Self = @This();
 const verticesPerMesh = 6;
 
 
-vertexBuffer: webgpu.Buffer,
+vertexBuffer: *webgpu.Buffer,
 vertexCount: u32,
 fontTexture: *FontTexture,
 position: Point(f32),
 
 
-pub fn reserve(device: webgpu.Device, glyphCount: u32, texture: *FontTexture, position: Point(f32)) Self {
+pub fn reserve(device: *webgpu.Device, glyphCount: u32, texture: *FontTexture, position: Point(f32)) Self {
 
     const buffer = device.createBuffer(&webgpu.BufferDescriptor {
         .size = vertexBufferSize(glyphCount),
@@ -43,14 +43,14 @@ pub fn reserve(device: webgpu.Device, glyphCount: u32, texture: *FontTexture, po
     };
 }
 
-pub fn init(allocator: Allocator, device: webgpu.Device, queue: webgpu.Queue, texture: *FontTexture, position: Point(f32), text: []const u8) !Self {
+pub fn init(allocator: Allocator, device: *webgpu.Device, queue: *webgpu.Queue, texture: *FontTexture, position: Point(f32), text: []const u8) !Self {
 
     var self = reserve(device, @intCast(text.len), texture, position);
     try self.update(allocator, queue, text);
     return self;
 }
 
-pub fn update(self: *Self, allocator: Allocator, queue: webgpu.Queue, text: []const u8) !void {
+pub fn update(self: *Self, allocator: Allocator, queue: *webgpu.Queue, text: []const u8) !void {
 
     assert(vertexBufferSize(@intCast(try unicode.utf8CountCodepoints(text))) <= self.vertexBuffer.size());
 
@@ -67,7 +67,7 @@ pub fn destroy(self: Self) void {
     self.vertexBuffer.release();
 }
 
-pub fn render(self: Self, renderPass: webgpu.RenderPassEncoder) void {
+pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) void {
 
     // set size to current vertices?
     renderPass.setVertexBuffer(0, self.vertexBuffer, 0, self.vertexBuffer.size());
