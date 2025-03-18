@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-                    
+
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -57,6 +57,14 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("unwind");
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
     exe.addObjectFile(.{ .cwd_relative = "libraries/libwgpu_native.a" });
+
+    if (target.result.os.tag == .macos) {
+        exe.linkFramework("Metal");
+        exe.linkFramework("Cocoa");
+        exe.linkFramework("Foundation");
+        exe.linkFramework("QuartzCore");
+        exe.linkFramework("IOKit");
+    }
 
     graphics.addImport("common", common);
     graphics.addImport("glfw", glfw);
