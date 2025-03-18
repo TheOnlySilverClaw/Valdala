@@ -41,20 +41,20 @@ pub fn createSurface(window: glfw.Window, instance: *webgpu.Instance) SurfaceErr
 
 fn createDescriptor(window: glfw.Window) SurfaceError!SurfaceDescriptor {
 
-    return switch (target_os) {
+    switch (target_os) {
         .linux => {
-            switch (glfw.getPlatform()) {
+            return switch (glfw.getPlatform()) {
                 .x11 => createX11SurfaceDescriptor(window),
                 .wayland => createWaylandDescriptor(window),
                 else => return SurfaceError.PlatformUnsupported
-            }
+            };
         },
         .macos => {
             // TODO: create descriptor for macos
             return SurfaceError.PlatformUnsupported;
         },
         else => return SurfaceError.PlatformUnsupported,
-    };
+    }
 }
 
 
