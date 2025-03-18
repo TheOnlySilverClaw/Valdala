@@ -1,6 +1,8 @@
 const glfw = @import("glfw");
 const webgpu = @import("webgpu");
 
+const target_os = @import("builtin").target.os.tag;
+
 const ChainedStruct = webgpu.ChainedStruct;
 const SurfaceDescriptor = webgpu.SurfaceDescriptor;
 
@@ -32,17 +34,26 @@ pub const SurfaceDescriptorFromXlibWindow = extern struct {
 };
 
 pub fn createSurface(window: glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
-    
+
     const descriptor = try createDescriptor(window);
     return instance.createSurface(&descriptor);
 }
 
 fn createDescriptor(window: glfw.Window) SurfaceError!SurfaceDescriptor {
 
-    return switch (glfw.getPlatform()) {
-        .x11 => createX11SurfaceDescriptor(window),
-        .wayland => createWaylandDescriptor(window),
-        else => return SurfaceError.PlatformUnsupported
+    return switch (target_os) {
+        .linux => {
+            switch (glfw.getPlatform()) {
+                .x11 => createX11SurfaceDescriptor(window),
+                .wayland => createWaylandDescriptor(window),
+                else => return SurfaceError.PlatformUnsupported
+            }
+        },
+        .macos => {
+            // TODO: create descriptor for macos
+            return SurfaceError.PlatformUnsupported;
+        },
+        else => return SurfaceError.PlatformUnsupported,
     };
 }
 
@@ -51,7 +62,7 @@ fn createX11SurfaceDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
 
     const x11Display = glfw.native.getX11Display();
     const x11Window = glfw.native.getX11Window(glfwWindow);
-    
+
     const x11SurfaceDescriptor = SurfaceDescriptorFromXlibWindow {
         .chain = .{
             .type = .surface_descriptor_from_xlib_window
