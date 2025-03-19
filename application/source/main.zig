@@ -3,7 +3,7 @@ const log = std.log;
 const process = std.process;
 const Application = @import("Application.zig");
 
-pub fn main() void {
+pub fn main() !void {
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
 
@@ -18,7 +18,7 @@ pub fn main() void {
 
     var application = Application.init(allocator) catch |err| {
         log.err("Failed to initialize: {}", .{ err });
-        return;
+        return err;
     };
 
     application.launch() catch |err| {
