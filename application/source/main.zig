@@ -9,9 +9,9 @@ pub fn main() !void {
 
     const allocator = gpa.allocator();
 
-    const args = process.argsAlloc(allocator) catch {
+    const args = process.argsAlloc(allocator) catch |err| {
         log.err("Failed to allocate arguments", .{});
-        return;
+        return err;
     };
 
     std.log.debug("args: {s}", .{ args });
@@ -23,11 +23,12 @@ pub fn main() !void {
 
     application.launch() catch |err| {
         log.err("Crashed with error: {}", .{ err });
+	return err;
     };
-    
+
     application.deinit();
     process.argsFree(allocator, args);
-    
+
     const check = gpa.deinit();
     if(check == .leak) {
         log.warn("Memory leaks detected!", .{});
