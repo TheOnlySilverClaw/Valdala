@@ -47,7 +47,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, fontTexture: *FontTex
     };
 
     const screenSizeBuffer = device.createBuffer(&webgpu.BufferDescriptor {
-        .label = "screen size",
+        .label = webgpu.StringView.sized("screen size"),
         .size = @sizeOf([2]f32),
         .usage = .{ .uniform = true, .copy_dst = true }
     });
@@ -67,7 +67,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, fontTexture: *FontTex
     };
 
     const textColorBuffer = device.createBuffer(&webgpu.BufferDescriptor {
-        .label = "text color",
+        .label = webgpu.StringView.sized("text color"),
         .size = @sizeOf(Color) * 1,
         .usage = .{ .uniform = true, .copy_dst = true }
     });

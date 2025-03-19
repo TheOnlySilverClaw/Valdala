@@ -65,7 +65,7 @@ fn createX11SurfaceDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
 
     const x11SurfaceDescriptor = SurfaceDescriptorFromXlibWindow {
         .chain = .{
-            .type = .surface_descriptor_from_xlib_window
+            .type = .surface_source_xlib_window
         },
         .display = x11Display,
         .window =  x11Window
@@ -84,7 +84,7 @@ fn createWaylandDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
     const waylandWindow = glfw.native.getWaylandWindow(glfwWindow);
     const waylandDescriptor = SurfaceDescriptorFromWaylandSurface {
         .chain = .{
-            .type = .surface_descriptor_from_wayland_surface
+            .type = .surface_source_wayland_surface
         },
         .display = waylandDisplay,
         .surface = waylandWindow

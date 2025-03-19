@@ -26,16 +26,16 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
 
     const shader_module = try Shader.loadModule(allocator, device, "shaders/textured.wgsl", "textured");
     const vertex_shader = Shader {
-        .entry = "vertex",
+        .entry = webgpu.StringView.sized("vertex"),
         .module =  shader_module
     };
     const fragment_shader = Shader {
-        .entry = "fragment",
+        .entry = webgpu.StringView.sized("fragment"),
         .module = shader_module
     };
 
     var block_texture = TextureArray {
-        .label = "blocks",
+        .label = webgpu.StringView.sized("blocks"),
         .format = surface.colorTextureFormat,
         .width = 16,
         .height = 16,
@@ -67,7 +67,7 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     };
 
     var vertex_buffer = VertexBuffer {
-        .label = "vertices",
+        .label = webgpu.StringView.sized("vertices"),
         .length = vertices.len
     };
     vertex_buffer.create(device);
@@ -80,9 +80,9 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
     device.getQueue().writeBuffer(index_buffer, u16, &indices, 0);
 
-    const bind_group_layout = createBindGroupLayout(device, null);
+    const bind_group_layout = createBindGroupLayout(device, .{});
 
-    const pipeline_layout = createPipelineLayout(device, &.{bind_group_layout}, null);
+    const pipeline_layout = createPipelineLayout(device, &.{bind_group_layout}, .{});
 
 
     const handle = createRenderPipeline(device, 
@@ -90,7 +90,7 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         surface.colorTextureFormat,
         vertex_shader,
         fragment_shader,
-        null);
+        .{});
 
     return .{
         .block_sampler = block_sampler,
@@ -120,7 +120,7 @@ fn createRenderPipeline(device: *webgpu.Device,
     color_texture_format: webgpu.TextureFormat,
     vertex_shader: Shader,
     fragment_shader: Shader,
-    label: ?[*:0]const u8) *webgpu.RenderPipeline {
+    label: webgpu.StringView) *webgpu.RenderPipeline {
 
     const bufferLayout = VertexLayout.createBufferLayout(&.{.float32x3, .unorm16x2, .uint32 }, .vertex);
 
@@ -171,7 +171,7 @@ fn createRenderPipeline(device: *webgpu.Device,
     return device.createRenderPipeline(&descriptor);
 }
 
-fn createPipelineLayout(device: *webgpu.Device, bind_group_layouts: []const *webgpu.BindGroupLayout, label: ?[*:0]const u8) *webgpu.PipelineLayout {
+fn createPipelineLayout(device: *webgpu.Device, bind_group_layouts: []const *webgpu.BindGroupLayout, label: webgpu.StringView) *webgpu.PipelineLayout {
 
     const descriptor = webgpu.PipelineLayoutDescriptor {
         .label = label,
@@ -182,7 +182,7 @@ fn createPipelineLayout(device: *webgpu.Device, bind_group_layouts: []const *web
     return device.createPipelineLayout(&descriptor);
 }
 
-fn createBindGroupLayout(device: *webgpu.Device, label: ?[*:0]const u8) *webgpu.BindGroupLayout {
+fn createBindGroupLayout(device: *webgpu.Device, label: webgpu.StringView) *webgpu.BindGroupLayout {
 
     const Entry = webgpu.BindGroupLayoutEntry;
 
@@ -205,9 +205,9 @@ fn createBindGroupLayout(device: *webgpu.Device, label: ?[*:0]const u8) *webgpu.
     const textureEntry = Entry {
         .binding = 2,
         .texture = .{
-            .type = .float,
+            .sample_type = .float,
             .view_dimension = .@"2d_array",
-            .multisampled = false
+            .multisampled = 0
         },
         .visibility = .{ .fragment = true }
     };

@@ -39,7 +39,7 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
     defer block_texture_view.release();
 
     // TODO destroy buffer
-    const projection_buffer = createUniformBuffer(device, 4*4*@sizeOf(f32), "projection");
+    const projection_buffer = createUniformBuffer(device, 4*4*@sizeOf(f32), webgpu.StringView.sized("projection"));
 
     var projection = self.camera.asMatrix();
     queue.writeBuffer(projection_buffer, f32, &projection.values, 0);
@@ -77,7 +77,7 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
 }
 
 
-fn createUniformBuffer(device: *webgpu.Device, size: usize, label: ?[*:0]const u8) *webgpu.Buffer {
+fn createUniformBuffer(device: *webgpu.Device, size: usize, label: webgpu.StringView) *webgpu.Buffer {
     
     const descriptor = webgpu.BufferDescriptor {
         .label = label,

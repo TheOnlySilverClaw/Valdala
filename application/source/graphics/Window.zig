@@ -17,7 +17,7 @@ pub fn create(window: *Self, title: [*:0]const u8, width: u32, height: u32) !voi
 
     const handle = glfw.createWindow(width, height, title, null, null);
     
-    const instance = webgpu.createInstance(null);
+    const instance = webgpu.Instance.create(null);
 
     const surface = try Surface.create(handle, instance);
     instance.release();

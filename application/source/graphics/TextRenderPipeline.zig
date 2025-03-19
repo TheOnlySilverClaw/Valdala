@@ -25,8 +25,8 @@ pub fn create(
         .binding = 0,
         .visibility = .{ .fragment = true },
         .texture = .{
-            .multisampled = false,
-            .type = .float,
+            .multisampled = 0,
+            .sample_type = .float,
             .view_dimension = .@"2d"
         }
     };
@@ -79,7 +79,7 @@ pub fn create(
     const fragment = webgpu.FragmentState {
         .constant_count = 0,
         .constants = null,
-        .entry_point = "fragment",
+        .entry_point = webgpu.StringView.sized("fragment"),
         .module = shader,
         .target_count = 1,
         .targets = &.{ target }
@@ -91,7 +91,7 @@ pub fn create(
     const vertex = webgpu.VertexState {
         .constant_count = 0,
         .constants = null,
-        .entry_point = "vertex",
+        .entry_point = webgpu.StringView.sized("vertex"),
         .module = shader,
         .buffer_count = 1,
         .buffers = &.{ vertexBuffer }
@@ -110,7 +110,7 @@ pub fn create(
     };
 
     const descriptor = webgpu.RenderPipelineDescriptor {
-        .label = "text renderer",
+        .label = webgpu.StringView.sized("text renderer"),
         .layout = layout,
         .depth_stencil = &depth,
         .fragment = &fragment,

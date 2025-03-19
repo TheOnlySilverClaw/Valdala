@@ -10,7 +10,8 @@ pub const Error = error {
     TextureLost,
     TextureOutdated,
     Memory,
-    Timeout
+    Timeout,
+    Other
 };
 
 const Self = @This();
@@ -18,7 +19,7 @@ const Self = @This();
 
 handle: *webgpu.Surface,
 capabilities: webgpu.SurfaceCapabilities,
-alphaMode: webgpu.AlphaMode,
+alphaMode: webgpu.CompositeAlphaMode,
 colorTextureFormat: webgpu.TextureFormat,
 depth_texture_format: webgpu.TextureFormat,
 depth_texture: ?*webgpu.Texture,
@@ -31,15 +32,17 @@ pub fn create(window: glfw.Window, instance: *webgpu.Instance) !Self {
     
     const handle = try glfw_webgpu.createSurface(window, instance);
     
-    const adapter = try instance.requestAdapterSync(&.{
+    const adapter = try instance.awaitAdapter(&.{
         .compatible_surface = handle,
-        .power_preference = .high_performance
+        .power_preference = .high_performance,
+        .feature_level = .core
     });
 
-    const device = try adapter.requestDeviceSync(null);
+    const device = try adapter.awaitDevice(null);
 
     var capabilities: webgpu.SurfaceCapabilities = undefined;
-    handle.getCapabilities(adapter, &capabilities);
+    // TODO handle status
+    _ = handle.getCapabilities(adapter, &capabilities);
     adapter.release();
 
     const queue = device.getQueue();
@@ -51,8 +54,8 @@ pub fn create(window: glfw.Window, instance: *webgpu.Instance) !Self {
         .colorTextureFormat = capabilities.formats[0],
         .depth_texture_format = .depth24_plus,
         .depth_texture = null,
-        .device = device,
         .queue = queue,
+        .device = device,
         .width = 0,
         .height = 0
     };
@@ -93,7 +96,7 @@ pub fn configure(self: *Self) void {
 fn createDepthTexture(self: *Self) void {
 
     const descriptor = webgpu.TextureDescriptor {
-        .label = "depth",
+        .label = webgpu.StringView.sized("depth"),
         .dimension = .@"2d",
         .format = self.depth_texture_format,
         .size = .{
@@ -120,12 +123,15 @@ pub fn getColorTexture(self: Self) Error!*webgpu.Texture {
     self.handle.getCurrentTexture(&surface_texture);
     
     return switch (surface_texture.status) {
-        .success => surface_texture.texture,
+        .success_optimal => surface_texture.texture,
+        // TODO handle suboptimal?
+        .success_suboptimal => surface_texture.texture,
         .timeout => Error.Timeout,
         .device_lost => Error.DeviceLost,
         .outdated => Error.TextureOutdated,
         .lost => Error.TextureLost,
-        .memory => Error.Memory
+        .out_of_memory => Error.Memory,
+        .@"error" => Error.Other
     };
 }
 
@@ -136,7 +142,8 @@ pub fn getDepthTexture(self: Self) ?*webgpu.Texture {
 
 
 pub fn present(self: Self) void {
-    self.handle.present();
+     // TODO handle status
+     _ = self.handle.present();
 }
 
 pub fn destroy(self: Self) void {

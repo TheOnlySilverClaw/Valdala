@@ -22,7 +22,7 @@ layers: u32,
 format: webgpu.TextureFormat,
 mipLevels: u32 = 1,
 samples: u32 = 1,
-label: ?[*:0]const u8 = null,
+label: webgpu.StringView = .{},
 
 handle: *webgpu.Texture = undefined,
 
@@ -36,7 +36,7 @@ pub fn create(self: *Self, device: *Device) void {
         .size = .{
             .width = self.width,
             .height = self.height,
-            .depth = self.layers
+            .depth_or_array_layers = self.layers
         },
         .usage = .{
             .texture_binding = true,
@@ -57,7 +57,7 @@ pub fn loadImagePixels(self: Self, queue: *Queue, pixels: []const u8, channels: 
 
 pub fn loadImagePixelsRectangle(self: Self, queue: *Queue, pixels: []const u8, channels: u32, x: u32, y: u32, width: u32, height: u32, layer: u32) !void {
     
-    const destination = webgpu.ImageCopyTexture {
+    const destination = webgpu.TexelCopyTextureInfo {
         .aspect = .all,
         .mip_level = 0,
         .origin = .{
@@ -68,7 +68,7 @@ pub fn loadImagePixelsRectangle(self: Self, queue: *Queue, pixels: []const u8, c
         .texture = self.handle
     };
 
-    const layout = webgpu.TextureDataLayout {
+    const layout = webgpu.TexelCopyBufferLayout {
         .offset = 0,
         // TODO map from format channels
         .bytes_per_row = width * channels,
@@ -78,7 +78,7 @@ pub fn loadImagePixelsRectangle(self: Self, queue: *Queue, pixels: []const u8, c
     const extent = Extent3D {
         .width = width,
         .height = height,
-        .depth = 1
+        .depth_or_array_layers = 1
     };
     
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
@@ -125,7 +125,8 @@ pub fn createView(self: Self) *webgpu.TextureView {
         .dimension = .@"2d_array",
         .format = self.format,
         .label = self.label,
-        .mip_level_count = self.mipLevels
+        .mip_level_count = self.mipLevels,
+        .usage = .{ .texture_binding = true, .copy_dst = true }
     };
 
     return self.handle.createView(&descriptor);

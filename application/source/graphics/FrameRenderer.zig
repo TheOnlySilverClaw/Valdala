@@ -55,10 +55,11 @@ pub fn render(self: *Self) !void{
     const colorTextureView = colorTexture.createView(null);
     const depth_texture = surface.getDepthTexture().?;
     const depth_texture_view_descriptor = webgpu.TextureViewDescriptor {
-        .label = "depth",
+        .label = webgpu.StringView.sized("depth"),
         .aspect = .depth_only,
         .dimension = .@"2d",
         .format = surface.depth_texture_format,
+        .usage = .{ .render_attachment = true }
     };
     const depth_texture_view = depth_texture.createView(&depth_texture_view_descriptor);
 
@@ -70,10 +71,11 @@ pub fn render(self: *Self) !void{
     };
 
     const depth_stencil_attachment = webgpu.RenderPassDepthStencilAttachment {
-        .depth_load_operation = .clear,
-        .depth_store_operation = .store,
+        .depth_load_op = .clear,
+        .depth_store_op = .store,
         .depth_clear_value = 1.0,
-        .view = depth_texture_view
+        .view = depth_texture_view,
+        .stencil_read_only = 0
     };
 
     const renderPassDescriptor = webgpu.RenderPassDescriptor {

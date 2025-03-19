@@ -65,7 +65,7 @@ pub fn init(allocator: Allocator, device: *webgpu.Device, trueType: *const TrueT
     const height: f32 = @ceil(requiredSize / width) * fontHeight;
 
     var texture = ImageTexture {
-        .label = "font glyphs",
+        .label = webgpu.StringView.sized("font glpyhs"),
         .format = textureFormat,
         .width = @intFromFloat(width),
         .height = @intFromFloat(height),

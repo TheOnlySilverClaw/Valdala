@@ -20,7 +20,7 @@ height: u32,
 format: webgpu.TextureFormat,
 mipLevels: u32 = 1,
 samples: u32 = 1,
-label: ?[*:0]const u8 = null,
+label: webgpu.StringView = .{},
 
 handle: *webgpu.Texture = undefined,
 
@@ -34,7 +34,7 @@ pub fn create(self: *Self, device: *Device) void {
         .size = .{
             .width = self.width,
             .height = self.height,
-            .depth = 1
+            .depth_or_array_layers = 1
         },
         .usage = .{
             .texture_binding = true,
@@ -67,7 +67,7 @@ pub fn loadImagePixels(self: Self, pixels: []const u8, queue: webgpu.Queue) !voi
         .texture = self.handle
     };
 
-    const layout = webgpu.TextureDataLayout {
+    const layout = webgpu.TexelCopyTextureInfo {
         .offset = 0,
         // TODO map from texture format
         .bytes_per_row = 4,
@@ -85,7 +85,7 @@ pub fn loadImagePixels(self: Self, pixels: []const u8, queue: webgpu.Queue) !voi
 
 pub fn loadImagePixelsRectangle(self: Self, pixels: []const u8, queue: *webgpu.Queue, x: u32, y: u32, width: u32, height: u32) !void {
 
-    const destination = webgpu.ImageCopyTexture {
+    const destination = webgpu.TexelCopyTextureInfo {
         .aspect = .all,
         .mip_level = 0,
         .origin = .{
@@ -96,7 +96,7 @@ pub fn loadImagePixelsRectangle(self: Self, pixels: []const u8, queue: *webgpu.Q
         .texture = self.handle
     };
 
-    const layout = webgpu.TextureDataLayout {
+    const layout = webgpu.TexelCopyBufferLayout {
         .offset = 0,
         // TODO map from texture format
         .bytes_per_row = width,
@@ -106,7 +106,7 @@ pub fn loadImagePixelsRectangle(self: Self, pixels: []const u8, queue: *webgpu.Q
     const extent = Extent3D {
         .width = width,
         .height = height,
-        .depth = 1
+        .depth_or_array_layers = 1
     };
     
     queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
@@ -163,7 +163,8 @@ pub fn createView(self: Self) *webgpu.TextureView {
         .dimension = .@"2d",
         .format = self.format,
         .label = self.label,
-        .mip_level_count = self.mipLevels
+        .mip_level_count = self.mipLevels,
+        .usage = .{ .texture_binding = true, .copy_dst = true }
     };
 
     return self.handle.createView(&descriptor);

@@ -20,7 +20,7 @@ pub fn VertexBuffer(comptime T: type, formats: []const webgpu.VertexFormat) type
         }
 
         length: u32,
-        label: ?[*:0]const u8 = null,
+        label: webgpu.StringView = .{},
         handle: *webgpu.Buffer = undefined,
 
 
@@ -30,7 +30,7 @@ pub fn VertexBuffer(comptime T: type, formats: []const webgpu.VertexFormat) type
                 .label = self.label,
                 .size = self.size(),
                 .usage = .{ .vertex = true, .copy_dst = true },
-                .mappedAtCreation = 0
+                .mapped_at_creation = 0
             };
 
             self.handle = device.createBuffer(&descriptor);
