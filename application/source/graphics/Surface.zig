@@ -31,18 +31,25 @@ height: u32,
 pub fn create(window: glfw.Window, instance: *webgpu.Instance) !Self {
     
     const handle = try glfw_webgpu.createSurface(window, instance);
-    
-    const adapter = try instance.awaitAdapter(&.{
+
+    const adapter_options = webgpu.RequestAdapterOptions {
         .compatible_surface = handle,
         .power_preference = .high_performance,
         .feature_level = .core
-    });
+    };
 
-    const device = try adapter.awaitDevice(null);
+    const adapter = try instance.awaitAdapter(&adapter_options);
+    
+    var info: webgpu.AdapterInfo = undefined;
+    adapter.getInfo(&info);
+    std.log.debug("device: {s}  architecture: {s}  description: {s}", .{ info.device.slice(), info.architecture.slice(), info.description.slice() });
 
     var capabilities: webgpu.SurfaceCapabilities = undefined;
     // TODO handle status
-    _ = handle.getCapabilities(adapter, &capabilities);
+    const status = handle.getCapabilities(adapter, &capabilities);
+    std.log.debug("surface capabilities status: {s}", .{ @tagName(status) });
+
+    const device = try adapter.awaitDevice(null);
     adapter.release();
 
     const queue = device.getQueue();
