@@ -2,9 +2,3 @@
 	path = application/submodules/glfw
 	url = https://github.com/glfw/glfw
 	branch = master
-
-[submodule "wgpu-native"]
-	path = application/submodules/wgpu-native
-	url = https://github.com/gfx-rs/wgpu-native
-	branch = trunk
-
