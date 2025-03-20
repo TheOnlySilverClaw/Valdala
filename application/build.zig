@@ -56,7 +56,6 @@ pub fn build(b: *std.Build) void {
     exe.linkLibC();
     exe.linkSystemLibrary("unwind");
     exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
-    exe.addObjectFile(.{ .cwd_relative = "libraries/libwgpu_native.a" });
 
     if (target.result.os.tag == .macos) {
         exe.linkFramework("Metal");
