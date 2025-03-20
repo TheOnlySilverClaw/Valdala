@@ -1,6 +1,7 @@
 const webgpu = @import("webgpu");
+const panic = @import("std").debug.panic;
 
-pub fn byteSize(comptime format: webgpu.VertexFormat) u8 {
+pub fn byteSize(format: webgpu.VertexFormat) u8 {
 
     return switch (format) {
         .uint8 => @sizeOf(u8),
@@ -47,6 +48,7 @@ pub fn byteSize(comptime format: webgpu.VertexFormat) u8 {
     };
 }
 
+// don't use this, it causes stack issues...
 pub fn createBufferLayout(comptime formats: []const webgpu.VertexFormat, stepMode: webgpu.VertexStepMode) webgpu.VertexBufferLayout {
     
     const attributes = computeAttributes(formats);
@@ -60,7 +62,7 @@ pub fn createBufferLayout(comptime formats: []const webgpu.VertexFormat, stepMod
     };
 }
 
-
+// don't use this, it causes stack issues...
 pub fn computeAttributes(comptime formats: []const webgpu.VertexFormat) [formats.len]webgpu.VertexAttribute {
 
     var mapped: [formats.len]webgpu.VertexAttribute = undefined;

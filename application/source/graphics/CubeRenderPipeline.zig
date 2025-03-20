@@ -122,7 +122,36 @@ fn createRenderPipeline(device: *webgpu.Device,
     fragment_shader: Shader,
     label: webgpu.StringView) *webgpu.RenderPipeline {
 
-    const bufferLayout = VertexLayout.createBufferLayout(&.{.float32x3, .unorm16x2, .uint32 }, .vertex);
+    const position_attribute = webgpu.VertexAttribute {
+        .shader_location = 0,
+        .format = .float32x3,
+        .offset = 0
+    };
+
+    const uv_attribute = webgpu.VertexAttribute {
+        .shader_location = 1,
+        .format = .unorm16x2,
+        .offset = VertexLayout.byteSize(position_attribute.format)
+    };
+
+    const texture_index_attribute = webgpu.VertexAttribute {
+        .shader_location = 2,
+        .format = .uint32,
+        .offset = uv_attribute.offset + VertexLayout.byteSize(uv_attribute.format)
+    };
+
+    const attributes = [_]webgpu.VertexAttribute {
+        position_attribute,
+        uv_attribute,
+        texture_index_attribute
+    };
+
+    const bufferLayout = webgpu.VertexBufferLayout {
+        .array_stride = VertexLayout.byteSize(.float32x3) + VertexLayout.byteSize(.unorm16x2) + VertexLayout.byteSize(.uint32),
+        .step_mode = .vertex,
+        .attribute_count = attributes.len,
+        .attributes = &attributes
+    };
 
     const vertex = webgpu.VertexState {
         .module = vertex_shader.module,
@@ -156,6 +185,7 @@ fn createRenderPipeline(device: *webgpu.Device,
     const depth = webgpu.DepthStencilState {
         .format = .depth24_plus,
         .depth_compare = .less,
+        .depth_write_enabled = .true
     };
 
     const descriptor = webgpu.RenderPipelineDescriptor {

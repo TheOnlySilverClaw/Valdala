@@ -85,8 +85,29 @@ pub fn create(
         .targets = &.{ target }
     };
 
-    const vertexBuffer = VertexLayout.createBufferLayout(
-        &.{ .float32x2, .float32x2 }, .vertex);
+    const position_attribute = webgpu.VertexAttribute {
+        .shader_location = 0,
+        .format = .float32x2,
+        .offset = 0
+    };
+
+    const uv_attribute = webgpu.VertexAttribute {
+        .shader_location = 1,
+        .format = .float32x2,
+        .offset = VertexLayout.byteSize(position_attribute.format)
+    };
+
+    const attributes = [_]webgpu.VertexAttribute {
+        position_attribute,
+        uv_attribute
+    };
+
+    const vertexBuffer = webgpu.VertexBufferLayout {
+        .array_stride = VertexLayout.byteSize(.float32x2) + VertexLayout.byteSize(.float32x2),
+        .step_mode = .vertex,
+        .attribute_count = attributes.len,
+        .attributes = &attributes
+    };
 
     const vertex = webgpu.VertexState {
         .constant_count = 0,
@@ -106,7 +127,8 @@ pub fn create(
     // TODO split renderers into 2D and 3D? UI probably does not need depth 
     const depth = webgpu.DepthStencilState {
         .format = .depth24_plus,
-        .depth_compare = .less
+        .depth_compare = .less,
+        .depth_write_enabled = .true
     };
 
     const descriptor = webgpu.RenderPipelineDescriptor {
@@ -119,6 +141,8 @@ pub fn create(
         .multisample = .{}
     };
 
+    @import("std").log.debug("layouts: {x} {x}", .{ @intFromEnum(vertexBuffer.attributes[0].format), @intFromEnum(vertexBuffer.attributes[1].format)});
     const pipeline = device.createRenderPipeline(&descriptor);
+    @import("std").log.debug("layouts: {x} {x}", .{ @intFromEnum(vertexBuffer.attributes[0].format), @intFromEnum(vertexBuffer.attributes[1].format)});
     return .{ .handle = pipeline };
 }
