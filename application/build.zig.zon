@@ -1,6 +1,6 @@
 .{
     .name = .Valdala,
-    .version = "0.0.1",
+    .version = "0.0.2",
     .dependencies = .{
         .zigimg = .{
             // TODO switch back to main repository as soon as that works with Zig 0.14.0
@@ -9,11 +9,11 @@
         },
         .TrueType = .{
             .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
-             .hash = "TrueType-0.0.0-AAAAAL4FAQCl7eLNhMnRN_JDnm2svCyrlltjoVQiZLs3"
+            .hash = "TrueType-0.0.0-AAAAAL4FAQCl7eLNhMnRN_JDnm2svCyrlltjoVQiZLs3"
         },
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-1.0.0-dKjiOPEIAQA393yMGsqClO6-RQzwv4dT6M9H7CcNJKVA"
+            .hash = "wgpu_native-2.0.0-dKjiOMIrAQBFOWSEV8bP_4WOs0cPYQz6XuMYfkZwgLoZ"
         }
     },
     .fingerprint = 0x4caff166888c6c5b,
