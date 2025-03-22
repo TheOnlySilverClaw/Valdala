@@ -53,6 +53,7 @@ fn createDescriptor(window: glfw.Window) SurfaceError!SurfaceDescriptor {
         .macos => {
             return createMetalDescriptor(window);
         },
+        .windows => return createWindowsDescriptor(window),
         else => return SurfaceError.PlatformUnsupported,
     }
 }
@@ -113,6 +114,31 @@ fn createMetalDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescripto
 
     const surface_descriptor = SurfaceDescriptor {
         .next = &metal_descriptor.chain
+    };
+
+    return surface_descriptor;
+
+}
+
+
+// windows api
+const LPCSTR = ?[*:0]const u8;
+const HMODULE = *opaque {};
+extern fn GetModuleHandleA(lpModuleName: LPCSTR) ?HMODULE;
+
+fn createWindowsDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescriptor {
+
+    const hwnd = glfw_window.getWin32Window() orelse return SurfaceError.BackendUnavailable;
+    const hinstance = GetModuleHandleA(null) orelse return SurfaceError.BackendUnavailable;
+
+    const hwnd_descriptor = SurfaceDescriptorFromWindowsHWND {
+        .hwnd = hwnd,
+        .hinstance = hinstance,
+        .chain = .{ .next = null, .type = .surface_source_windows_hwnd }
+    };
+
+    const surface_descriptor = SurfaceDescriptor {
+        .next = &hwnd_descriptor.chain
     };
 
     return surface_descriptor;

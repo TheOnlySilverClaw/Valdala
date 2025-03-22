@@ -17,7 +17,7 @@ pub const Window = *opaque {
     pub fn shouldClose(window: Window) bool {
         return glfwWindowShouldClose(window) == glfw.TRUE;
     }
-    
+
     pub const destroy = glfwDestroyWindow;
 
     pub const getUserPoiner = glfwGetWindowUserPointer;
@@ -29,6 +29,8 @@ pub const Window = *opaque {
     pub const setKeyCallback = glfwSetKeyCallback;
 
     pub const getCocoaWindow = glfwGetCocoaWindow;
+
+    pub const getWin32Window = glfwGetWin32Window;
 
 };
 
@@ -60,3 +62,5 @@ extern fn glfwSetWindowSizeCallback(window: Window, callback: *const SizeCallbac
 extern fn glfwSetKeyCallback(window: Window, callback: *const KeyCallback) *const KeyCallback;
 
 extern fn glfwGetCocoaWindow(window: Window) *anyopaque;
+
+extern fn glfwGetWin32Window(window: Window) ?*anyopaque;
