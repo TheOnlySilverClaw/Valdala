@@ -78,6 +78,18 @@ pub fn build(b: *std.Build) void {
             exe.linkFramework("QuartzCore");
             exe.linkFramework("IOKit");
 
+            // objective-c helper function to get metal layer
+            const metal_layer_mod = b.addModule("metalLayer", .{
+                .optimize = optimize,
+                .target = target,
+            });
+            metal_layer_mod.addCSourceFile(.{ .file = b.path("source/glfw/metal_layer.m") });
+
+            exe.linkLibrary(b.addLibrary(.{
+                .name = "metalLayer",
+                .root_module = metal_layer_mod,
+            }));
+
             switch (target.result.cpu.arch) {
                 .aarch64 => { // apple silicon
                     if (b.lazyDependency("glfw_macos", .{})) |glfw_dep| {
