@@ -37,8 +37,8 @@
             .lazy = true
         },
         .wgpu_windows = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-debug.zip",
-            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-gnu-debug.zip",
+            .hash = "N-V-__8AAMGiVhXMuSjWAYooPYRMjv5zBSwoGid7YBkOtpaj",
             .lazy = true
         },
         .wgpu_macos_x86_64 = .{
