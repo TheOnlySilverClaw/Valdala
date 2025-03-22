@@ -7,7 +7,8 @@ const ChainedStruct = webgpu.ChainedStruct;
 const SurfaceDescriptor = webgpu.SurfaceDescriptor;
 
 const SurfaceError = error {
-    PlatformUnsupported
+    PlatformUnsupported,
+    BackendUnavailable
 };
 
 pub const SurfaceDescriptorFromMetalLayer = extern struct {
@@ -50,8 +51,7 @@ fn createDescriptor(window: glfw.Window) SurfaceError!SurfaceDescriptor {
             };
         },
         .macos => {
-            // TODO: create descriptor for macos
-            return SurfaceError.PlatformUnsupported;
+            return createMetalDescriptor(window);
         },
         else => return SurfaceError.PlatformUnsupported,
     }
@@ -95,4 +95,26 @@ fn createWaylandDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
     };
 
     return surfaceDescriptor;
+}
+
+extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
+
+fn createMetalDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescriptor {
+
+    const ns_window = glfw_window.getCocoaWindow();
+    const metal_layer = setupMetalLayer(ns_window);
+
+    if (metal_layer == null) return SurfaceError.BackendUnavailable;
+
+    const metal_descriptor = SurfaceDescriptorFromMetalLayer {
+        .chain = .{ .next = null, .type = .surface_source_metal_layer },
+        .layer = metal_layer.?
+    };
+
+    const surface_descriptor = SurfaceDescriptor {
+        .next = &metal_descriptor.chain
+    };
+
+    return surface_descriptor;
+
 }

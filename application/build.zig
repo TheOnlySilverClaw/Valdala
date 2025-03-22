@@ -60,7 +60,7 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
     exe.linkSystemLibrary("unwind");
-    
+
     switch (target.result.os.tag) {
         .linux => {
             exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" });
@@ -71,13 +71,45 @@ pub fn build(b: *std.Build) void {
             exe.addObjectFile(b.lazyDependency("wgpu_windows", .{}).?.path("lib/libwgpu_native.a"));
         },
         .macos => {
+            // needed for wgpu and glfw, does require a mac with xcode setup
             exe.linkFramework("Metal");
             exe.linkFramework("Cocoa");
             exe.linkFramework("Foundation");
             exe.linkFramework("QuartzCore");
             exe.linkFramework("IOKit");
-            exe.addObjectFile(b.lazyDependency("glfw_macos", .{}).?.path("lib-x86_64/libglfw3.a"));
-            exe.addObjectFile(b.lazyDependency("wgpu_macos", .{}).?.path("lib/libwgpu_native.a"));
+
+            // objective-c helper function to get metal layer
+            const metal_layer_mod = b.addModule("metalLayer", .{
+                .optimize = optimize,
+                .target = target,
+            });
+            metal_layer_mod.addCSourceFile(.{ .file = b.path("source/glfw/metal_layer.m") });
+
+            exe.linkLibrary(b.addLibrary(.{
+                .name = "metalLayer",
+                .root_module = metal_layer_mod,
+            }));
+
+            switch (target.result.cpu.arch) {
+                .aarch64 => { // apple silicon
+                    if (b.lazyDependency("glfw_macos", .{})) |glfw_dep| {
+                        exe.addObjectFile(glfw_dep.path("lib-arm64/libglfw3.a"));
+                    }
+                    if (b.lazyDependency("wgpu_macos_aarch64", .{})) |wgpu_dep| {
+                        exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+                    }
+                },
+                .x86_64 => { // intel
+                    if (b.lazyDependency("glfw_macos", .{})) |glfw_dep| {
+                        exe.addObjectFile(glfw_dep.path("lib-x86_64/libglfw3.a"));
+                    }
+                    if (b.lazyDependency("wgpu_macos_x86_64", .{})) |wgpu_dep| {
+                        exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+                    }
+                },
+                else => @panic("Unsupported architechture for macOS")
+
+            }
         },
         else => std.debug.panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
     }
