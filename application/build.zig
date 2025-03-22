@@ -62,8 +62,14 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("unwind");
     
     switch (target.result.os.tag) {
-        .linux => exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" }),
-        .windows => exe.addObjectFile(b.lazyDependency("glfw_windows", .{}).?.path("lib-mingw-w64/libglfw3.a")),
+        .linux => {
+            exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" });
+            exe.addObjectFile(b.lazyDependency("wgpu_linux", .{}).?.path("lib/libwgpu_native.a"));
+        },
+        .windows => {
+            exe.addObjectFile(b.lazyDependency("glfw_windows", .{}).?.path("lib-mingw-w64/libglfw3.a"));
+            exe.addObjectFile(b.lazyDependency("wgpu_windows", .{}).?.path("lib/libwgpu_native.a"));
+        },
         .macos => {
             exe.linkFramework("Metal");
             exe.linkFramework("Cocoa");
@@ -71,6 +77,7 @@ pub fn build(b: *std.Build) void {
             exe.linkFramework("QuartzCore");
             exe.linkFramework("IOKit");
             exe.addObjectFile(b.lazyDependency("glfw_macos", .{}).?.path("lib-x86_64/libglfw3.a"));
+            exe.addObjectFile(b.lazyDependency("wgpu_macos", .{}).?.path("lib/libwgpu_native.a"));
         },
         else => std.debug.panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
     }

@@ -13,10 +13,11 @@
         },
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-2.0.0-dKjiOH8tAQB13uoEtIPOcwqndpCGgPJqMpIMWVyKF4iR",
+            .hash = "wgpu_native-2.0.0-dKjiONsrAQD0CRuZV34nfQa1gXgWByJcCtlnbQKFiIK_"
         },
 
         // binary dependencies
+        // GLFW 3.4
         .glfw_windows = .{
             .url = "https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.bin.WIN64.zip",
             .hash = "N-V-__8AAOlnwQD_q2VUB2dZD64hwX7kJ2w9knrChBKgJHe0",
@@ -26,7 +27,25 @@
             .url = "https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.bin.MACOS.zip",
             .hash = "N-V-__8AABVVVQCIqbbi_dakX4jJDKZw2cnJrkUWFFOyd4ci",
             .lazy = true
-        }
+        },
+
+        // wgpu-native 24
+        // TODO release builds
+        .wgpu_linux = .{
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-linux-x86_64-debug.zip",
+            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .lazy = true
+        },
+        .wgpu_windows = .{
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-debug.zip",
+            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .lazy = true
+        },
+        .wgpu_macos = .{
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-x86_64-debug.zip",
+            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .lazy = true
+        },
     },
     .fingerprint = 0x4caff166888c6c5b,
     .minimum_zig_version = "0.14.0",
