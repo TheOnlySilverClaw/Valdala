@@ -67,8 +67,28 @@ pub fn build(b: *std.Build) void {
             exe.addObjectFile(b.lazyDependency("wgpu_linux", .{}).?.path("lib/libwgpu_native.a"));
         },
         .windows => {
-            exe.addObjectFile(b.lazyDependency("glfw_windows", .{}).?.path("lib-mingw-w64/libglfw3.a"));
-            exe.addObjectFile(b.lazyDependency("wgpu_windows", .{}).?.path("lib/libwgpu_native.a"));
+            if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));
+            if (b.lazyDependency("wgpu_windows", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+
+            exe.linkLibCpp();
+
+            exe.linkSystemLibrary("gdi32");
+            exe.linkSystemLibrary("user32");
+            exe.linkSystemLibrary("shell32");
+
+            // Required by wgpu_native
+            exe.linkSystemLibrary("ole32");
+            exe.linkSystemLibrary("user32");
+            exe.linkSystemLibrary("kernel32");
+            exe.linkSystemLibrary("userenv");
+            exe.linkSystemLibrary("ws2_32");
+            exe.linkSystemLibrary("oleaut32");
+            exe.linkSystemLibrary("opengl32");
+            exe.linkSystemLibrary("d3dcompiler_47");
+            exe.linkSystemLibrary("propsys");
+            exe.linkSystemLibrary("api-ms-win-core-winrt-error-l1-1-0");
+
+
         },
         .macos => {
             // needed for wgpu and glfw, does require a mac with xcode setup
