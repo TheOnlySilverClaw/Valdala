@@ -1,5 +1,10 @@
 const std = @import("std");
 
+const Target = std.Target;
+
+const panic = std.debug.panic;
+
+
 pub fn build(b: *std.Build) void {
 
     const target = b.standardTargetOptions(.{});
@@ -55,15 +60,21 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
     exe.linkSystemLibrary("unwind");
-    exe.addObjectFile(.{ .cwd_relative = "libraries/libglfw3.a" });
-
-    if (target.result.os.tag == .macos) {
-        exe.linkFramework("Metal");
-        exe.linkFramework("Cocoa");
-        exe.linkFramework("Foundation");
-        exe.linkFramework("QuartzCore");
-        exe.linkFramework("IOKit");
+    
+    switch (target.result.os.tag) {
+        .linux => exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" }),
+        .windows => exe.addObjectFile(b.lazyDependency("glfw_windows", .{}).?.path("lib-mingw-w64/libglfw3.a")),
+        .macos => {
+            exe.linkFramework("Metal");
+            exe.linkFramework("Cocoa");
+            exe.linkFramework("Foundation");
+            exe.linkFramework("QuartzCore");
+            exe.linkFramework("IOKit");
+            exe.addObjectFile(b.lazyDependency("glfw_macos", .{}).?.path("lib-x86_64/libglfw3.a"));
+        },
+        else => std.debug.panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
     }
+
 
     graphics.addImport("common", common);
     graphics.addImport("glfw", glfw);

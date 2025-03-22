@@ -14,6 +14,18 @@
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
             .hash = "wgpu_native-2.0.0-dKjiOH8tAQB13uoEtIPOcwqndpCGgPJqMpIMWVyKF4iR",
+        },
+
+        // binary dependencies
+        .glfw_windows = .{
+            .url = "https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.bin.WIN64.zip",
+            .hash = "N-V-__8AAOlnwQD_q2VUB2dZD64hwX7kJ2w9knrChBKgJHe0",
+            .lazy = true
+        },
+        .glfw_macos = .{
+            .url = "https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.bin.MACOS.zip",
+            .hash = "N-V-__8AABVVVQCIqbbi_dakX4jJDKZw2cnJrkUWFFOyd4ci",
+            .lazy = true
         }
     },
     .fingerprint = 0x4caff166888c6c5b,
