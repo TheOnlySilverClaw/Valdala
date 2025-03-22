@@ -5,7 +5,7 @@
         .zigimg = .{
             // TODO switch back to main repository as soon as that works with Zig 0.14.0
             .url = "https://github.com/TUSF/zigimg/archive/refs/heads/master.zip",
-            .hash = "zigimg-0.1.0-lly-O4heEADSRxoTwJwrD3TBfUob9052sIgb9SL8Iz-A",
+            .hash = "zigimg-0.1.0-lly-O6N2EABOxke8dqyzCwhtUCAafqP35zC7wsZ4Ddxj"
         },
         .TrueType = .{
             .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
