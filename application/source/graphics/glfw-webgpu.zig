@@ -8,7 +8,7 @@ const SurfaceDescriptor = webgpu.SurfaceDescriptor;
 
 const SurfaceError = error {
     PlatformUnsupported,
-    NullMetalLayer,
+    BackendUnavailable
 };
 
 pub const SurfaceDescriptorFromMetalLayer = extern struct {
@@ -101,10 +101,10 @@ extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
 
 fn createMetalDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescriptor {
 
-    const ns_window = glfw_window.GetCocoaWindow();
+    const ns_window = glfw_window.getCocoaWindow();
     const metal_layer = setupMetalLayer(ns_window);
 
-    if (metal_layer == null) return SurfaceError.NullMetalLayer;
+    if (metal_layer == null) return SurfaceError.BackendUnavailable;
 
     const metal_descriptor = SurfaceDescriptorFromMetalLayer {
         .chain = .{ .next = null, .type = .surface_source_metal_layer },

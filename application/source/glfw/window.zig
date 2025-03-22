@@ -28,7 +28,7 @@ pub const Window = *opaque {
 
     pub const setKeyCallback = glfwSetKeyCallback;
 
-    pub const GetCocoaWindow = glfwGetCocoaWindow;
+    pub const getCocoaWindow = glfwGetCocoaWindow;
 
 };
 
