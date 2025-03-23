@@ -76,6 +76,7 @@ fn createWaylandSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) S
 
     const wayland_display = glfw.native.getWaylandDisplay() orelse return SurfaceError.BackendUnavailable;
     const wayland_window = glfw.native.getWaylandWindow(glfw_window) orelse return SurfaceError.BackendUnavailable;
+    
     const wayland_descriptor = SurfaceDescriptorFromWaylandSurface {
         .chain = .{
             .type = .surface_source_wayland_surface
@@ -95,14 +96,12 @@ extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
 
 fn createMetalSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const ns_window = glfw.native.getCocoaWindow(glfw_window);
-    const metal_layer = setupMetalLayer(ns_window);
-
-    if (metal_layer == null) return SurfaceError.BackendUnavailable;
+    const ns_window = glfw.native.getCocoaWindow(glfw_window) orelse return SurfaceError.BackendUnavailable;
+    const metal_layer = setupMetalLayer(ns_window) orelse return SurfaceError.BackendUnavailable;
 
     const metal_descriptor = SurfaceDescriptorFromMetalLayer {
         .chain = .{ .next = null, .type = .surface_source_metal_layer },
-        .layer = metal_layer.?
+        .layer = metal_layer
     };
 
     const surface_descriptor = SurfaceDescriptor {
