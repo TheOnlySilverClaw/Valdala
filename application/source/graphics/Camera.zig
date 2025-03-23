@@ -39,8 +39,8 @@ pub fn projectionMatrix(self: Self) Matrix4x4 {
     const scale = self.transform.scale;
     const width = scale.x;
     const height = scale.y;
-    const far = self.transform.scale.z;
-    const near = 1.0;
+    const far = scale.z;
+    const near = 0.1;
     const aspect = width / height;
     const f = 1.0 / @tan(fovy_rad / 2.0);
 
