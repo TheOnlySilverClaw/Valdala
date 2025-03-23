@@ -24,15 +24,15 @@ pub fn Transform(T: type) type {
             };
         }
 
-        pub fn localPitchAxis(self: *Self) Vector3 {
+        pub fn pitchAxis(self: *Self) Vector3 {
             return self.rotation.rotateVector3(Axis.x);
         }
 
-        pub fn localYawAxis(self: *Self) Vector3 {
+        pub fn yawAxis(self: *Self) Vector3 {
             return self.rotation.rotateVector3(Axis.y);
         }
 
-        pub fn localRollAxis(self: *Self) Vector3 {
+        pub fn rollAxis(self: *Self) Vector3 {
             return self.rotation.rotateVector3(Axis.z);
         }
 
@@ -58,19 +58,19 @@ pub fn Transform(T: type) type {
         }
 
         pub fn translatePitch(self: *Self, amount: T) void {
-            var localx = localPitchAxis(self);
+            var localx = pitchAxis(self);
             localx = localx.scalarMultiply(amount);
             self.position = self.position.add(localx);
         }
 
         pub fn translateYaw(self: *Self, amount: T) void {
-            var localx = localYawAxis(self);
+            var localx = yawAxis(self);
             localx = localx.scalarMultiply(amount);
             self.position = self.position.add(localx);
         }
 
         pub fn translateRoll(self: *Self, amount: T) void {
-            var localx = localRollAxis(self);
+            var localx = rollAxis(self);
             localx = localx.scalarMultiply(amount);
             self.position = self.position.add(localx);
         }

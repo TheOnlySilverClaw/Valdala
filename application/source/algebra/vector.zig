@@ -137,6 +137,10 @@ pub fn Vector4(comptime T: type) type {
             return .{ .x = self.x, .y = self.y, .z = self.z };
         }
 
+        pub fn flip(self: Self) Vector4(T) {
+            return .{ .x = -self.x, .y = -self.y, .z = -self.z, .w = -self.w };
+        }
+
         pub fn nomalized(self: Self) Self {
             return self.toVector3().normalized().to_vec4(self.w);
         }
