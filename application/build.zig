@@ -10,11 +10,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const glfw = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("source/glfw/module.zig")
-    });
+    const glfw = b.dependency("glfw", .{}).module("glfw");
 
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
@@ -87,8 +83,6 @@ pub fn build(b: *std.Build) void {
             exe.linkSystemLibrary("d3dcompiler_47");
             exe.linkSystemLibrary("propsys");
             exe.linkSystemLibrary("api-ms-win-core-winrt-error-l1-1-0");
-
-
         },
         .macos => {
             // needed for wgpu and glfw, does require a mac with xcode setup

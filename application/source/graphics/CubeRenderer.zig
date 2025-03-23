@@ -42,7 +42,7 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
     const projection_buffer = createUniformBuffer(device, 4*4*@sizeOf(f32), webgpu.StringView.sized("projection"));
 
     var projection = self.camera.asMatrix();
-    queue.writeBuffer(projection_buffer, f32, &projection.values, 0);
+    queue.writeBuffer(projection_buffer, f32, projection.asArray(), 0);
 
     const bind_group_entries = [_]webgpu.BindGroupEntry {
         .{
