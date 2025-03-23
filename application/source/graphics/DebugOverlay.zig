@@ -5,7 +5,7 @@ const webgpu = @import("webgpu");
 const algebra = @import("algebra");
 
 const Allocator = std.mem.Allocator;
-const Vector3D = algebra.Vector3D;
+const Vector3 = algebra.vector.Vector3;
 const Quaternion = algebra.Quaternion;
 
 const TextMesh = @import("TextMesh.zig");
@@ -34,7 +34,7 @@ pub fn init(allocator: Allocator, device: *webgpu.Device, fontTexture: *FontText
     };
 }
 
-pub fn render(self: *Self, renderPass: *webgpu.RenderPassEncoder, queue: *webgpu.Queue, delta: u64, position: Vector3D(f32), rotation: Quaternion(f32)) !void {
+pub fn render(self: *Self, renderPass: *webgpu.RenderPassEncoder, queue: *webgpu.Queue, delta: u64, position: Vector3(f32), rotation: Quaternion(f32)) !void {
 
     var buffer: [64]u8 = undefined;
     var slice: []const u8 = undefined;
