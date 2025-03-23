@@ -58,21 +58,21 @@ pub fn Transform(T: type) type {
         }
 
         pub fn translatePitch(self: *Self, amount: T) void {
-            var localx = pitchAxis(self);
-            localx = localx.scalarMultiply(amount);
-            self.position = self.position.add(localx);
+            var local = pitchAxis(self);
+            local = local.scalarMultiply(amount);
+            self.position = self.position.add(local);
         }
 
         pub fn translateYaw(self: *Self, amount: T) void {
-            var localx = yawAxis(self);
-            localx = localx.scalarMultiply(amount);
-            self.position = self.position.add(localx);
+            var local = yawAxis(self);
+            local = local.scalarMultiply(amount);
+            self.position = self.position.add(local);
         }
 
         pub fn translateRoll(self: *Self, amount: T) void {
-            var localx = rollAxis(self);
-            localx = localx.scalarMultiply(amount);
-            self.position = self.position.add(localx);
+            var local = rollAxis(self);
+            local = local.scalarMultiply(amount);
+            self.position = self.position.add(local);
         }
 
         pub fn rotatePitch(self: *Self, angle: T) void {

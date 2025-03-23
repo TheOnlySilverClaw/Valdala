@@ -7,6 +7,7 @@ const Vector3 = algebra.vector.Vector3(f32);
 const Vector4 = algebra.vector.Vector4(f32);
 const Quaternion = algebra.Quaternion(f32);
 const Matrix4x4 = algebra.matrix.Matrix4x4(f32);
+const Axis = algebra.Axis(f32);
 
 const Self = @This();
 
@@ -31,8 +32,8 @@ pub fn viewMatrix(self: Self) Matrix4x4 {
     translation.set(3, 1, offset.y);
     translation.set(3, 2, offset.z);
     var rotation = self.transform.rotation.toMatrix4x4();
-    rotation = rotation.multiply(translation);
     rotation.x = rotation.x.flip();
+    rotation = rotation.multiply(translation);
     return rotation;
 }
 

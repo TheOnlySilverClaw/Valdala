@@ -54,7 +54,9 @@ pub fn Quaternion(comptime T: type) type {
 
         pub fn rotateVector3(self: Self, v: Vector3) Vector3 {
             const w = self.w;
-            const r: Vector3 = .{ .x = self.x, .y = self.y, .z = self.z };
+            // flipping y and z flips the x axis, TODO: there is probably
+            // a cleaner way of doing this
+            const r: Vector3 = .{ .x = self.x, .y = -self.y, .z = -self.z };
             const t = r.cross(v).scalarMultiply(2.0);
             return v.add(t.scalarMultiply(w)).add(r.cross(t));
         }

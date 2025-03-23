@@ -16,8 +16,8 @@ pub fn onKey(self: Self, key: glfw.Key, action: glfw.Action, modifiers: glfw.Mod
 
     if(action == .press or action == .repeat) {
         switch (key) {
-            .d => self.camera.transform.translatePitch(0.2),
-            .a => self.camera.transform.translatePitch(-0.2),
+            .d => self.camera.transform.translatePitch(-0.2),
+            .a => self.camera.transform.translatePitch(0.2),
             .q => self.camera.transform.translateWorldZ(-0.2),
             .e => self.camera.transform.translateWorldZ(0.2),
             .w => self.camera.transform.translateRoll(0.2),
