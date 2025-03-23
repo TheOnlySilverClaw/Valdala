@@ -34,73 +34,66 @@ pub const SurfaceDescriptorFromXlibWindow = extern struct {
     window: glfw.native.X11Window,
 };
 
-pub fn createSurface(window: glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const descriptor = try createDescriptor(window);
-    return instance.createSurface(&descriptor);
-}
-
-fn createDescriptor(window: glfw.Window) SurfaceError!SurfaceDescriptor {
+pub fn createSurface(window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
     switch (target_os) {
         .linux => {
             return switch (glfw.getPlatform()) {
-                .x11 => createX11SurfaceDescriptor(window),
-                .wayland => createWaylandDescriptor(window),
+                .x11 => createX11Surface(window, instance),
+                .wayland => createWaylandSurface(window, instance),
                 else => return SurfaceError.PlatformUnsupported
             };
         },
-        .macos => {
-            return createMetalDescriptor(window);
-        },
-        .windows => return createWindowsDescriptor(window),
+        .macos => return createMetalSurface(window, instance),
+        .windows => return createWindowsSurface(window, instance),
         else => return SurfaceError.PlatformUnsupported,
     }
 }
 
 
-fn createX11SurfaceDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
+fn createX11Surface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const x11Display = glfw.native.getX11Display();
-    const x11Window = glfw.native.getX11Window(glfwWindow);
+    const x11_display = glfw.native.getX11Display() orelse return SurfaceError.BackendUnavailable;
+    const x11_window = glfw.native.getX11Window(glfw_window);
 
-    const x11SurfaceDescriptor = SurfaceDescriptorFromXlibWindow {
+    const x11_surface_descriptor = SurfaceDescriptorFromXlibWindow {
         .chain = .{
             .type = .surface_source_xlib_window
         },
-        .display = x11Display,
-        .window =  x11Window
+        .display = x11_display,
+        .window =  x11_window
     };
 
-    const surfaceDescriptor = SurfaceDescriptor {
-        .next = &x11SurfaceDescriptor.chain
+    const surface_descriptor = SurfaceDescriptor {
+        .next = &x11_surface_descriptor.chain
     };
 
-    return surfaceDescriptor;
+    return instance.createSurface(&surface_descriptor);
 }
 
-fn createWaylandDescriptor(glfwWindow: glfw.Window) SurfaceDescriptor {
+fn createWaylandSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const waylandDisplay = glfw.native.getWaylandDisplay();
-    const waylandWindow = glfw.native.getWaylandWindow(glfwWindow);
-    const waylandDescriptor = SurfaceDescriptorFromWaylandSurface {
+    const wayland_display = glfw.native.getWaylandDisplay() orelse return SurfaceError.BackendUnavailable;
+    const wayland_window = glfw.native.getWaylandWindow(glfw_window) orelse return SurfaceError.BackendUnavailable;
+    const wayland_descriptor = SurfaceDescriptorFromWaylandSurface {
         .chain = .{
             .type = .surface_source_wayland_surface
         },
-        .display = waylandDisplay,
-        .surface = waylandWindow
+        .display = wayland_display,
+        .surface = wayland_window
     };
 
-    const surfaceDescriptor = SurfaceDescriptor {
-        .next = &waylandDescriptor.chain
+    const surface_descriptor = SurfaceDescriptor {
+        .next = &wayland_descriptor.chain
     };
 
-    return surfaceDescriptor;
+    return instance.createSurface(&surface_descriptor);
 }
 
 extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
 
-fn createMetalDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescriptor {
+fn createMetalSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
     const ns_window = glfw_window.getCocoaWindow();
     const metal_layer = setupMetalLayer(ns_window);
@@ -116,7 +109,7 @@ fn createMetalDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescripto
         .next = &metal_descriptor.chain
     };
 
-    return surface_descriptor;
+    return instance.createSurface(&surface_descriptor);
 
 }
 
@@ -126,7 +119,7 @@ const LPCSTR = ?[*:0]const u8;
 const HMODULE = *opaque {};
 extern fn GetModuleHandleA(lpModuleName: LPCSTR) ?HMODULE;
 
-fn createWindowsDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescriptor {
+fn createWindowsSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
     const hwnd = glfw_window.getWin32Window() orelse return SurfaceError.BackendUnavailable;
     const hinstance = GetModuleHandleA(null) orelse return SurfaceError.BackendUnavailable;
@@ -141,6 +134,6 @@ fn createWindowsDescriptor(glfw_window: glfw.Window) SurfaceError!SurfaceDescrip
         .next = &hwnd_descriptor.chain
     };
 
-    return surface_descriptor;
+    return instance.createSurface(&surface_descriptor);
 
 }
