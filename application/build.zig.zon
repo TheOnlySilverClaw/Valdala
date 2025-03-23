@@ -15,6 +15,10 @@
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
             .hash = "wgpu_native-2.0.0-dKjiONsrAQD0CRuZV34nfQa1gXgWByJcCtlnbQKFiIK_"
         },
+        .glfw = .{
+            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
+            .hash = "glfw-1.0.0-P2aihSx_AACWSC5vBgh-eT48Bqw2ZU_YjNhVyxiK8PWH"
+        },
 
         // binary dependencies
         // GLFW 3.4

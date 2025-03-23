@@ -9,13 +9,14 @@ const Controller = @import("Controller.zig");
 
 const Self = @This();
 
-handle: glfw.Window,
+handle: *glfw.Window,
 surface: Surface,
 controller: *const Controller,
 
 pub fn create(window: *Self, title: [*:0]const u8, width: u32, height: u32) !void {
 
-    const handle = glfw.createWindow(width, height, title, null, null);
+    const handle = glfw.Window.create(@intCast(width), @intCast(height), title, null, null)
+        orelse return error.CreateWindow;
     
     const instance = webgpu.Instance.create(null);
 
@@ -32,16 +33,17 @@ pub fn create(window: *Self, title: [*:0]const u8, width: u32, height: u32) !voi
     window.surface.resize(width, height);
 }
 
-fn sizeCallback(handle: glfw.Window, width: i32, height: i32) callconv(.C) void {
+fn sizeCallback(handle: *glfw.Window, width: i32, height: i32) callconv(.C) void {
 
     var window = getSelfPointer(handle);
     var surface = &window.surface;
     surface.resize(@intCast(width), @intCast(height));
 }
 
-fn keyCallback(handle: glfw.Window, key: glfw.Key, _: u32,
+fn keyCallback(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode,
         action: glfw.Action, modifiers: glfw.Modifiers) callconv(.C) void {
 
+    _ = scancode;
     const window = getSelfPointer(handle);
     const controller = window.controller;
     controller.onKey(key, action, modifiers);
@@ -57,6 +59,6 @@ pub fn destroy(self: Self) void {
     self.surface.destroy();
 }
 
-fn getSelfPointer(handle: glfw.Window) *Self {
+fn getSelfPointer(handle: *glfw.Window) *Self {
     return @ptrCast(@alignCast(handle.getUserPoiner()));
 }

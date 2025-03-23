@@ -17,10 +17,10 @@ pub fn init(allocator: Allocator) !Self {
     log.info("Initialize systems", .{});
     log.debug("Initialize GLFW", .{});
 
-    try glfw.initialize();
+    if(!glfw.initialize()) return error.GLFW;
     log.debug("Successfully initialized GLFW {s} for {s}", .{ glfw.getVersion(), @tagName(glfw.getPlatform()) }); 
 
-    glfw.windowHint(.ClientApi, glfw.no_api);
+    glfw.Window.hint(.ClientApi, glfw.no_api);
 
     log.debug("Create application renderer", .{});
     var renderer: Renderer = undefined;

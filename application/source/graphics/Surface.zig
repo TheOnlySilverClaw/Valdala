@@ -28,7 +28,7 @@ queue: *webgpu.Queue,
 width: u32,
 height: u32,
 
-pub fn create(window: glfw.Window, instance: *webgpu.Instance) !Self {
+pub fn create(window: *glfw.Window, instance: *webgpu.Instance) !Self {
     
     const handle = try glfw_webgpu.createSurface(window, instance);
 
