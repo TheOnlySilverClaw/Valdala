@@ -116,20 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-This section is for showing update screenshots and holding myself accountable.
-
-So many commits and so little to show?
-
-The reason for that is mostly me trying out half a dozen programming languages (Rust, TypeScript, Go, C++, V, C3) before (fingers crossed!) settling on Zig.
-At this point, I'm comfortable I can build anything I need with that and the language will be well maintained and going in a promising direction for the foreseeable future.
-I also had to get used to low level programming and manual memory management, but I actually enjoy that now.
-
-Even worse, I had to brush up my maths and nearly non-existent graphics programming experience and start from nothing with WebGPU while the standard is still settling.
-
-Could I just use an engine instead? Sure, but where's the fun in that?
-
-Some basic debugging overlay and controls are working:
+Thanks to @knivaagaffel we have a floor!
 
 ![screenshot](screenshot.png)
-
-Time to finally fix the view projection...
