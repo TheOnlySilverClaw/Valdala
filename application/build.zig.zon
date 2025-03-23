@@ -5,7 +5,7 @@
         .zigimg = .{
             // TODO switch back to main repository as soon as that works with Zig 0.14.0
             .url = "https://github.com/TUSF/zigimg/archive/refs/heads/master.zip",
-            .hash = "zigimg-0.1.0-lly-O4heEADSRxoTwJwrD3TBfUob9052sIgb9SL8Iz-A",
+            .hash = "zigimg-0.1.0-lly-O6N2EABOxke8dqyzCwhtUCAafqP35zC7wsZ4Ddxj"
         },
         .TrueType = .{
             .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
@@ -37,13 +37,18 @@
             .lazy = true
         },
         .wgpu_windows = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-debug.zip",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-gnu-debug.zip",
+            .hash = "N-V-__8AAMGiVhXMuSjWAYooPYRMjv5zBSwoGid7YBkOtpaj",
+            .lazy = true
+        },
+        .wgpu_macos_x86_64 = .{
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-x86_64-debug.zip",
             .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
             .lazy = true
         },
-        .wgpu_macos = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-x86_64-debug.zip",
-            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+        .wgpu_macos_aarch64 = .{
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-aarch64-debug.zip",
+	    .hash = "N-V-__8AAGzToQjdhwDgALHVFeO9nh-DJRQkJHAbkBzYHXBj",
             .lazy = true
         },
     },

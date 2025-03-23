@@ -60,24 +60,76 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
     exe.linkSystemLibrary("unwind");
-    
+
     switch (target.result.os.tag) {
         .linux => {
             exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" });
             exe.addObjectFile(b.lazyDependency("wgpu_linux", .{}).?.path("lib/libwgpu_native.a"));
         },
         .windows => {
-            exe.addObjectFile(b.lazyDependency("glfw_windows", .{}).?.path("lib-mingw-w64/libglfw3.a"));
-            exe.addObjectFile(b.lazyDependency("wgpu_windows", .{}).?.path("lib/libwgpu_native.a"));
+            if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));
+            if (b.lazyDependency("wgpu_windows", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+
+            exe.linkLibCpp();
+
+            exe.linkSystemLibrary("gdi32");
+            exe.linkSystemLibrary("user32");
+            exe.linkSystemLibrary("shell32");
+
+            // Required by wgpu_native
+            exe.linkSystemLibrary("ole32");
+            exe.linkSystemLibrary("user32");
+            exe.linkSystemLibrary("kernel32");
+            exe.linkSystemLibrary("userenv");
+            exe.linkSystemLibrary("ws2_32");
+            exe.linkSystemLibrary("oleaut32");
+            exe.linkSystemLibrary("opengl32");
+            exe.linkSystemLibrary("d3dcompiler_47");
+            exe.linkSystemLibrary("propsys");
+            exe.linkSystemLibrary("api-ms-win-core-winrt-error-l1-1-0");
+
+
         },
         .macos => {
+            // needed for wgpu and glfw, does require a mac with xcode setup
             exe.linkFramework("Metal");
             exe.linkFramework("Cocoa");
             exe.linkFramework("Foundation");
             exe.linkFramework("QuartzCore");
             exe.linkFramework("IOKit");
-            exe.addObjectFile(b.lazyDependency("glfw_macos", .{}).?.path("lib-x86_64/libglfw3.a"));
-            exe.addObjectFile(b.lazyDependency("wgpu_macos", .{}).?.path("lib/libwgpu_native.a"));
+
+            // objective-c helper function to get metal layer
+            const metal_layer_mod = b.addModule("metalLayer", .{
+                .optimize = optimize,
+                .target = target,
+            });
+            metal_layer_mod.addCSourceFile(.{ .file = b.path("source/glfw/metal_layer.m") });
+
+            exe.linkLibrary(b.addLibrary(.{
+                .name = "metalLayer",
+                .root_module = metal_layer_mod,
+            }));
+
+            switch (target.result.cpu.arch) {
+                .aarch64 => { // apple silicon
+                    if (b.lazyDependency("glfw_macos", .{})) |glfw_dep| {
+                        exe.addObjectFile(glfw_dep.path("lib-arm64/libglfw3.a"));
+                    }
+                    if (b.lazyDependency("wgpu_macos_aarch64", .{})) |wgpu_dep| {
+                        exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+                    }
+                },
+                .x86_64 => { // intel
+                    if (b.lazyDependency("glfw_macos", .{})) |glfw_dep| {
+                        exe.addObjectFile(glfw_dep.path("lib-x86_64/libglfw3.a"));
+                    }
+                    if (b.lazyDependency("wgpu_macos_x86_64", .{})) |wgpu_dep| {
+                        exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+                    }
+                },
+                else => @panic("Unsupported architechture for macOS")
+
+            }
         },
         else => std.debug.panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
     }
