@@ -4,7 +4,7 @@ Valdala is supposed to become a game... eventually.
 Currently, it is primarly my excuse to tinker with technologies I'm interested in.
 
 
-## Reason
+## How it started
 
 Like most of my projects, the idea started with me being unsatisfied with something. In this case, Minecraft.
 I liked building houses and towns, but after a construction project was finished, it was just... there... decoratively.
@@ -58,19 +58,60 @@ However, if anyone is willing to help out and learn a thing or two on the way, I
 
 Since this project does not generate revenue and probably never will, there's no promise of compensation beyond that.
 
-Currently in demand:
+
+## Contribution Guildelines
+
+### Zig version
+
+The project currently builds with Zig version 0.14.0
+
+I recommend to use the same one locally, as you might have issues with the build system and other breaking changes otherwise.
+
+### Formatting
+
+We generally follow the official Zig style guide: https://ziglang.org/documentation/0.14.0/#Style-Guide
+
+Additionally, please make use of extra line breaks after function signatures and between bigger blocks of logic.
+
+Try to avoid abbreviations unless the names would get really unwieldy otherwise.
+
+### Declaration order
+
+This is not too strictly enforced, but I generally try to keep this order per file:
+
+1. import std
+2. imports of other Zig standard libary modules
+3. imports of project dependencies
+4. imports of project modules
+5. imported functions
+6. imported types
+7. simple nested types, like Error
+8. Self = @This
+9. constants
+10. functions
+
+### Changes
+
+Small changes like typos and formatting of few lines can be made directly on the development branch.
+
+For bigger changes, please create a separate branch and then a pull request.
+
+Try to keep pull requests focused on a task, preferably linked to an issue.  
+In particular, seprate new features and other impprovements from bigger renaming, reorganizing and reformatting sprees.
 
 
-### 3D Engine Developer
+### Dependencies
 
-Let's build a fast and maintanable 3D rendering engine. Maybe even a pretty one!
+Try to keep the dependency on third parties to a minimum.
 
-Required skills:
+If feasible, we write and maintain it ourselves.
 
-- graphics programming in WebGPU, Vulkan, Metal, OpenGL or Direct3D
-- 3D math, especially vectors, matrices and quaternions
-- programming in a language with manual memory management, like Zig, C, C++, Rust, V, Nim or Odin
-- using git and build tools
+If maintaing a certain feature is too much work, prefer dependencies that are:
+- up to date with our Zig version
+- actively maintained
+- focused on a specific task
+
+Ask before adding new dependencies.
 
 
 ## Current State
