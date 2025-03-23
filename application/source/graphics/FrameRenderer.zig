@@ -7,6 +7,7 @@ const Allocator = std.mem.Allocator;
 const Surface = @import("Surface.zig");
 const UserInterface = @import("UserInterface.zig");
 const CubeRenderer = @import("CubeRenderer.zig");
+const FloorRenderer = @import("FloorRenderer.zig");
 
 const Self = @This();
 
@@ -19,18 +20,26 @@ lastFrameEndTime: i64 = undefined,
 
 userInterface: *UserInterface,
 cubeRenderer: *CubeRenderer,
+floorRenderer: *FloorRenderer,
 
-pub fn init(allocator: Allocator, targetFrameRate: u64, surface: *const Surface, userInterface: *UserInterface, cubeRenderer: *CubeRenderer) !Self {
-
+pub fn init(
+    allocator: Allocator,
+    targetFrameRate: u64,
+    surface: *Surface,
+    userInterface: *UserInterface,
+    cubeRenderer: *CubeRenderer,
+    floorRenderer: *FloorRenderer,
+) !Self {
     const targetFrameTime = time.ms_per_s / targetFrameRate;
-    
+
     return .{
         .allocator = allocator,
         .surface = surface,
         .targetFrameTime = targetFrameTime,
         .lastFrameEndTime = time.milliTimestamp(),
         .userInterface = userInterface,
-        .cubeRenderer = cubeRenderer
+        .cubeRenderer = cubeRenderer,
+        .floorRenderer = floorRenderer,
     };
 }
 
@@ -86,6 +95,7 @@ pub fn render(self: *Self) !void{
 
     const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
     
+    try self.floorRenderer.render(renderPass);
     try self.cubeRenderer.render(renderPass);
     try self.userInterface.render(renderPass, frameDeltaTime);
 

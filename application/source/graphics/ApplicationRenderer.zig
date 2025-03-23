@@ -16,6 +16,7 @@ const FontTexture = @import("FontTexture.zig");
 const TrueType = @import("TrueType");
 const Controller = @import("Controller.zig");
 const CubeRenderer = @import("CubeRenderer.zig");
+const FloorRenderer = @import("FloorRenderer.zig");
 const Self = @This();
 
 allocator: Allocator,
@@ -24,6 +25,7 @@ window: *Window,
 frameRenderer: *FrameRenderer,
 textRenderer: *TextRenderer,
 cubeRenderer: *CubeRenderer,
+floorRenderer: *FloorRenderer,
 fontTexture: *FontTexture,
 userInterface: *UserInterface,
 trueType: *TrueType,
@@ -82,8 +84,18 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
     self.cubeRenderer = try allocator.create(CubeRenderer);
     self.cubeRenderer.* = try CubeRenderer.init(allocator, surface, self.scene.camera);
 
+    self.floorRenderer = try allocator.create(FloorRenderer);
+    self.floorRenderer.* = try FloorRenderer.init(allocator, surface, self.scene.camera);
+
     self.frameRenderer = try allocator.create(FrameRenderer);
-    self.frameRenderer.* = try FrameRenderer.init(allocator, targetFrameRate, surface, self.userInterface, self.cubeRenderer);
+    self.frameRenderer.* = try FrameRenderer.init(
+        allocator,
+        targetFrameRate,
+        surface,
+        self.userInterface,
+        self.cubeRenderer,
+        self.floorRenderer,
+    );
 }
 
 pub fn deinit(self: *Self) void {
@@ -110,6 +122,9 @@ pub fn deinit(self: *Self) void {
 
     self.allocator.destroy(self.cubeRenderer.pipeline);
     self.allocator.destroy(self.cubeRenderer);
+
+    self.allocator.destroy(self.floorRenderer.pipeline);
+    self.allocator.destroy(self.floorRenderer);
 }
 
 pub fn start(self: *Self) !void {
