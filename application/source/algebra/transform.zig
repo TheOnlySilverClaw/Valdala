@@ -4,108 +4,137 @@ const assert = std.debug.assert;
 const algebra = @import("module.zig");
 
 pub fn Transform(T: type) type {
-
-    const Vector = algebra.Vector3D(T);
+    const Vector3 = algebra.vector.Vector3(T);
     const Quaternion = algebra.Quaternion(T);
-    const Axis = algebra.Axis(T);
-    const Matrix = algebra.Matrix(T).Sized(4, 4);
-    
-    return struct {
+    const Matrix4x4 = algebra.matrix.Matrix4x4(T);
 
+    return struct {
         const Self = @This();
 
-        position: Vector,
+        position: Vector3,
         rotation: Quaternion,
-        scale: Vector,
+        scale: Vector3,
 
         pub fn origin() Self {
             return .{
-                .position = Vector.all(0),
-                .rotation = Quaternion.identity(),
-                .scale = Vector.all(1)
+                .position = .zeros,
+                .rotation = .identity,
+                .scale = .{ .x = 1, .y = 1, .z = 1 },
             };
         }
 
-        pub fn pitchAxis(self: Self) Vector {
-            return self.rotation.rotate(Axis.x);
+        pub fn localXAxis(self: *const Self) Vector3 {
+            return self.rotation.rotateVector3(&Vector3.unit_x);
         }
 
-        pub fn rollAxis(self: Self) Vector {
-            return self.rotation.rotate(Axis.y);
+        pub fn localYAxis(self: *const Self) Vector3 {
+            return self.rotation.rotateVector3(&Vector3.unit_y);
         }
 
-        pub fn yawAxis(self: Self) Vector {
-            return self.rotation.rotate(Axis.z);
+        pub fn localZAxis(self: *const Self) Vector3 {
+            return self.rotation.rotateVector3(&Vector3.unit_z);
         }
 
-        pub fn translate(self: *Self, direction: Vector) void {
+        pub fn translateAlongWorldframe(self: *Self, direction: Vector3) void {
             self.position = self.position.add(direction);
         }
 
-        pub fn translateX(self: *Self, amount: T) void {
-            self.position = Vector.of(self.position.x + amount, self.position.y, self.position.z);
+        pub fn translateAlongLocalframe(self: *Self, direction: Vector3) void {
+            const local_rotation = self.rotation.rotateVector3(&direction);
+            self.position = self.position.add(local_rotation);
         }
 
-        pub fn translateY(self: *Self, amount: T) void {
-            self.position = Vector.of(self.position.x, self.position.y + amount, self.position.z);
+        pub fn translateAlongWorldX(self: *Self, amount: T) void {
+            self.position = Vector3.of(self.position.x + amount, self.position.y, self.position.z);
         }
 
-        pub fn translateZ(self: *Self, amount: T) void {
-            self.position = Vector.of(self.position.x, self.position.y, self.position.z + amount);
+        pub fn translateAlongWorldY(self: *Self, amount: T) void {
+            self.position = Vector3.of(self.position.x, self.position.y + amount, self.position.z);
         }
 
-        pub fn translateRoll(self: *Self, amount: T) void {
-            self.translate(self.rollAxis().scaleUniform(amount));
+        pub fn translateAlongWorldZ(self: *Self, amount: T) void {
+            self.position = Vector3.of(self.position.x, self.position.y, self.position.z + amount);
         }
 
-        pub fn translatePitch(self: *Self, amount: T) void {
-            self.translate(self.pitchAxis().scaleUniform(amount));
+        pub fn translateAlongLocalX(self: *Self, amount: T) void {
+            var localx = localXAxis(self);
+            localx = localx.scalarMultiply(amount);
+            self.position = self.position.add(localx);
         }
 
-        pub fn translateYaw(self: *Self, amount: T) void {
-            self.translate(self.yawAxis().scaleUniform(amount));
+        pub fn translateAlongLocalY(self: *Self, amount: T) void {
+            var localx = localYAxis(self);
+            localx = localx.scalarMultiply(amount);
+            self.position = self.position.add(localx);
         }
 
-        pub fn rotateRoll(self: *Self, angle: T) void {
-            self.rotateAround(self.rollAxis(), angle);
+        pub fn translateAlongLocalZ(self: *Self, amount: T) void {
+            var localx = localZAxis(self);
+            localx = localx.scalarMultiply(amount);
+            self.position = self.position.add(localx);
         }
 
-        pub fn rotatePitch(self: *Self, angle: T) void {
-            self.rotateAround(self.pitchAxis(), angle);
+        pub fn rotateAroundLocalX(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_x, angle);
+            self.rotation = self.rotation.multiply(&rotation);
         }
 
-        pub fn rotateYaw(self: *Self, angle: T) void {
-            self.rotateAround(self.yawAxis(), angle);
+        pub fn rotateAroundLocalY(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_y, angle);
+            self.rotation = self.rotation.multiply(&rotation);
         }
 
-        pub fn rotateAround(self: *Self, axis: Vector, angle: T) void {
+        pub fn rotateAroundLocalZ(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_z, angle);
+            self.rotation = self.rotation.multiply(&rotation);
+        }
+
+        pub fn rotateAroundWorldX(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_x, angle);
+            self.rotation = rotation.multiply(&self.rotation);
+        }
+
+        pub fn rotateAroundWorldY(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_y, angle);
+            self.rotation = rotation.multiply(&self.rotation);
+        }
+
+        pub fn rotateAroundWorldZ(self: *Self, angle: T) void {
+            const rotation = Quaternion.aroundAxis(Vector3.unit_z, angle);
+            self.rotation = rotation.multiply(&self.rotation);
+        }
+
+        pub fn rotateAroundWorld(self: *Self, axis: Vector3, angle: T) void {
             const rotation = Quaternion.aroundAxis(axis, angle);
-            self.rotation = self.rotation.multiply(rotation);
+            self.rotation = rotation.multiply(&self.rotation);
+        }
+
+        pub fn rotateAroundLocal(self: *Self, axis: Vector3, angle: T) void {
+            const rotation = Quaternion.aroundAxis(axis, angle);
+            self.rotation = self.rotation.multiply(&rotation);
         }
 
         pub fn scaleUniform(self: *Self, factor: T) void {
-            self.scale = self.scale.scaleUniform(factor);
+            self.scale = self.scale.scalarMultiply(factor);
         }
 
-        pub fn scaleBy(self: *Self, dimensions: Vector) void {
-            self.scale = self.scale.multiply(dimensions);
+        pub fn scaleBy(self: *Self, dimensions: Vector3) void {
+            self.scale = self.scale.elementwiseMultiply(dimensions);
         }
 
-        pub fn matrix(self: Self) Matrix {
+        pub fn toMatrix4x4(self: Self) Matrix4x4 {
+            var translation: Matrix4x4 = .identity;
+            translation.z.x = self.position.x;
+            translation.z.y = self.position.y;
+            translation.z.z = self.position.z;
 
-            var translation = Matrix.identity();
-            translation.set(3, 0, self.position.x);
-            translation.set(3, 1, self.position.y);
-            translation.set(3, 2, self.position.z);
+            const rotation = self.rotation.toMatrix4x4();
 
-            const rotation = self.rotation.matrix();
-
-            var scale = Matrix.zeros();
-            scale.set(0, 0, self.scale.x);
-            scale.set(1, 1, self.scale.y);
-            scale.set(2, 2, self.scale.z);
-            scale.set(3, 3, 1);
-
+            var scale: Matrix4x4 = .zeros;
+            scale.x.x  = self.scale.x;
+            scale.y.y  = self.scale.y;
+            scale.z.z  = self.scale.z;
+            scale.w.w  = 1;
             // T * R * S
             return translation.multiply(scale.multiply(rotation));
         }

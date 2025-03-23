@@ -39,8 +39,17 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
     const surface = &window.surface;
 
     const camera = try allocator.create(Camera);
-    camera.* = Camera.new(std.math.degreesToRadians(60), @floatFromInt(window.surface.width), @floatFromInt(window.surface.height), 1000);
-    camera.*.transform.translateRoll(-2);
+    camera.* = Camera.new(
+        70,
+        @floatFromInt(window.surface.width),
+        @floatFromInt(window.surface.height),
+        1000,
+    );
+    camera.*.transform.translateAlongWorldZ(1);
+    camera.*.transform.translateAlongWorldY(-4);
+    camera.*.transform.rotateAroundLocalY(std.math.degreesToRadians(90));
+    camera.*.transform.rotateAroundLocalZ(std.math.degreesToRadians(90));
+    camera.*.transform.rotateAroundWorldZ(std.math.degreesToRadians(90));
     
     self.scene = try allocator.create(Scene);
     self.scene.* = try Scene.init(allocator, camera);

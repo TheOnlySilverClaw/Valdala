@@ -16,16 +16,18 @@ pub fn onKey(self: Self, key: glfw.Key, action: glfw.Action, modifiers: glfw.Mod
 
     if(action == .press or action == .repeat) {
         switch (key) {
-            .d => self.camera.transform.translatePitch(0.2),
-            .a => self.camera.transform.translatePitch(-0.2),
-            .w => self.camera.transform.translateRoll(0.2),
-            .s => self.camera.transform.translateRoll(-0.2),
-            .j => self.camera.transform.rotateYaw(-0.1),
-            .l => self.camera.transform.rotateYaw(0.1),
-            .i => self.camera.transform.rotatePitch(0.1),
-            .k => self.camera.transform.rotatePitch(-0.1),
-            .u => self.camera.transform.rotateRoll(-0.1),
-            .o => self.camera.transform.rotateRoll(0.1),
+            .d => self.camera.transform.translateAlongLocalX(0.2),
+            .a => self.camera.transform.translateAlongLocalX(-0.2),
+            .q => self.camera.transform.translateAlongWorldZ(-0.2),
+            .e => self.camera.transform.translateAlongWorldZ(0.2),
+            .w => self.camera.transform.translateAlongLocalZ(0.2),
+            .s => self.camera.transform.translateAlongLocalZ(-0.2),
+            .j => self.camera.transform.rotateAroundWorldZ(-0.1),
+            .l => self.camera.transform.rotateAroundWorldZ(0.1),
+            .i => self.camera.transform.rotateAroundLocalX(-0.1),
+            .k => self.camera.transform.rotateAroundLocalX(0.1),
+            .o => self.camera.transform.rotateAroundLocalZ(-0.1),
+            .u => self.camera.transform.rotateAroundLocalZ(0.1),
             .zero => self.camera.transform = algreba.Transform(f32).origin(),
             else => {
                 log.debug("unmapped key {} action {s} shift: {} control: {}",

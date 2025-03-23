@@ -1,132 +1,194 @@
+const matrix = @import("matrix.zig");
 const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
-const matrix = @import("matrix.zig");
+const formatGeneric = @import("module.zig").formatGeneric;
 
-pub fn Vector3D(comptime T: type) type {
-    
-    return struct {
-
+pub fn Vector2(comptime T: type) type {
+    return extern struct {
+        x: T,
+        y: T,
         const Self = @This();
 
+        pub const zeros: Self = .{ .x = 0, .y = 0 };
+        pub const unit_x: Self = .{ .x = 1, .y = 0 };
+        pub const unit_y: Self = .{ .x = 0, .y = 1 };
+        /// World XY-plane right direction, Z points towards camera
+        pub const right = unit_x;
+        /// World XY-plane up direction, Z points towards camera
+        pub const up = unit_y;
+
+        pub fn toVector3(self: Self, z: T) Vector4(T) {
+            return .{ .x = self.x, .y = self.y, .z = z };
+        }
+
+        pub fn toVector4(self: Self, z: T, w: T) Vector4(T) {
+            return .{ .x = self.x, .y = self.y, .z = z, .w = w };
+        }
+
+        pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+            try formatGeneric(self, T, 2, 1, fmt, options, writer); // Swap row and column for columnvector
+        }
+    };
+}
+
+pub fn Vector3(comptime T: type) type {
+    return extern struct {
         x: T,
         y: T,
         z: T,
+        const Self = @This();
 
-        pub inline fn of(x: T, y: T, z: T) Self {
-            return .{ .x = x, .y = y, .z = z };
+        pub const zeros: Self = .{ .x = 0, .y = 0, .z = 0 };
+        pub const unit_x: Self = .{ .x = 1, .y = 0, .z = 0 };
+        pub const unit_y: Self = .{ .x = 0, .y = 1, .z = 0 };
+        pub const unit_z: Self = .{ .x = 0, .y = 0, .z = 1 };
+        /// World right direction
+        pub const right = unit_x;
+        /// World forward direction
+        pub const forward = unit_y;
+        /// World up direction
+        pub const up = unit_z;
+
+        pub fn lengthSquared(self: Self) T {
+            return self.x * self.x + self.y * self.y + self.z * self.z;
         }
 
-        pub inline fn all(value: T) Self {
-            return .{ .x = value, .y = value, .z = value };
-        }
-
-        pub fn dot(self: Self, other: Self) T {
-            return self.x * other.x + self.y * other.y + self.z * other.z;
-        }
-
-        pub fn cross(self: Self, other: Self) Self {
-            return .{
-                .x = self.y * other.z - other.y * self.z,
-                .y = self.z * other.x - other.z * self.x,
-                .z = self.x * other.y - other.x * self.y,
-            };    
+        pub fn length(self: Self) T {
+            return @sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
         }
 
         pub fn isNormalized(self: Self) bool {
             return @abs(self.lengthSquared() - 1.0) <= 1e-4;
         }
 
-        pub fn normalize(self: Self) Self {
+        pub fn of(x: T, y: T, z: T) Self {
+            return .{ .x = x, .y = y, .z = z };
+        }
 
-            const reciprocal = 1.0 / self.length();
-            assert(reciprocal > 0.0);
-            return self.multiply(Self.all(reciprocal));
+        pub fn all(value: T) Self {
+            return .{ .x = value, .y = value, .z = value };
+        }
+
+        pub fn toVector4(self: Self, w: T) Vector4(T) {
+            return .{ .x = self.x, .y = self.y, .z = self.z, .w = w };
+        }
+
+        pub fn flip(self: Self) Vector3(T) {
+            return .{ .x = -self.x, .y = -self.y, .z = -self.z };
         }
 
         pub fn add(self: Self, other: Self) Self {
+            return .{ .x = self.x + other.x, .y = self.y + other.y, .z = self.z + other.z };
+        }
+
+        pub fn sub(self: Self, other: Self) Self {
+            return .{ .x = self.x - other.x, .y = self.y - other.y, .z = self.z - other.z };
+        }
+
+        pub fn elementwiseMultiply(self: Self, other: Self) Self {
+            return .{ .x = self.x * other.x, .y = self.y * other.y, .z = self.z * other.z };
+        }
+
+        pub fn scalarMultiply(self: Self, other: T) Self {
+            return .{ .x = self.x * other, .y = self.y * other, .z = self.z * other };
+        }
+
+        pub fn dot(a: *const Self, b: *const Self) T {
+            return a.x * b.x + a.y * b.y + a.z * b.z;
+        }
+
+        pub fn cross(self: *const Self, other: *const Self) Self {
             return .{
-                .x = self.x + other.x,
-                .y = self.y + other.y,
-                .z = self.z + other.z
+                .x = self.y * other.z - other.y * self.z,
+                .y = self.z * other.x - other.z * self.x,
+                .z = self.x * other.y - other.x * self.y,
             };
         }
 
-        pub fn multiply(self: Self, other: Self) Self {
-            return .{
-                .x = self.x * other.x,
-                .y = self.y * other.y,
-                .z = self.z * other.z
-            };
+        pub fn div(self: Self, other: T) Self {
+            return .{ .x = self.x / other, .y = self.y / other, .z = self.z / other };
         }
 
         pub fn scaleUniform(self: Self, value: T) Self {
-            return .{
-                .x = self.x * value,
-                .y = self.y * value,
-                .z = self.z * value
-            };
+            return .{ .x = self.x * value, .y = self.y * value, .z = self.z * value };
         }
 
-        pub fn scaleBy(self: Self, dimensions: Self) Self {
-            return .{
-                .x = self.x * dimensions.x,
-                .y = self.y * dimensions.y,
-                .z = self.z * dimensions.z
-            };
+        pub fn normalized(self: Self) Self {
+            const reciprocal = 1.0 / self.norm();
+            assert(reciprocal > 0.0);
+            return .{ .x = self.x * reciprocal, .y = self.y * reciprocal, .z = self.z * reciprocal };
         }
-
-        pub fn opposite(self: Self) Self {
-            return self.scaleUniform(-1);
-        }
-
-        pub fn length(self: Self) T {
-            return math.sqrt(self.lengthSquared());
-        }
-
-        fn lengthSquared(self: Self) T {
-            return self.dot(self);
-        }
-
-        const Matrix = matrix.Matrix(T);
-
-        pub fn asRowMatrix(self: Self, w: T) Matrix.Sized(4, 1) {
-            return Matrix.Sized(4, 1).ofValues(.{ self.x, self.y, self.z, w });
-        }
-
-        pub fn asColumnMatrix(self: Self, w: T) Matrix.Sized(1, 4) {
-            return Matrix.Sized(1, 4).ofValues(.{ self.x, self.y, self.z, w });
-        }
-
-        pub fn print(self: Self) void {
-            std.debug.print("({d}, {d}, {d})\n", .{self.x, self.y, self.z});
-        }
-
 
         pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-            
-            _ = fmt;
+            try formatGeneric(self, T, 3, 1, fmt, options, writer);
+        }
+    };
+}
 
-            const ff = std.fmt.format_float;
+pub fn Vector4(comptime T: type) type {
+    return extern struct {
+        x: T,
+        y: T,
+        z: T,
+        w: T,
+        const Self = @This();
 
-            const valueOptions = ff.FormatOptions {
-                .mode = .decimal,
-                .precision = options.precision
-            };
+        pub const zeros: Self = .{ .x = 0, .y = 0, .z = 0, .w = 0 };
+        pub const origin: Self = .{ .x = 0, .y = 0, .z = 0, .w = 1 };
+        pub const dir_x: Self = .{ .x = 1, .y = 0, .z = 0, .w = 0 };
+        pub const dir_y: Self = .{ .x = 0, .y = 1, .z = 0, .w = 0 };
+        pub const dir_z: Self = .{ .x = 0, .y = 0, .z = 1, .w = 0 };
+        pub const point_x: Self = .{ .x = 1, .y = 0, .z = 0, .w = 1 };
+        pub const point_y: Self = .{ .x = 0, .y = 1, .z = 0, .w = 1 };
+        pub const point_z: Self = .{ .x = 0, .y = 0, .z = 1, .w = 1 };
+        pub const unit_w = origin;
+        /// World right direction
+        pub const right = dir_x;
+        /// World forward direction
+        pub const forward = dir_y;
+        /// World up direction
+        pub const up = dir_z;
 
-            var buffer: [ff.min_buffer_size]u8 = undefined;
-            var slice: []const u8 = undefined;
+        pub fn addPoint(self: Self, other: Self) Self {
+            return .{ .x = self.x + other.x, .y = self.y + other.y, .z = self.z + other.z, .w = 1 };
+        }
 
-            _ = try writer.write("(");
-            slice = try std.fmt.formatFloat(&buffer, self.x, valueOptions);
-            _ = try writer.write(slice);
-            _ = try writer.write(", ");
-            slice = try std.fmt.formatFloat(&buffer, self.y, valueOptions);
-            _ = try writer.write(slice);
-            _ = try writer.write(", ");
-            slice = try std.fmt.formatFloat(&buffer, self.z, valueOptions);
-            _ = try writer.write(slice);
-            _ = try writer.write(")");
+        pub fn addDirection(self: Self, other: Self) Self {
+            return .{ .x = self.x + other.x, .y = self.y + other.y, .z = self.z + other.z, .w = 0 };
+        }
+
+        pub fn of(x: T, y: T, z: T, w: T) Self {
+            return .{ .x = x, .y = y, .z = z, .w = w };
+        }
+
+        pub fn toVector3(self: Self) Vector3(T) {
+            return .{ .x = self.x, .y = self.y, .z = self.z };
+        }
+
+        pub fn nomalized(self: Self) Self {
+            return self.toVector3().normalized().to_vec4(self.w);
+        }
+
+        pub fn dot(a: Self, b: Self) T {
+            return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+        }
+
+        pub fn packU8(self: Self) u32 {
+            if (@TypeOf(T) != f32) @compileError("type must be f32 to use this function");
+            const r8g8b8a8 = packed struct { x: u8, y: u8, z: u8, w: u8 };
+            const u32union = packed union { parts: r8g8b8a8, int: u32 };
+            const packedU8 = u32union{ .parts = r8g8b8a8{
+                .x = @intFromFloat(@round(std.math.clamp(self.x, 0, 1) * 255.0)),
+                .y = @intFromFloat(@round(std.math.clamp(self.y, 0, 1) * 255.0)),
+                .z = @intFromFloat(@round(std.math.clamp(self.z, 0, 1) * 255.0)),
+                .w = @intFromFloat(@round(std.math.clamp(self.w, 0, 1) * 255.0)),
+            } };
+            return packedU8.int;
+        }
+
+        pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+            try formatGeneric(self, T, 4, 1, fmt, options, writer);
         }
     };
 }
