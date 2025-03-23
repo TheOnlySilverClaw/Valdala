@@ -86,7 +86,7 @@ This is not too strictly enforced, but I generally try to keep this order per fi
 5. imported functions
 6. imported types
 7. simple nested types, like Error
-8. Self = @This
+8. Self = \@This
 9. constants
 10. functions
 
