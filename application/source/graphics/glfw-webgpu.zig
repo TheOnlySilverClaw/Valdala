@@ -95,7 +95,7 @@ extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
 
 fn createMetalSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const ns_window = glfw_window.getCocoaWindow();
+    const ns_window = glfw.native.getCocoaWindow(glfw_window);
     const metal_layer = setupMetalLayer(ns_window);
 
     if (metal_layer == null) return SurfaceError.BackendUnavailable;
@@ -121,7 +121,7 @@ extern fn GetModuleHandleA(lpModuleName: LPCSTR) ?HMODULE;
 
 fn createWindowsSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
 
-    const hwnd = glfw_window.getWin32Window() orelse return SurfaceError.BackendUnavailable;
+    const hwnd = glfw.native.getWin32Window(glfw_window) orelse return SurfaceError.BackendUnavailable;
     const hinstance = GetModuleHandleA(null) orelse return SurfaceError.BackendUnavailable;
 
     const hwnd_descriptor = SurfaceDescriptorFromWindowsHWND {
