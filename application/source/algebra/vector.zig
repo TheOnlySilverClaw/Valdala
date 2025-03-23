@@ -2,7 +2,7 @@ const matrix = @import("matrix.zig");
 const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
-const formatGeneric = @import("module.zig").formatGeneric;
+const formatGeneric = @import("format.zig").formatGeneric;
 
 pub fn Vector2(comptime T: type) type {
     return extern struct {
@@ -11,12 +11,6 @@ pub fn Vector2(comptime T: type) type {
         const Self = @This();
 
         pub const zeros: Self = .{ .x = 0, .y = 0 };
-        pub const unit_x: Self = .{ .x = 1, .y = 0 };
-        pub const unit_y: Self = .{ .x = 0, .y = 1 };
-        /// World XY-plane right direction, Z points towards camera
-        pub const right = unit_x;
-        /// World XY-plane up direction, Z points towards camera
-        pub const up = unit_y;
 
         pub fn toVector3(self: Self, z: T) Vector4(T) {
             return .{ .x = self.x, .y = self.y, .z = z };
@@ -40,15 +34,6 @@ pub fn Vector3(comptime T: type) type {
         const Self = @This();
 
         pub const zeros: Self = .{ .x = 0, .y = 0, .z = 0 };
-        pub const unit_x: Self = .{ .x = 1, .y = 0, .z = 0 };
-        pub const unit_y: Self = .{ .x = 0, .y = 1, .z = 0 };
-        pub const unit_z: Self = .{ .x = 0, .y = 0, .z = 1 };
-        /// World right direction
-        pub const right = unit_x;
-        /// World forward direction
-        pub const forward = unit_y;
-        /// World up direction
-        pub const up = unit_z;
 
         pub fn lengthSquared(self: Self) T {
             return self.x * self.x + self.y * self.y + self.z * self.z;
@@ -94,11 +79,11 @@ pub fn Vector3(comptime T: type) type {
             return .{ .x = self.x * other, .y = self.y * other, .z = self.z * other };
         }
 
-        pub fn dot(a: *const Self, b: *const Self) T {
+        pub fn dot(a: Self, b: Self) T {
             return a.x * b.x + a.y * b.y + a.z * b.z;
         }
 
-        pub fn cross(self: *const Self, other: *const Self) Self {
+        pub fn cross(self: Self, other: Self) Self {
             return .{
                 .x = self.y * other.z - other.y * self.z,
                 .y = self.z * other.x - other.z * self.x,
@@ -135,20 +120,6 @@ pub fn Vector4(comptime T: type) type {
         const Self = @This();
 
         pub const zeros: Self = .{ .x = 0, .y = 0, .z = 0, .w = 0 };
-        pub const origin: Self = .{ .x = 0, .y = 0, .z = 0, .w = 1 };
-        pub const dir_x: Self = .{ .x = 1, .y = 0, .z = 0, .w = 0 };
-        pub const dir_y: Self = .{ .x = 0, .y = 1, .z = 0, .w = 0 };
-        pub const dir_z: Self = .{ .x = 0, .y = 0, .z = 1, .w = 0 };
-        pub const point_x: Self = .{ .x = 1, .y = 0, .z = 0, .w = 1 };
-        pub const point_y: Self = .{ .x = 0, .y = 1, .z = 0, .w = 1 };
-        pub const point_z: Self = .{ .x = 0, .y = 0, .z = 1, .w = 1 };
-        pub const unit_w = origin;
-        /// World right direction
-        pub const right = dir_x;
-        /// World forward direction
-        pub const forward = dir_y;
-        /// World up direction
-        pub const up = dir_z;
 
         pub fn addPoint(self: Self, other: Self) Self {
             return .{ .x = self.x + other.x, .y = self.y + other.y, .z = self.z + other.z, .w = 1 };

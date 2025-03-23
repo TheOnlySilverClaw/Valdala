@@ -45,11 +45,11 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
         @floatFromInt(window.surface.height),
         1000,
     );
-    camera.*.transform.translateAlongWorldZ(1);
-    camera.*.transform.translateAlongWorldY(-4);
-    camera.*.transform.rotateAroundLocalY(std.math.degreesToRadians(90));
-    camera.*.transform.rotateAroundLocalZ(std.math.degreesToRadians(90));
-    camera.*.transform.rotateAroundWorldZ(std.math.degreesToRadians(90));
+    camera.*.transform.translateWorldZ(1);
+    camera.*.transform.translateWorldY(-4);
+    camera.*.transform.rotateYaw(std.math.degreesToRadians(90));
+    camera.*.transform.rotateRoll(std.math.degreesToRadians(90));
+    camera.*.transform.rotateWorldZ(std.math.degreesToRadians(90));
     
     self.scene = try allocator.create(Scene);
     self.scene.* = try Scene.init(allocator, camera);

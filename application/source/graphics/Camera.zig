@@ -31,7 +31,7 @@ pub fn viewMatrix(self: Self) Matrix4x4 {
     translation.set(3, 1, offset.y);
     translation.set(3, 2, offset.z);
     const rotation = self.transform.rotation.toMatrix4x4();
-    return rotation.multiply(&translation);
+    return rotation.multiply(translation);
 }
 
 pub fn projectionMatrix(self: Self) Matrix4x4 {
@@ -54,5 +54,5 @@ pub fn projectionMatrix(self: Self) Matrix4x4 {
 }
 
 pub fn asMatrix(self: Self) Matrix4x4 {
-    return self.projectionMatrix().multiply(&self.viewMatrix());
+    return self.projectionMatrix().multiply(self.viewMatrix());
 }

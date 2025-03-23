@@ -1,14 +1,14 @@
 const std = @import("std");
 const math = std.math;
 const assert = std.debug.assert;
-const formatGeneric = @import("module.zig").formatGeneric;
+const formatGeneric = @import("format.zig").formatGeneric;
 
 pub fn Quaternion(comptime T: type) type {
     if (@typeInfo(T) != .float) @compileError("Quaternion must be of type float");
     const Vector3 = @import("vector.zig").Vector3(T);
     const Matrix4x4 = @import("matrix.zig").Matrix4x4(T);
 
-    return struct {
+    return extern struct {
         w: T,
         x: T,
         y: T,
@@ -16,9 +16,6 @@ pub fn Quaternion(comptime T: type) type {
 
         const Self = @This();
         pub const identity: Self = .{ .w = 1, .x = 0, .y = 0, .z = 0 };
-        // TODO: add useful defaults
-        // pub const ...
-        // pub const ...
 
         pub fn aroundAxis(axis: Vector3, angle: T) Self {
             assert(axis.isNormalized());
@@ -33,7 +30,7 @@ pub fn Quaternion(comptime T: type) type {
             };
         }
 
-        pub fn add(self: *const Self, other: *const Self) Self {
+        pub fn add(self: Self, other: Self) Self {
             return .{
                 .x = self.x + other.x,
                 .y = self.x + other.y,
@@ -42,7 +39,7 @@ pub fn Quaternion(comptime T: type) type {
             };
         }
 
-        pub fn multiply(self: *const Self, other: *const Self) Self {
+        pub fn multiply(self: Self, other: Self) Self {
             assert(self.isNormalized());
             assert(other.isNormalized());
 
@@ -52,14 +49,14 @@ pub fn Quaternion(comptime T: type) type {
                 .z = self.w * other.z + self.z * other.w + self.x * other.y - self.y * other.x,
                 .w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
             };
-            return result;
+            return result.normalized();
         }
 
-        pub fn rotateVector3(self: *const Self, v: *const Vector3) Vector3 {
+        pub fn rotateVector3(self: Self, v: Vector3) Vector3 {
             const w = self.w;
             const r: Vector3 = .{ .x = self.x, .y = self.y, .z = self.z };
             const t = r.cross(v).scalarMultiply(2.0);
-            return v.add(t.scalarMultiply(w)).add(r.cross(&t));
+            return v.add(t.scalarMultiply(w)).add(r.cross(t));
         }
 
         pub fn inverse(self: Self) Self {
@@ -68,7 +65,12 @@ pub fn Quaternion(comptime T: type) type {
         }
 
         pub fn conjugate(self: Self) Self {
-            return .{ .x = -self.x, .y = -self.y, .z = -self.z, .w = self.w };
+            return .{
+                .x = -self.x,
+                .y = -self.y,
+                .z = -self.z,
+                .w = self.w,
+            };
         }
 
         pub fn dot(self: Self, other: Self) T {
@@ -78,7 +80,12 @@ pub fn Quaternion(comptime T: type) type {
         pub fn normalized(self: Self) Self {
             const reciprocal = 1.0 / self.length();
             assert(reciprocal > 0.0);
-            return .{ .x = self.x * reciprocal, .y = self.y * reciprocal, .z = self.z * reciprocal, .w = self.w * reciprocal };
+            return .{
+                .x = self.x * reciprocal,
+                .y = self.y * reciprocal,
+                .z = self.z * reciprocal,
+                .w = self.w * reciprocal,
+            };
         }
 
         pub fn isNormalized(self: Self) bool {
@@ -100,12 +107,22 @@ pub fn Quaternion(comptime T: type) type {
             const x = self.x;
             const y = self.y;
             const z = self.z;
-            return .{
-                .x = .{ .x = 1 - 2 * y * y - 2 * z * z, .y = 2 * x * y - 2 * w * z, .z = 2 * x * z + 2 * w * y, .w = 0 },
-                .y = .{ .x = 2 * x * y + 2 * w * z, .y = 1 - 2 * x * x - 2 * z * z, .z = 2 * y * z - 2 * w * x, .w = 0 },
-                .z = .{ .x = 2 * x * z - 2 * w * y, .y = 2 * y * z + 2 * w * x, .z = 1 - 2 * x * x - 2 * y * y, .w = 0 },
-                .w = .{ .x = 0, .y = 0, .z = 0, .w = 1 },
-            };
+
+            var m : Matrix4x4 = .zeros;
+            m.set(0, 0, 1 - 2 * y * y - 2 * z * z);
+            m.set(1, 0, 2 * x * y + 2 * w * z);
+            m.set(2, 0, 2 * x * z - 2 * w * y);
+
+            m.set(0, 1, 2 * x * y - 2 * w * z);
+            m.set(1, 1, 1 - 2 * x * x - 2 * z * z);
+            m.set(2, 1, 2 * y * z + 2 * w * x);
+
+            m.set(0, 2, 2 * x * z + 2 * w * y);
+            m.set(1, 2, 2 * y * z - 2 * w * x);
+            m.set(2, 2, 1 - 2 * x * x - 2 * y * y);
+
+            m.set(3, 3, 1);
+            return m;
         }
 
         pub fn eulerAngles(self: Self) Vector3 {

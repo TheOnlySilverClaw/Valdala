@@ -4,7 +4,7 @@ const vector = @import("vector.zig");
 const Vector2 = vector.Vector2;
 const Vector3 = vector.Vector3;
 const Vector4 = vector.Vector4;
-const formatGeneric = @import("module.zig").formatGeneric;
+const formatGeneric = @import("format.zig").formatGeneric;
 
 /// Column major -- index by mat.col.row. This ensures WGSL and GLSL compatible memory layout
 pub fn Matrix2x2(comptime T: type) type {
@@ -23,7 +23,7 @@ pub fn Matrix2x2(comptime T: type) type {
             .y = .{ .x = 0, .y = 0 },
         };
 
-        pub fn multiply(ma: *const Self, mb: *const Self) Self {
+        pub fn multiply(ma: Self, mb: Self) Self {
             return .{
                 .x = .{ .x = ma.x.x * mb.x.x + ma.y.x * mb.x.y, .y = ma.x.y * mb.x.x + ma.y.y * mb.x.y },
                 .y = .{ .x = ma.x.x * mb.y.x + ma.y.x * mb.y.y, .y = ma.x.y * mb.y.x + ma.y.y * mb.y.y },
@@ -56,7 +56,7 @@ pub fn Matrix3x3(comptime T: type) type {
             .z = .{ .x = 0, .y = 0, .z = 0 },
         };
 
-        pub fn multiply(ma: *const Self, mb: *const Self) Self {
+        pub fn multiply(ma: Self, mb: Self) Self {
             return .{
                 .x = .{
                     .x = ma.x.x * mb.x.x + ma.y.x * mb.x.y + ma.z.x * mb.x.z,
@@ -113,7 +113,7 @@ pub fn Matrix4x4(comptime T: type) type {
             return @ptrCast(self);
         }
 
-        pub fn get(self: *const Self, column: comptime_int, row: comptime_int) T {
+        pub fn get(self: Self, column: comptime_int, row: comptime_int) T {
             return self.as2DArray()[column][row];
         }
 
@@ -130,7 +130,7 @@ pub fn Matrix4x4(comptime T: type) type {
             };
         }
 
-        pub fn multiply(ma: *const Self, mb: *const Self) Self {
+        pub fn multiply(ma: Self, mb: Self) Self {
             return .{
                 .x = .{
                     .x = ma.x.x * mb.x.x + ma.y.x * mb.x.y + ma.z.x * mb.x.z + ma.w.x * mb.x.w,
@@ -159,7 +159,7 @@ pub fn Matrix4x4(comptime T: type) type {
             };
         }
 
-        pub fn add(m1: *const Self, m2: *const Self) Self {
+        pub fn add(m1: Self, m2: Self) Self {
             return .{
                 .x = .{ .x = m1.x.x + m2.x.x, .y = m1.x.y + m2.x.y, .z = m1.x.z + m2.x.z, .w = m1.x.w + m2.x.w },
                 .y = .{ .x = m1.y.x + m2.y.x, .y = m1.y.y + m2.y.y, .z = m1.y.z + m2.y.z, .w = m1.y.w + m2.y.w },
@@ -236,7 +236,7 @@ pub fn Matrix4x4(comptime T: type) type {
             return multiply(rotation(axis, angle_rad), self);
         }
 
-        pub fn scaled(self: *const Self, v: *const Vector3(T)) Self {
+        pub fn scaled(self: Self, v: Vector3(T)) Self {
             var m = self.*;
             m.x.x *= v.x;
             m.y.y *= v.y;
@@ -267,7 +267,7 @@ pub fn Matrix4x4SIMD(comptime T: type) type {
             .w = .{ 0, 0, 0, 1 },
         };
 
-        pub fn multiply(ma: *const Self, mb: *const Self) Self {
+        pub fn multiply(ma: Self, mb: Self) Self {
             // Transpose mb for better vector operations
             const mb_t = Self{
                 .x = .{ mb.x[0], mb.y[0], mb.z[0], mb.w[0] },
@@ -384,7 +384,7 @@ pub fn Matrix(comptime T: type, columns: comptime_int, rows: comptime_int) type 
             return new;
         }
 
-        pub fn multiply(self: *const Self, other: anytype) Matrix(T, C, R) {
+        pub fn multiply(self: Self, other: anytype) Matrix(T, C, R) {
             const Other = @TypeOf(other);
             comptime if (Self.C != Other.R) {
                 @compileError("Matrix multiplytiplication shape mismatch");
