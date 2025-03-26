@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math;
 const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Surface = @import("Surface.zig");
@@ -50,20 +51,95 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         "textures/testing/texture_4.qoi"
     });
 
-    const max = std.math.maxInt(u16);
 
+    const uv_max = math.maxInt(u16);
     const size: f32 = 0.5;
-    const z : f32 = 0.5;
+    const z_top : f32 = size;
+    const z_bottom = 0.01;
+    // radius of inner points
+    const inner: f32 = @cos(math.degreesToRadians(30.0)) * size;
+
     const vertices = [_]Vertex {
-        .{ .position = .{.x = -size, .y = size, .z = z }, .texture = .{.u = 0, .v = 0, .index = 0 }},
-        .{ .position = .{.x = -size, .y = -size, .z = z }, .texture = .{.u = 0, .v = max, .index = 0 }},
-        .{ .position = .{.x = size, .y = -size, .z = z }, .texture = .{.u = max, .v = max, .index = 0 }},  
-        .{ .position = .{.x = size, .y = size, .z = z }, .texture = .{.u = max, .v = 0, .index = 0 }}
+        // top
+        .{ .position = .{ .x = 0, .y = 0, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max / 2, .index = 0 }}, // 0 - M_t
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4, .index = 0 }}, // A_t
+        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},  
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max - uv_max / 4, .index = 0 }},
+
+        // bottom
+        .{ .position = .{ .x = 0, .y = 0, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max / 2, .index = 0 }}, // 7 - M_b
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max / 4, .index = 0 }}, // A_b
+        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},  
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max - uv_max / 4, .index = 0 }},
+
+        // sides
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4, .index = 0 }}, // 14
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},  
+        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},
+
+        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},  // 18
+        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }},
+
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }}, // 22
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }},
+
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }}, // 26
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }},
+
+        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }}, // 30
+        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max, .index = 0 }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max - uv_max / 4, .index = 0 }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max - uv_max / 4, .index = 0 }},
     };
 
     const indices = [_]u16 {
+        // top
         0, 1, 2,
-        2, 3, 0
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 5,
+        0, 5, 6,
+        0, 6, 1,
+
+        // bottom, opposite winding
+        7, 9, 8,
+        7, 10, 9,
+        7, 11, 10,
+        7, 12, 11,
+        7, 13, 12,
+        7, 8, 13,
+
+        // sides
+        14, 15, 16,
+        17, 16, 15,
+
+        18, 19, 20,
+        21, 20, 19,
+
+        22, 23, 24,
+        25, 24, 23,
+
+        26, 27, 28,
+        29, 28, 27,
+
+        30, 31, 32,
+        33, 32, 31,
+
+        32, 33, 14,
+        14, 33, 15
     };
 
     var vertex_buffer = VertexBuffer {

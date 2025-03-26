@@ -73,7 +73,7 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
     renderPass.setBindGroup(0, bind_group, null);
     renderPass.setVertexBuffer(0, pipeline.vertex_buffer.handle, 0, pipeline.vertex_buffer.size());
     renderPass.setIndexBuffer(pipeline.index_buffer, .uint16, 0, pipeline.index_buffer.size());
-    renderPass.drawIndexed(6, 1, 0, 0, 0);
+    renderPass.drawIndexed(@intCast(self.pipeline.index_buffer.size() / @sizeOf(u16)), 1, 0, 0, 0);
 }
 
 
