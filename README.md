@@ -116,6 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-Thanks to @knivaagaffel we have a floor!
+Ugly hexagon time!
 
 ![screenshot](screenshot.png)
