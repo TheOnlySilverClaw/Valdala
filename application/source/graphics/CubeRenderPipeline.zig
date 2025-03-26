@@ -252,7 +252,7 @@ fn createRenderPipeline(device: *webgpu.Device,
     };
 
     const primitive = webgpu.PrimitiveState {
-        .cull_mode = .none,
+        .cull_mode = .back,
         .front_face = .counter_clockwise,
         .topology = .triangle_list,
         .strip_index_format = .undefined
