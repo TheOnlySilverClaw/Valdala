@@ -54,7 +54,6 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         "textures/testing/texture_4.qoi"
     });
 
-
     const uv_max = math.maxInt(u16);
     const size: f32 = 0.5;
     const z_top : f32 = size;
@@ -152,13 +151,24 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     vertex_buffer.create(device);
     vertex_buffer.upload(device.getQueue(), &vertices, 0);
     
-    var instances = [_]Instance {
-        .{ .position = .{ .x = 0, .y = 0, .z = 0 }, .texture = 0 },
-        .{ .position = .{ .x = 1, .y = 1, .z = 0 }, .texture = 1 },
-        .{ .position = .{ .x = 2, .y = 0, .z = 0.5 }, .texture = 2 },
-        .{ .position = .{ .x = 3, .y = 0, .z = 0 }, .texture = 3 },
-        .{ .position = .{ .x = 4, .y = 0, .z = 0 }, .texture = 1 },
-    };
+    const grid_x = 100;
+    const grid_y = 100;
+
+    var instances: [grid_x * grid_y]Instance = undefined;
+
+    for(0..grid_x) |x| {
+        for (0..grid_y) |y| {
+            const instance_index = x * grid_y + y;
+            instances[instance_index] = Instance {
+                .position = .{
+                    .x = @floatFromInt(x),
+                    .y = @floatFromInt(y),
+                    .z = @as(f32, @floatFromInt(((x + y) % 2))) / 2
+                },
+                .texture = @intCast((x * y) % 4)
+            };
+        }
+    }
 
     var instance_buffer = PerInstanceBuffer {
         .label = webgpu.StringView.sized("instances"),
@@ -248,7 +258,6 @@ fn createRenderPipeline(device: *webgpu.Device,
         .format = .uint32,
         .offset = instance_position_attribute.offset + VertexLayout.byteSize(instance_position_attribute.format)
     };
-    
     
     const vertex_attributes = [_]webgpu.VertexAttribute {
         vertex_position_attribute,
@@ -340,7 +349,7 @@ fn createBindGroupLayout(device: *webgpu.Device, label: webgpu.StringView) *webg
 
     const Entry = webgpu.BindGroupLayoutEntry;
 
-    const vertexBufferEntry = Entry {
+    const projection_buffer_entry = Entry {
         .binding = 0,
         .buffer = .{
             .type = .uniform,
@@ -348,7 +357,7 @@ fn createBindGroupLayout(device: *webgpu.Device, label: webgpu.StringView) *webg
         .visibility = .{ .vertex =  true }
     };
 
-    const samplerEntry = Entry {
+    const sampler_entry = Entry {
         .binding = 1,
         .sampler = .{
             .type = .filtering
@@ -356,7 +365,7 @@ fn createBindGroupLayout(device: *webgpu.Device, label: webgpu.StringView) *webg
         .visibility = .{ .fragment = true }
     };
 
-    const textureEntry = Entry {
+    const texture_entry = Entry {
         .binding = 2,
         .texture = .{
             .sample_type = .float,
@@ -367,9 +376,9 @@ fn createBindGroupLayout(device: *webgpu.Device, label: webgpu.StringView) *webg
     };
 
     const entries = [_]Entry {
-        vertexBufferEntry,
-        textureEntry,
-        samplerEntry
+        projection_buffer_entry,
+        texture_entry,
+        sampler_entry
     };
 
     const descriptor = webgpu.BindGroupLayoutDescriptor {
