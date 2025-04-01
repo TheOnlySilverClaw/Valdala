@@ -116,6 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-Ugly hexagon time!
+From one ggly hexagon... to several ugly hexagons!
 
 ![screenshot](screenshot.png)
