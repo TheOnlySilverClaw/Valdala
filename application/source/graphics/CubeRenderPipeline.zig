@@ -156,14 +156,20 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
 
     var instances: [grid_x * grid_y]Instance = undefined;
 
-    for(0..grid_x) |x| {
-        for (0..grid_y) |y| {
-            const instance_index = x * grid_y + y;
+    for (0..grid_y) |y| {
+        // hex tiles overlap at half, so offset by 1.5
+        const position_y = @as(f32, @floatFromInt(y)) * size * 1.5;
+        const odd = y % 2 == 1;
+
+        for(0..grid_x) |x| {
+            const offset_x: f32 = if(odd) inner else 0.0;
+            const position_x = @as(f32, @floatFromInt(x)) * inner * 2 + offset_x;
+            const instance_index = x + y * grid_x;
             instances[instance_index] = Instance {
                 .position = .{
-                    .x = @floatFromInt(x),
-                    .y = @floatFromInt(y),
-                    .z = @as(f32, @floatFromInt(((x + y) % 2))) / 2
+                    .x = position_x,
+                    .y = position_y,
+                    .z = 0.0
                 },
                 .texture = @intCast((x * y) % 4)
             };
