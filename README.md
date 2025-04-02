@@ -116,6 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-From one ggly hexagon... to several ugly hexagons!
+Tile grid works!
 
 ![screenshot](screenshot.png)
