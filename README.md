@@ -116,6 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-Ugly hexagon time!
+Tile grid works!
 
 ![screenshot](screenshot.png)
