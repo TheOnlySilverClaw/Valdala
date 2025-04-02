@@ -59,7 +59,7 @@ pub fn build(b: *std.Build) void {
 
     switch (target.result.os.tag) {
         .linux => {
-            exe.addObjectFile(.{ .cwd_relative = "libraries/glfw/linux/libglfw3.a" });
+            exe.addObjectFile(b.path("libraries/glfw/linux/libglfw3.a"));
             if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
         },
         .windows => {
