@@ -141,8 +141,6 @@ pub fn create(
         .multisample = .{}
     };
 
-    @import("std").log.debug("layouts: {x} {x}", .{ @intFromEnum(vertexBuffer.attributes[0].format), @intFromEnum(vertexBuffer.attributes[1].format)});
     const pipeline = device.createRenderPipeline(&descriptor);
-    @import("std").log.debug("layouts: {x} {x}", .{ @intFromEnum(vertexBuffer.attributes[0].format), @intFromEnum(vertexBuffer.attributes[1].format)});
     return .{ .handle = pipeline };
 }
