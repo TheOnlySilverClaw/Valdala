@@ -4,7 +4,7 @@ const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
 const Surface = @import("Surface.zig");
 const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer;
-const PerVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .unorm16x2 });
+const PerVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .float16x2 });
 const PerInstanceBuffer = VertexBuffer(Instance, &.{ .float32x3, .uint32 });
 const VertexLayout = @import("VertexLayout.zig");
 const Shader = @import("shader.zig").Shader;
@@ -54,54 +54,58 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         "textures/testing/texture_4.qoi"
     });
 
-    const uv_max = math.maxInt(u16);
+
+
     const size: f32 = 0.5;
     const z_top : f32 = size;
     const z_bottom = 0.01;
     // radius of inner points
-    const inner: f32 = @cos(math.degreesToRadians(30.0)) * size;
+    const inner: f32 =  size * @cos(math.degreesToRadians(30.0));
+
+    const uv_max: f16 = 1.0;
+    const uv_center: f16 = 0.5;
+    const uv_quarter: f16 = 0.25;
+    const uv_inner: f16 = uv_center * @cos(math.degreesToRadians(30.0));
 
     const vertices = [_]Vertex {
         // top
-        .{ .position = .{ .x = 0, .y = 0, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max / 2 }}, // 0 - M_t
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4 }}, // A_t
-        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = uv_center + uv_inner, .v = uv_quarter }}, // 0
+        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_center, .v = 0.0 }},
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = uv_center - uv_inner, .v = uv_quarter }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = uv_center - uv_inner, .v = uv_center + uv_quarter }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_center, .v = uv_max }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = uv_center + uv_inner, .v = uv_center + uv_quarter }},
 
         // bottom
-        .{ .position = .{ .x = 0, .y = 0, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max / 2 }}, // 7 - M_b
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max / 4 }}, // A_b
-        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0 }},  
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4 }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = uv_center + uv_inner, .v = uv_quarter }}, // 6
+        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_center, .v = 0.0 }},
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = uv_center - uv_inner, .v = uv_quarter }},
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = uv_center - uv_inner, .v = uv_center + uv_quarter }},
+        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_center, .v = uv_max }},
+        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = uv_center + uv_inner, .v = uv_center + uv_quarter }},
 
         // sides
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4 }}, // 14
+        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4 }}, // 12
         .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max / 4 }},
         .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  
         .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0 }},
 
-        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  // 18
+        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  // 16
         .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0 }},
         .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }},
         .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4 }},
 
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }}, // 22
+        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }}, // 20
         .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4 }},
         .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
         .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
 
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }}, // 26
+        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }}, // 24
         .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
         .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }},
         .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max }},
 
-        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }}, // 30
+        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }}, // 28
         .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max }},
         .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
         .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
@@ -111,37 +115,33 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         // top
         0, 1, 2,
         0, 2, 3,
-        0, 3, 4,
-        0, 4, 5,
-        0, 5, 6,
-        0, 6, 1,
+        3, 5, 0,
+        3, 4, 5,
 
-        // bottom, opposite winding
-        7, 9, 8,
-        7, 10, 9,
-        7, 11, 10,
-        7, 12, 11,
-        7, 13, 12,
-        7, 8, 13,
+        // // bottom, opposite winding
+        6, 8, 7,
+        6, 9, 8,
+        9, 6, 11,
+        9, 11, 10,
 
-        // sides
-        14, 15, 16,
-        17, 16, 15,
+        // // sides
+        12, 13, 14,
+        15, 14, 13,
 
-        18, 19, 20,
-        21, 20, 19,
+        16, 17, 18,
+        19, 18, 17,
 
-        22, 23, 24,
-        25, 24, 23,
+        20, 21, 22,
+        23, 22, 21,
 
-        26, 27, 28,
-        29, 28, 27,
+        24, 25, 26,
+        27, 26, 25,
 
-        30, 31, 32,
-        33, 32, 31,
+        28, 29, 30,
+        31, 30, 29,
 
-        32, 33, 14,
-        14, 33, 15
+        30, 31, 12,
+        12, 31, 13
     };
 
     var vertex_buffer = PerVertexBuffer {
@@ -169,7 +169,7 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
                 .position = .{
                     .x = position_x,
                     .y = position_y,
-                    .z = 0.0
+                    .z = 1.0
                 },
                 .texture = @intCast((x * y) % 4)
             };
@@ -220,8 +220,8 @@ const Vertex = extern struct {
         z: f32
     },
     texture: extern struct {
-        u: u16,
-        v: u16,
+        u: f16,
+        v: f16,
     }
 };
 
@@ -249,7 +249,7 @@ fn createRenderPipeline(device: *webgpu.Device,
 
     const uv_attribute = webgpu.VertexAttribute {
         .shader_location = 1,
-        .format = .unorm16x2,
+        .format = .float16x2,
         .offset = VertexLayout.byteSize(vertex_position_attribute.format)
     };
 
@@ -276,7 +276,7 @@ fn createRenderPipeline(device: *webgpu.Device,
     };
 
     const vertex_buffer_layout = webgpu.VertexBufferLayout {
-        .array_stride = VertexLayout.byteSize(.float32x3) + VertexLayout.byteSize(.unorm16x2),
+        .array_stride = VertexLayout.byteSize(vertex_position_attribute.format) + VertexLayout.byteSize(uv_attribute.format),
         .step_mode = .vertex,
         .attribute_count = vertex_attributes.len,
         .attributes = &vertex_attributes
