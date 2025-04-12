@@ -2,11 +2,11 @@ const std = @import("std");
 const math = std.math;
 const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
-const mesh = @import("mesh.zig");
+const hexagon = @import("hexagon.zig");
 
 const Surface = @import("Surface.zig");
 const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer;
-const PerVertexBuffer = VertexBuffer(mesh.Vertex, &.{.float32x3, .float16x2 });
+const PerVertexBuffer = VertexBuffer(hexagon.Vertex, &.{.float32x3, .float16x2 });
 const PerInstanceBuffer = VertexBuffer(Instance, &.{ .float32x3, .uint32 });
 const VertexLayout = @import("VertexLayout.zig");
 const Shader = @import("shader.zig").Shader;
@@ -57,10 +57,11 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         "textures/terrain/sand.qoi",
     });
 
+    const mesh = hexagon.Mesh.instance();
 
     var vertex_buffer = PerVertexBuffer {
         .label = webgpu.StringView.sized("vertices"),
-        .length = mesh.vertices.len
+        .length = hexagon.Mesh.vertex_count
     };
     vertex_buffer.create(device);
     vertex_buffer.upload(device.getQueue(), &mesh.vertices, 0);
@@ -69,25 +70,15 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     const grid_y = 100;
 
     var instances: [grid_x * grid_y]Instance = undefined;
-
     var random = Random2D.new(@intCast(std.time.milliTimestamp()));
 
-    for (0..grid_y) |y| {
-        // hex tiles overlap at half, so offset by 1.5
-        const position_y = @as(f32, @floatFromInt(y)) * mesh.size * 1.5;
-        const odd = y % 2 == 1;
-
-        for(0..grid_x) |x| {
-            const offset_x: f32 = if(odd) mesh.inner else 0.0;
-            const position_x = @as(f32, @floatFromInt(x)) * mesh.inner * 2 + offset_x;
+    for(0..grid_x) |x| {
+        for (0..grid_y) |y| {
             const instance_index = x + y * grid_x;
+            const position = hexagon.Mesh.gridPosition(x, y, 1.0);
             instances[instance_index] = Instance {
-                .position = .{
-                    .x = position_x,
-                    .y = position_y,
-                    .z = 1.0
-                },
-                .texture = @intCast(random.get(@intFromFloat(position_x), @intFromFloat(position_y)) % 4)
+                .position = position,
+                .texture = @intCast(random.get(@intFromFloat(position.x), @intFromFloat(position.y)) % 4)
             };
         }
     }
@@ -101,10 +92,10 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
 
     const index_buffer_descriptor = webgpu.BufferDescriptor {
         .usage = . { .index = true, .copy_dst = true },
-        .size = mesh.indices.len * @sizeOf(u16)
+        .size = hexagon.Mesh.index_count * @sizeOf(hexagon.Index)
     };
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
-    device.getQueue().writeBuffer(index_buffer, u16, &mesh.indices, 0);
+    device.getQueue().writeBuffer(index_buffer, hexagon.Index, &mesh.indices, 0);
 
     const bind_group_layout = createBindGroupLayout(device, .{});
 
@@ -130,11 +121,7 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
 }
 
 const Instance = extern struct {
-    position: extern struct {
-        x: f32,
-        y: f32,
-        z: f32
-    },
+    position: hexagon.Position,
     texture: u32
 };
 
