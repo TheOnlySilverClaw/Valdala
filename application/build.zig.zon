@@ -17,7 +17,7 @@
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
-            .hash = "glfw-1.0.1-P2aihVx_AAAe6jL1u7BMN2pemnGxo7Iq66_KuEjBhZal"
+            .hash = "glfw-1.0.1-P2aihZF_AACfZJdYFm6XytCg-PfrIzda_vqW8FYQ8pJ_"
         },
 
         // binary dependencies
