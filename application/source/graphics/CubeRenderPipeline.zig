@@ -68,19 +68,27 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     
     const grid_x = 100;
     const grid_y = 100;
+    const max_height: u64 = 7;
 
-    var instances: [grid_x * grid_y]Instance = undefined;
-    var random = Random2D.new(@intCast(std.time.milliTimestamp()));
+    var instances: [grid_x * grid_y * max_height]Instance = undefined;
+    var random = Random2D.new(1235987654);
 
+    var instance_index: usize = 0;
     for(0..grid_x) |x| {
         for (0..grid_y) |y| {
-            const instance_index = x + y * grid_x;
-            const position = hexagon.Mesh.gridPosition(x, y, 1.0);
-            instances[instance_index] = Instance {
-                .position = position,
-                .texture = @intCast(random.get(@intFromFloat(position.x), @intFromFloat(position.y)) % 4)
-            };
+            const rand = random.get(x, y);
+            const height: usize = rand % max_height;
+            for(0..height) |z| {
+                const position = hexagon.Mesh.gridPosition(x, y, z);
+                instances[instance_index] = Instance {
+                    .position = position,
+                    .texture = @intCast((rand + z) % 4)
+                };
+                instance_index += 1;
+            }
+            instance_index += 1;
         }
+        instance_index += 1;
     }
 
     var instance_buffer = PerInstanceBuffer {

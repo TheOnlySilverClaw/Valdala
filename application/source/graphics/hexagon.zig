@@ -47,7 +47,7 @@ pub const Mesh = struct {
     pub fn instance() Mesh {
 
         const z_top : f32 = size;
-        const z_bottom = 0.01;
+        const z_bottom: f32 = 0.0;
 
         const uv_max: f16 = 1.0;
         const uv_center: f16 = 0.5;
