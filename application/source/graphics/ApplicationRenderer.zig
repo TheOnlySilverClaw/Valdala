@@ -37,7 +37,8 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
 
     var window = try allocator.create(Window);
     try window.create("Valdala", 1600, 1200);
-
+    window.center();
+    
     const surface = &window.surface;
 
     const camera = try allocator.create(Camera);
