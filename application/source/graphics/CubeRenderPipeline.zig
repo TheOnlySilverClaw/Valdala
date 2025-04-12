@@ -48,10 +48,10 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     block_texture.create(device);
     
     try block_texture.loadImageFiles(allocator, surface.queue, &.{
-        "textures/testing/texture_1.qoi",
-        "textures/testing/texture_2.qoi",
-        "textures/testing/texture_3.qoi",
-        "textures/testing/texture_4.qoi"
+        "textures/terrain/grass.qoi",
+        "textures/terrain/water.qoi",
+        "textures/terrain/rock.qoi",
+        "textures/terrain/sand.qoi",
     });
 
 
