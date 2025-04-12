@@ -2,13 +2,16 @@ const std = @import("std");
 const math = std.math;
 const Allocator = std.mem.Allocator;
 const webgpu = @import("webgpu");
+const mesh = @import("mesh.zig");
+
 const Surface = @import("Surface.zig");
 const VertexBuffer = @import("VertexBuffer.zig").VertexBuffer;
-const PerVertexBuffer = VertexBuffer(Vertex, &.{.float32x3, .float16x2 });
+const PerVertexBuffer = VertexBuffer(mesh.Vertex, &.{.float32x3, .float16x2 });
 const PerInstanceBuffer = VertexBuffer(Instance, &.{ .float32x3, .uint32 });
 const VertexLayout = @import("VertexLayout.zig");
 const Shader = @import("shader.zig").Shader;
 const TextureArray = @import("TextureArray.zig");
+const Random2D = @import("common").Random2d;
 
 const Self = @This();
 
@@ -55,115 +58,28 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
     });
 
 
-
-    const size: f32 = 0.5;
-    const z_top : f32 = size;
-    const z_bottom = 0.01;
-    // radius of inner points
-    const inner: f32 =  size * @cos(math.degreesToRadians(30.0));
-
-    const uv_max: f16 = 1.0;
-    const uv_center: f16 = 0.5;
-    const uv_quarter: f16 = 0.25;
-    const uv_inner: f16 = uv_center * @cos(math.degreesToRadians(30.0));
-
-    const vertices = [_]Vertex {
-        // top
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = uv_center + uv_inner, .v = uv_quarter }}, // 0
-        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_center, .v = 0.0 }},
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = uv_center - uv_inner, .v = uv_quarter }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = uv_center - uv_inner, .v = uv_center + uv_quarter }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_center, .v = uv_max }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = uv_center + uv_inner, .v = uv_center + uv_quarter }},
-
-        // bottom
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = uv_center + uv_inner, .v = uv_quarter }}, // 6
-        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_center, .v = 0.0 }},
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = uv_center - uv_inner, .v = uv_quarter }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = uv_center - uv_inner, .v = uv_center + uv_quarter }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_center, .v = uv_max }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = uv_center + uv_inner, .v = uv_center + uv_quarter }},
-
-        // sides
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max / 4 }}, // 12
-        .{ .position = .{ .x = inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max / 4 }},
-        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  
-        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0 }},
-
-        .{ .position = .{ .x = 0, .y = size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = 0 }},  // 16
-        .{ .position = .{ .x = 0, .y = size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = 0 }},
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }},
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4 }},
-
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max / 4 }}, // 20
-        .{ .position = .{ .x = -inner, .y = size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max / 4 }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
-
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }}, // 24
-        .{ .position = .{ .x = -inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 0, .v = uv_max - uv_max / 4 }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }},
-        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max }},
-
-        .{ .position = .{ .x = 0, .y = -size, .z = z_top }, .texture = .{.u = uv_max / 2, .v = uv_max }}, // 28
-        .{ .position = .{ .x = 0, .y = -size, .z = z_bottom }, .texture = .{.u = uv_max / 2, .v = uv_max }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_top }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
-        .{ .position = .{ .x = inner, .y = -size / 2, .z = z_bottom }, .texture = .{.u = 1, .v = uv_max - uv_max / 4 }},
-    };
-
-    const indices = [_]u16 {
-        // top
-        0, 1, 2,
-        0, 2, 3,
-        3, 5, 0,
-        3, 4, 5,
-
-        // // bottom, opposite winding
-        6, 8, 7,
-        6, 9, 8,
-        9, 6, 11,
-        9, 11, 10,
-
-        // // sides
-        12, 13, 14,
-        15, 14, 13,
-
-        16, 17, 18,
-        19, 18, 17,
-
-        20, 21, 22,
-        23, 22, 21,
-
-        24, 25, 26,
-        27, 26, 25,
-
-        28, 29, 30,
-        31, 30, 29,
-
-        30, 31, 12,
-        12, 31, 13
-    };
-
     var vertex_buffer = PerVertexBuffer {
         .label = webgpu.StringView.sized("vertices"),
-        .length = vertices.len
+        .length = mesh.vertices.len
     };
     vertex_buffer.create(device);
-    vertex_buffer.upload(device.getQueue(), &vertices, 0);
+    vertex_buffer.upload(device.getQueue(), &mesh.vertices, 0);
     
     const grid_x = 100;
     const grid_y = 100;
 
     var instances: [grid_x * grid_y]Instance = undefined;
 
+    var random = Random2D.new(@intCast(std.time.milliTimestamp()));
+
     for (0..grid_y) |y| {
         // hex tiles overlap at half, so offset by 1.5
-        const position_y = @as(f32, @floatFromInt(y)) * size * 1.5;
+        const position_y = @as(f32, @floatFromInt(y)) * mesh.size * 1.5;
         const odd = y % 2 == 1;
 
         for(0..grid_x) |x| {
-            const offset_x: f32 = if(odd) inner else 0.0;
-            const position_x = @as(f32, @floatFromInt(x)) * inner * 2 + offset_x;
+            const offset_x: f32 = if(odd) mesh.inner else 0.0;
+            const position_x = @as(f32, @floatFromInt(x)) * mesh.inner * 2 + offset_x;
             const instance_index = x + y * grid_x;
             instances[instance_index] = Instance {
                 .position = .{
@@ -171,7 +87,7 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
                     .y = position_y,
                     .z = 1.0
                 },
-                .texture = @intCast((x * y) % 4)
+                .texture = @intCast(random.get(@intFromFloat(position_x), @intFromFloat(position_y)) % 4)
             };
         }
     }
@@ -185,10 +101,10 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
 
     const index_buffer_descriptor = webgpu.BufferDescriptor {
         .usage = . { .index = true, .copy_dst = true },
-        .size = indices.len * @sizeOf(u16)
+        .size = mesh.indices.len * @sizeOf(u16)
     };
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
-    device.getQueue().writeBuffer(index_buffer, u16, &indices, 0);
+    device.getQueue().writeBuffer(index_buffer, u16, &mesh.indices, 0);
 
     const bind_group_layout = createBindGroupLayout(device, .{});
 
@@ -212,18 +128,6 @@ pub fn create(allocator: Allocator, surface: *const Surface) !Self {
         .handle = handle
     };
 }
-
-const Vertex = extern struct {
-    position: extern struct {
-        x: f32,
-        y: f32,
-        z: f32
-    },
-    texture: extern struct {
-        u: f16,
-        v: f16,
-    }
-};
 
 const Instance = extern struct {
     position: extern struct {
