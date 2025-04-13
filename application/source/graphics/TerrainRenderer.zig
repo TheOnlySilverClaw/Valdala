@@ -4,7 +4,7 @@ const webgpu = @import("webgpu");
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
 const Surface = @import("Surface.zig");
-const Pipeline = @import("CubeRenderPipeline.zig");
+const Pipeline = @import("TerrainRenderPipeline.zig");
 
 const Self = @This();
 

@@ -15,7 +15,7 @@ const TextRenderer = @import("TextRenderer.zig");
 const FontTexture = @import("FontTexture.zig");
 const TrueType = @import("TrueType");
 const Controller = @import("Controller.zig");
-const CubeRenderer = @import("CubeRenderer.zig");
+const TerrainRenderer = @import("TerrainRenderer.zig");
 const FloorRenderer = @import("FloorRenderer.zig");
 const Self = @This();
 
@@ -24,7 +24,7 @@ window: *Window,
 
 frameRenderer: *FrameRenderer,
 textRenderer: *TextRenderer,
-cubeRenderer: *CubeRenderer,
+terrainRenderer: *TerrainRenderer,
 floorRenderer: *FloorRenderer,
 fontTexture: *FontTexture,
 userInterface: *UserInterface,
@@ -82,8 +82,8 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
     self.userInterface = try allocator.create(UserInterface);
     self.userInterface.* = try UserInterface.init(allocator, self.scene, window, self.textRenderer);
     
-    self.cubeRenderer = try allocator.create(CubeRenderer);
-    self.cubeRenderer.* = try CubeRenderer.init(allocator, surface, self.scene.camera);
+    self.terrainRenderer = try allocator.create(TerrainRenderer);
+    self.terrainRenderer.* = try TerrainRenderer.init(allocator, surface, self.scene.camera);
 
     self.floorRenderer = try allocator.create(FloorRenderer);
     self.floorRenderer.* = try FloorRenderer.init(allocator, surface, self.scene.camera);
@@ -94,7 +94,7 @@ pub fn init(self: *Self, allocator: Allocator, targetFrameRate: u64) !void {
         targetFrameRate,
         surface,
         self.userInterface,
-        self.cubeRenderer,
+        self.terrainRenderer,
         self.floorRenderer,
     );
 }
@@ -121,8 +121,8 @@ pub fn deinit(self: *Self) void {
 
     self.allocator.destroy(self.controller);
 
-    self.allocator.destroy(self.cubeRenderer.pipeline);
-    self.allocator.destroy(self.cubeRenderer);
+    self.allocator.destroy(self.terrainRenderer.pipeline);
+    self.allocator.destroy(self.terrainRenderer);
 
     self.allocator.destroy(self.floorRenderer.pipeline);
     self.allocator.destroy(self.floorRenderer);

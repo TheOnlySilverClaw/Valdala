@@ -6,7 +6,7 @@ const webgpu = @import("webgpu");
 const Allocator = std.mem.Allocator;
 const Surface = @import("Surface.zig");
 const UserInterface = @import("UserInterface.zig");
-const CubeRenderer = @import("CubeRenderer.zig");
+const TerrainRenderer = @import("TerrainRenderer.zig");
 const FloorRenderer = @import("FloorRenderer.zig");
 
 const Self = @This();
@@ -19,7 +19,7 @@ targetFrameTime: u64,
 lastFrameEndTime: i64 = undefined,
 
 userInterface: *UserInterface,
-cubeRenderer: *CubeRenderer,
+terrainRenderer: *TerrainRenderer,
 floorRenderer: *FloorRenderer,
 
 pub fn init(
@@ -27,7 +27,7 @@ pub fn init(
     targetFrameRate: u64,
     surface: *Surface,
     userInterface: *UserInterface,
-    cubeRenderer: *CubeRenderer,
+    terrainRenderer: *TerrainRenderer,
     floorRenderer: *FloorRenderer,
 ) !Self {
     const targetFrameTime = time.ms_per_s / targetFrameRate;
@@ -38,7 +38,7 @@ pub fn init(
         .targetFrameTime = targetFrameTime,
         .lastFrameEndTime = time.milliTimestamp(),
         .userInterface = userInterface,
-        .cubeRenderer = cubeRenderer,
+        .terrainRenderer = terrainRenderer,
         .floorRenderer = floorRenderer,
     };
 }
@@ -96,7 +96,7 @@ pub fn render(self: *Self) !void{
     const renderPass = commandEncoder.beginRenderPass(&renderPassDescriptor);
     
     try self.floorRenderer.render(renderPass);
-    try self.cubeRenderer.render(renderPass);
+    try self.terrainRenderer.render(renderPass);
     try self.userInterface.render(renderPass, frameDeltaTime);
 
     renderPass.end();
