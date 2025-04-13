@@ -117,7 +117,7 @@ pub fn render(self: *Self) !void{
     const currentFrameTime: u64 = @intCast(time.milliTimestamp() - frameStartTime);
     self.lastFrameEndTime = time.milliTimestamp();
 
-    if(currentFrameTime < self.targetFrameTime) {
+    if(currentFrameTime <= self.targetFrameTime) {
         const sleepTime = self.targetFrameTime - currentFrameTime;
         time.sleep(sleepTime * time.ns_per_ms);
     } else {
