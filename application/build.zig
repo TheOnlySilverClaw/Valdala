@@ -129,12 +129,15 @@ pub fn build(b: *std.Build) void {
     }
 
 
+    world.addImport("algebra", algebra);
+    
     graphics.addImport("common", common);
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("algebra", algebra);
     graphics.addImport("TrueType", TrueType);
     graphics.addImport("zigimg", zigimg);
+    graphics.addImport("world", world);
 
     ui.addImport("glfw", glfw);
     ui.addImport("webgpu", webgpu);

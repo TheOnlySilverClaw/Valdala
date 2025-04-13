@@ -5,6 +5,7 @@ const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
 const Surface = @import("Surface.zig");
 const Pipeline = @import("TerrainRenderPipeline.zig");
+const World = @import("world").World;
 
 const Self = @This();
 
@@ -35,6 +36,9 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
     const queue = surface.queue;
     const pipeline = self.pipeline;
 
+    const chunk_position = World.toChunkPosition(self.camera.transform.position);
+    std.log.debug("chunk position: {d} {d} {d}", .{ chunk_position.x, chunk_position.y, chunk_position.z });
+    
     const block_texture_view = pipeline.block_texture.createView();
     defer block_texture_view.release();
 

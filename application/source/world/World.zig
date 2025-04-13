@@ -1,10 +1,14 @@
 const std = @import("std");
+const algebra = @import("algebra");
 
 const Allocator = std.mem.Allocator;
 const Map = std.AutoHashMapUnmanaged;
+const Block = @import("Block.zig");
 const Chunk = @import("Chunk.zig");
 const ChunkMap = Map(Chunk.Position, Chunk);
 const Seed = u64;
+
+pub const Position = algebra.vector.Vector3(f32);
 
 const Self = @This();
 
@@ -21,6 +25,14 @@ pub fn init(allocator: Allocator, seed: Seed) Allocator.Error!Self {
 		.allocator = allocator,
 		.seed = seed,
 		.chunks = chunks
+	};
+}
+
+pub fn toChunkPosition(position: Position) Chunk.Position {
+	return .{
+		.x = @intFromFloat((position.x / Block.size) / @as(f32, @floatFromInt(Chunk.width))),
+		.y = @intFromFloat((position.y / Block.size) / @as(f32, @floatFromInt(Chunk.width))),
+		.z = @intFromFloat((position.z / Block.size) / @as(f32, @floatFromInt(Chunk.height)))
 	};
 }
 
