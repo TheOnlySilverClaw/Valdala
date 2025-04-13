@@ -38,10 +38,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/ui//module.zig")
     });
 
-    const worldgen = b.createModule(.{
+    const world = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/worldgen/module.zig")
+        .root_source_file = b.path("source/world/module.zig")
     });
 
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
@@ -140,7 +140,7 @@ pub fn build(b: *std.Build) void {
     ui.addImport("webgpu", webgpu);
     ui.addImport("graphics", graphics);
 
-    worldgen.addImport("common", common);
+    world.addImport("common", common);
 
     exe.root_module.addImport("common", common);
     exe.root_module.addImport("zigimg", zigimg);
@@ -148,7 +148,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("webgpu", webgpu);
     exe.root_module.addImport("graphics", graphics);
     exe.root_module.addImport("ui", ui);
-    exe.root_module.addImport("worldgen", worldgen);
+    exe.root_module.addImport("world", world);
 
     b.installArtifact(exe);
 

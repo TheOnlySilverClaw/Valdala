@@ -1,1 +1,0 @@
-pub const generate = @import("worldgen.zig").generate;

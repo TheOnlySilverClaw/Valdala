@@ -1,8 +1,10 @@
 const std = @import("std");
+const time = std.time;
 const log = std.log;
 const glfw = @import("glfw");
 const graphics = @import("graphics");
 
+const World = @import("world").World;
 const Allocator = std.mem.Allocator;
 const Renderer = graphics.ApplicationRenderer;
 
@@ -10,7 +12,7 @@ const Self = @This();
 
 allocator: Allocator,
 renderer: Renderer,
-
+world: ?*World = null,
 
 pub fn init(allocator: Allocator) !Self {
     
@@ -38,6 +40,11 @@ pub fn init(allocator: Allocator) !Self {
 pub fn deinit(self: *Self) void {
     
     self.renderer.deinit();
+
+    if(self.world) |world| {
+        world.deinit();
+        self.allocator.destroy(world);
+    }
     
     glfw.terminate();
 }
@@ -52,5 +59,9 @@ pub fn launch(self: *Self) !void {
         log.err("Renderer crashed: {}", .{ err });
     };
 
+    const world = try self.allocator.create(World);
+    world.* = try World.init(self.allocator, @intCast(time.microTimestamp()));
+    self.world = world;
+    
     log.info("Shutdown", .{});
 }
