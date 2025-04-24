@@ -19,6 +19,10 @@
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
             .hash = "glfw-1.0.1-P2aihZF_AACfZJdYFm6XytCg-PfrIzda_vqW8FYQ8pJ_"
         },
+		.umka = .{
+			.url = "https://codeberg.org/Silverclaw/zig-umka/archive/develop.zip",
+			.hash = "umka_bind-0.0.1-0YFIK4UyAAAnXH-3zJjIKjWnuKnmLfw9BozJ-NfYWXbx"
+		},
 
         // binary dependencies
         // GLFW 3.4
@@ -55,6 +59,19 @@
 	        .hash = "N-V-__8AAGzToQjdhwDgALHVFeO9nh-DJRQkJHAbkBzYHXBj",
             .lazy = true
         },
+
+		// Umka
+		// TODO MacOS
+		.umka_linux = .{
+			.url = "https://github.com/vtereshkov/umka-lang/releases/download/v1.5.3/umka_1.5.3_linux.zip",
+			.hash = "N-V-__8AAOhSHACKcoRc_x4KFZldtfMwl-i3czYxYAHCzbGo",
+			.lazy = true
+		},
+		.umka_windows = .{
+			.url = "https://github.com/vtereshkov/umka-lang/releases/download/v1.5.3/umka_1.5.3_windows_mingw.zip",
+			.hash = "N-V-__8AAB_dGQB3eMwkIUCyqM4ShKUi7cxjMJaQXJkFyjev",
+			.lazy = true
+		}
     },
     .fingerprint = 0x4caff166888c6c5b,
     .minimum_zig_version = "0.14.0",

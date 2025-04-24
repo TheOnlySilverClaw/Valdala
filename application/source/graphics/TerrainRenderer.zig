@@ -36,9 +36,6 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
     const queue = surface.queue;
     const pipeline = self.pipeline;
 
-    const chunk_position = World.toChunkPosition(self.camera.transform.position);
-    std.log.debug("chunk position: {d} {d} {d}", .{ chunk_position.x, chunk_position.y, chunk_position.z });
-    
     const block_texture_view = pipeline.block_texture.createView();
     defer block_texture_view.release();
 
@@ -83,7 +80,7 @@ pub fn render(self: Self, renderPass: *webgpu.RenderPassEncoder) !void {
 
 
 fn createUniformBuffer(device: *webgpu.Device, size: usize, label: webgpu.StringView) *webgpu.Buffer {
-    
+
     const descriptor = webgpu.BufferDescriptor {
         .label = label,
         .size = size,

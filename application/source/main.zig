@@ -5,7 +5,7 @@ const Application = @import("Application.zig");
 
 pub fn main() !void {
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    var gpa = std.heap.DebugAllocator(.{}).init;
 
     const allocator = gpa.allocator();
 
@@ -14,9 +14,9 @@ pub fn main() !void {
         return err;
     };
 
-    std.log.debug("args: {s}", .{ args });
+    const path = args[1];
 
-    var application = Application.init(allocator) catch |err| {
+    var application = Application.init(allocator, path) catch |err| {
         log.err("Failed to initialize: {}", .{ err });
         return err;
     };

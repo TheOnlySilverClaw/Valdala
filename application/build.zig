@@ -14,6 +14,8 @@ pub fn build(b: *std.Build) void {
 
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
+	const umka = b.dependency("umka", .{}).module("wrapper");
+
     const algebra = b.createModule(.{
         .target = target,
         .optimize = optimize,
@@ -44,6 +46,13 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("source/world/module.zig")
     });
 
+	const scripting = b.createModule(.{
+		.target = target,
+		.optimize = optimize,
+		.root_source_file = b.path("source/scripting/module.zig")
+	});
+
+
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
     const TrueType = b.dependency("TrueType", .{}).module("TrueType");
 
@@ -61,12 +70,15 @@ pub fn build(b: *std.Build) void {
         .linux => {
             exe.addObjectFile(b.path("libraries/glfw/linux/libglfw3.a"));
             if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+			if(b.lazyDependency("umka_linux", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka_static_linux.a"));
         },
         .windows => {
             if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));
             if (b.lazyDependency("wgpu_windows", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+			if (b.lazyDependency("umka_windows", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka_static_windows.a"));
 
-            exe.linkLibCpp();
+
+			exe.linkLibCpp();
 
             exe.linkSystemLibrary("gdi32");
             exe.linkSystemLibrary("user32");
@@ -130,7 +142,7 @@ pub fn build(b: *std.Build) void {
 
 
     world.addImport("algebra", algebra);
-    
+
     graphics.addImport("common", common);
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
@@ -145,6 +157,8 @@ pub fn build(b: *std.Build) void {
 
     world.addImport("common", common);
 
+	scripting.addImport("umka", umka);
+
     exe.root_module.addImport("common", common);
     exe.root_module.addImport("zigimg", zigimg);
     exe.root_module.addImport("glfw", glfw);
@@ -152,6 +166,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("graphics", graphics);
     exe.root_module.addImport("ui", ui);
     exe.root_module.addImport("world", world);
+	exe.root_module.addImport("scripting", scripting);
 
     b.installArtifact(exe);
 

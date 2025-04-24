@@ -1,0 +1,3 @@
+fn blub(): int {
+    return 4
+}
