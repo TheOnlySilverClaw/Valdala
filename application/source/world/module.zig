@@ -1,1 +1,0 @@
-pub const World = @import("World.zig");

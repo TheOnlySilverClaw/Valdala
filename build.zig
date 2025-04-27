@@ -1,84 +1,128 @@
 const std = @import("std");
-
+const Build = std.Build;
 const Target = std.Target;
 
 const panic = std.debug.panic;
 
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *Build) void {
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const exe = b.addExecutable(.{
+        .name = "Valdala",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    linkLibraries(b, exe, target, optimize);
+
+
+    b.installArtifact(exe);
+
+    const run_cmd = b.addRunArtifact(exe);
+    run_cmd.step.dependOn(b.getInstallStep());
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
+    }
+
+    const run_step = b.step("run", "Run the application");
+    run_step.dependOn(&run_cmd.step);
+
+    const exe_unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/test.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_exe_unit_tests.step);
+}
+
+
+fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+
+
+    const zigimg = b.dependency("zigimg", .{}).module("zigimg");
+    const TrueType = b.dependency("TrueType", .{}).module("TrueType");
+    
     const glfw = b.dependency("glfw", .{}).module("glfw");
-
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
-
-	const umka = b.dependency("umka", .{}).module("wrapper");
 
     const algebra = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/algebra/module.zig")
+        .root_source_file = b.path("src/algebra/module.zig")
     });
 
     const common = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/common//module.zig")
+        .root_source_file = b.path("src/common//module.zig")
     });
 
     const graphics = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/graphics/module.zig")
+        .root_source_file = b.path("src/graphics/module.zig")
     });
 
     const ui = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/ui//module.zig")
+        .root_source_file = b.path("src/ui//module.zig")
     });
 
     const world = b.createModule(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("source/world/module.zig")
+        .root_source_file = b.path("src/world/module.zig")
     });
 
-	const scripting = b.createModule(.{
-		.target = target,
-		.optimize = optimize,
-		.root_source_file = b.path("source/scripting/module.zig")
-	});
 
+    world.addImport("algebra", algebra);
+    
+    graphics.addImport("common", common);
+    graphics.addImport("glfw", glfw);
+    graphics.addImport("webgpu", webgpu);
+    graphics.addImport("algebra", algebra);
+    graphics.addImport("TrueType", TrueType);
+    graphics.addImport("zigimg", zigimg);
+    graphics.addImport("world", world);
 
-    const zigimg = b.dependency("zigimg", .{}).module("zigimg");
-    const TrueType = b.dependency("TrueType", .{}).module("TrueType");
+    ui.addImport("glfw", glfw);
+    ui.addImport("webgpu", webgpu);
+    ui.addImport("graphics", graphics);
 
-    const exe = b.addExecutable(.{
-        .name = "Valdala",
-        .root_source_file = b.path("source/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    world.addImport("common", common);
+
+    root.addImport("common", common);
+    root.addImport("zigimg", zigimg);
+    root.addImport("glfw", glfw);
+    root.addImport("webgpu", webgpu);
+    root.addImport("graphics", graphics);
+    root.addImport("ui", ui);
+    root.addImport("world", world);
+}
+
+fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
 
     exe.linkLibC();
     exe.linkSystemLibrary("unwind");
 
     switch (target.result.os.tag) {
         .linux => {
-            exe.addObjectFile(b.path("libraries/glfw/linux/libglfw3.a"));
+            exe.addObjectFile(b.path("lib/linux/libglfw3.a"));
             if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
-			if(b.lazyDependency("umka_linux", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka_static_linux.a"));
         },
         .windows => {
             if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));
             if (b.lazyDependency("wgpu_windows", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
-			if (b.lazyDependency("umka_windows", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka_static_windows.a"));
 
-
-			exe.linkLibCpp();
+            exe.linkLibCpp();
 
             exe.linkSystemLibrary("gdi32");
             exe.linkSystemLibrary("user32");
@@ -104,12 +148,11 @@ pub fn build(b: *std.Build) void {
             exe.linkFramework("QuartzCore");
             exe.linkFramework("IOKit");
 
-            // objective-c helper function to get metal layer
             const metal_layer_mod = b.addModule("metalLayer", .{
                 .optimize = optimize,
                 .target = target,
             });
-            metal_layer_mod.addCSourceFile(.{ .file = b.path("source/glfw/metal_layer.m") });
+            exe.addCSourceFile(.{ .file = b.path("src/glfw/metal_layer.m") });
 
             exe.linkLibrary(b.addLibrary(.{
                 .name = "metalLayer",
@@ -133,59 +176,10 @@ pub fn build(b: *std.Build) void {
                         exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
                     }
                 },
-                else => @panic("Unsupported architechture for macOS")
+                else => panic("Unsupported architechture for macOS: {s}", .{ @tagName(target.result.cpu.arch )})
 
             }
         },
-        else => std.debug.panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
+        else => panic("Unsupported operating system: {s}", .{ @tagName(target.result.os.tag) })
     }
-
-
-    world.addImport("algebra", algebra);
-
-    graphics.addImport("common", common);
-    graphics.addImport("glfw", glfw);
-    graphics.addImport("webgpu", webgpu);
-    graphics.addImport("algebra", algebra);
-    graphics.addImport("TrueType", TrueType);
-    graphics.addImport("zigimg", zigimg);
-    graphics.addImport("world", world);
-
-    ui.addImport("glfw", glfw);
-    ui.addImport("webgpu", webgpu);
-    ui.addImport("graphics", graphics);
-
-    world.addImport("common", common);
-
-	scripting.addImport("umka", umka);
-
-    exe.root_module.addImport("common", common);
-    exe.root_module.addImport("zigimg", zigimg);
-    exe.root_module.addImport("glfw", glfw);
-    exe.root_module.addImport("webgpu", webgpu);
-    exe.root_module.addImport("graphics", graphics);
-    exe.root_module.addImport("ui", ui);
-    exe.root_module.addImport("world", world);
-	exe.root_module.addImport("scripting", scripting);
-
-    b.installArtifact(exe);
-
-    const run_cmd = b.addRunArtifact(exe);
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-
-    const run_step = b.step("run", "Run the application");
-    run_step.dependOn(&run_cmd.step);
-
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("source/test.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_exe_unit_tests.step);
 }

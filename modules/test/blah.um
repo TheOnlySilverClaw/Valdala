@@ -1,8 +1,0 @@
-fn foo(): int {
-    return 4
-}
-
-fn blah*(): int {
-    return foo() * foo()
-}
-
