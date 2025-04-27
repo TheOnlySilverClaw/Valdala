@@ -1,3 +1,6 @@
+import "blah.um"
+
 fn blub(): int {
-    return 4
+    printf("hey\n")
+    return blah::blah()
 }

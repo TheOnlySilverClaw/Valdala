@@ -32,8 +32,8 @@ pub fn init(allocator: Allocator, path: [:0]const u8) !Self {
 
     log.debug("Initialized successfully", .{});
 
-	const module_path = try std.fs.path.join(allocator, &.{ path, "test"});
-	const script_module = try scripting.Module.init(allocator, module_path, "foo.um");
+	const module_path = try std.fs.path.joinZ(allocator, &.{ path, "test", "foo.um" });
+	const script_module = try scripting.Module.init(allocator, module_path);
 	allocator.free(module_path);
 	_ = script_module;
 
