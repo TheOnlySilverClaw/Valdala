@@ -18,7 +18,7 @@ pub fn build(b: *Build) void {
     });
 
     linkLibraries(b, exe, target, optimize);
-
+    organizeModules(b, exe.root_module, target, optimize);
 
     b.installArtifact(exe);
 
@@ -45,67 +45,31 @@ pub fn build(b: *Build) void {
 
 fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
 
-
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
     const TrueType = b.dependency("TrueType", .{}).module("TrueType");
     
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
-    const algebra = b.createModule(.{
+    const client = b.addModule("client", .{
+        .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/algebra/module.zig")
+        .optimize = optimize
     });
 
-    const common = b.createModule(.{
+    const server = b.addModule("server", .{
+        .root_source_file = b.path("src/server/module.zig" ),
         .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/common//module.zig")
+        .optimize = optimize
     });
 
-    const graphics = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/graphics/module.zig")
-    });
+    client.addImport("zigimig", zigimg);
+    client.addImport("TrueType", TrueType);
+    client.addImport("glfw", glfw);
+    client.addImport("webgpu", webgpu);
 
-    const ui = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/ui//module.zig")
-    });
-
-    const world = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/world/module.zig")
-    });
-
-
-    world.addImport("algebra", algebra);
-    
-    graphics.addImport("common", common);
-    graphics.addImport("glfw", glfw);
-    graphics.addImport("webgpu", webgpu);
-    graphics.addImport("algebra", algebra);
-    graphics.addImport("TrueType", TrueType);
-    graphics.addImport("zigimg", zigimg);
-    graphics.addImport("world", world);
-
-    ui.addImport("glfw", glfw);
-    ui.addImport("webgpu", webgpu);
-    ui.addImport("graphics", graphics);
-
-    world.addImport("common", common);
-
-    root.addImport("common", common);
-    root.addImport("zigimg", zigimg);
-    root.addImport("glfw", glfw);
-    root.addImport("webgpu", webgpu);
-    root.addImport("graphics", graphics);
-    root.addImport("ui", ui);
-    root.addImport("world", world);
+    root.addImport("client", client);
+    root.addImport("server", server);
 }
 
 fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {

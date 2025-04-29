@@ -1,21 +1,21 @@
 const std = @import("std");
-const custom_log = @import("log.zig");
+const log = std.log.scoped(.main);
+const Server = @import("server").Server;
 
 pub const std_options = std.Options {
-    .logFn = custom_log.pretty
+    .logFn = @import("log.zig").pretty
 };
 
 pub fn main() !void {
 
-    const client_log = std.log.scoped(.client);
-    const server_log = std.log.scoped(.server);
+    log.info("Launching", .{});
 
-    for(0..3) |i| {
-        client_log.debug("Hmm {d}", .{ i });
-        client_log.info("Blah {d}", .{ i });
-        server_log.debug("Hey! {d}", .{ i });
-        client_log.warn("Oh? {d}", .{ i });
-        client_log.err("No! {d}", .{ i });
-        client_log.debug("meep {d}", .{ i });
-    }
+    var debug_allocator = std.heap.DebugAllocator(.{}).init;
+
+    const server_allocator = debug_allocator.allocator();
+    const server = Server {};
+    const server_thread = try std.Thread.spawn(.{ .allocator = server_allocator }, Server.launch, .{ server });
+    server_thread.join();
+
+    log.info("Finished", .{});
 }
