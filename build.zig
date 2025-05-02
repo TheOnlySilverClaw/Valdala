@@ -51,6 +51,19 @@ fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTar
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
+    const algebra = b.addModule("algebra", .{
+        .root_source_file = b.path("src/algebra/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
+    const coordinate = b.addModule("coordinate", .{
+        .root_source_file = b.path("src/coordinate/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+    coordinate.addImport("algebra", algebra);
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -67,6 +80,9 @@ fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTar
     client.addImport("TrueType", TrueType);
     client.addImport("glfw", glfw);
     client.addImport("webgpu", webgpu);
+
+    server.addImport("algebra", algebra);
+    server.addImport("coordinate", coordinate);
 
     root.addImport("client", client);
     root.addImport("server", server);
