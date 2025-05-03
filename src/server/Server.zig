@@ -27,7 +27,13 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
     const module = try module_loader.loadModule("valdala");
-    log.debug("module: {s}", .{ module.name });
+    log.debug("module: {s} {s}", .{ module.id, module.name });
+    for(module.tiles.items) |tile| {
+        log.debug("tile {s}", .{ tile.id });
+        if(tile.textures.all) |texture| {
+            log.debug("texture: {d}*{d} {d}", .{ texture.width, texture.height, texture.pixels.len });
+        }
+    }
 
     return .{
         .allocator = allocator,
