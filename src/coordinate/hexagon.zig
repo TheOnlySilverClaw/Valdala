@@ -2,6 +2,9 @@ const std = @import("std");
 const math = std.math;
 const algebra = @import("algebra");
 
+const Vector = algebra.Vector3;
+
+
 pub fn Hexagon(T: type) type {
     
     if(@typeInfo(T) != .float) @compileError("Hexgon sizes must be floats");

@@ -1,4 +1,5 @@
 const std = @import("std");
+const World = @import("world").World;
 
 const log = std.log.scoped(.server);
 

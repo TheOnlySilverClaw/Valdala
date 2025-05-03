@@ -1,1 +1,1 @@
-pub const Position = @import("grid.zig").Position;
+pub usingnamespace @import("hexagon.zig");

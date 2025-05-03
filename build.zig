@@ -17,9 +17,6 @@ pub fn build(b: *Build) void {
         .optimize = optimize,
     });
 
-    linkLibraries(b, exe, target, optimize);
-    organizeModules(b, exe.root_module, target, optimize);
-
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
@@ -40,10 +37,14 @@ pub fn build(b: *Build) void {
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_exe_unit_tests.step);
+
+
+    linkLibraries(b, exe, target, optimize);
+    organizeModules(b, exe.root_module, exe_unit_tests.root_module, target, optimize);
 }
 
 
-fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
 
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
     const TrueType = b.dependency("TrueType", .{}).module("TrueType");
@@ -64,6 +65,14 @@ fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTar
     });
     coordinate.addImport("algebra", algebra);
 
+    const world = b.addModule("world", .{
+        .root_source_file = b.path("src/world/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+    world.addImport("algebra", algebra);
+    world.addImport("coordinate", coordinate);
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -81,11 +90,16 @@ fn organizeModules(b: *std.Build, root: *Build.Module, target: Build.ResolvedTar
     client.addImport("glfw", glfw);
     client.addImport("webgpu", webgpu);
 
-    server.addImport("algebra", algebra);
-    server.addImport("coordinate", coordinate);
+    server.addImport("world", world);
 
     root.addImport("client", client);
     root.addImport("server", server);
+
+    // TODO do we actually need this?!
+    test_root.addImport("algebra", algebra);
+    test_root.addImport("coordinate", coordinate);
+    test_root.addImport("server", server);
+    test_root.addImport("world", world);
 }
 
 fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
