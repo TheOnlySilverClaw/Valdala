@@ -6,6 +6,8 @@ const log = std.log.scoped(.module_loader);
 
 
 const Allocator = std.mem.Allocator;
+const ArenaAllocator = std.heap.ArenaAllocator;
+
 const Yaml = @import("yaml").Yaml;
 const Module = @import("Module.zig");
 const Tile = @import("Tile.zig");
@@ -38,35 +40,40 @@ pub fn init(allocator: Allocator, root: fs.Dir) !Self {
 
 pub fn loadModule(self: Self, id: []const u8) !*const Module {
 
-    var arena = std.heap.ArenaAllocator.init(self.allocator);
-    defer arena.deinit();
+    // holds intermediate memory for loaded file formats
+    var parser_arena = ArenaAllocator.init(self.allocator);
+    defer parser_arena.deinit();
+    const parser_allocator = parser_arena.allocator();
 
-    const area_allocator = arena.allocator();
+    // holds all of the resources for a module until it is unloaded
+    var module_arena = try self.allocator.create(ArenaAllocator);
+    module_arena.* = ArenaAllocator.init(self.allocator);
+    const module_allocator = module_arena.allocator();
 
     const directory = try self.root.openDir(id , .{ .no_follow = true });
     
     var module_file = try directory.openFile(Dscriptor.file_name, .{});
-    const module_descriptor = try loadYamlMap(area_allocator, module_file);
+    const module_descriptor = try loadYamlMap(parser_allocator, module_file);
     module_file.close();
 
     const module_name = if(module_descriptor.get("name")) |value| try value.asString() else return Error.MissingName;
 
-    const module = try self.allocator.create(Module);
-    module.id = id;
-    module.name = try self.allocator.dupe(u8, module_name);
+    const module = try module_allocator.create(Module);
+    module.* = Module.init(module_arena, id);
+    module.name = try module_allocator.dupe(u8, module_name);
     
     if(module_descriptor.get("tiles")) |tiles| {
         const tile_map = try tiles.asMap();
-        module.tiles = try self.loadTiles( area_allocator, directory, tile_map);
+        module.tiles = try loadTiles( module_allocator, parser_allocator, directory, tile_map);
     }
 
     return module;
 }
 
-fn loadTiles(self: Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !List(*Tile) {
+fn loadTiles(module_allocator: Allocator, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !List(*Tile) {
     
     var tiles = List(*Tile).empty;
-    try tiles.ensureTotalCapacity(self.allocator, map.entries.len);
+    try tiles.ensureTotalCapacity(module_allocator, map.entries.len);
 
     var iterator = map.iterator();
     while(iterator.next()) |entry| {
@@ -80,45 +87,44 @@ fn loadTiles(self: Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !Li
         const descriptor = try loadYamlMap(arena, file);
         const name = if(descriptor.get("name")) |name| try name.asString() else return Error.MissingName;
 
-        const tile = try self.allocator.create(Tile);
-        tile.id = try self.allocator.dupe(u8, entry.key_ptr.*);
-        tile.name = try self.allocator.dupe(u8, name);
+        const tile = try module_allocator.create(Tile);
+        tile.id = try module_allocator.dupe(u8, entry.key_ptr.*);
+        tile.name = try module_allocator.dupe(u8, name);
 
         if(descriptor.get("textures")) |textures| {
             const texture_map = try textures.asMap();
             const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
-            tile.textures = try self.loadTextures(parent_directory, texture_map);
+            tile.textures = try loadTextures(module_allocator, parent_directory, texture_map);
         }
         
-
         tiles.appendAssumeCapacity(tile);
     }
 
     return tiles;
 }
 
-fn loadTextures(self: Self, directory: fs.Dir, map: Yaml.Map) !Tile.TextureMapping {
+fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.TextureMapping {
 
 
     var all: ?*Tile.Texture = null;
     if(map.get("all")) |value| {
         const name = try value.asString();
-        all = try self.allocator.create(Tile.Texture);
-        all.?.* = try self.loadTexture(directory, name);
+        all = try allocator.create(Tile.Texture);
+        all.?.* = try loadTexture(allocator, directory, name);
     }
 
     var top: ?*Tile.Texture = null;
     if(map.get("top")) |value| {
         const name = try value.asString();
-        top = try self.allocator.create(Tile.Texture);
-        top.?.* = try self.loadTexture(directory, name);
+        top = try allocator.create(Tile.Texture);
+        top.?.* = try loadTexture(allocator, directory, name);
     }
 
     var bottom: ?*Tile.Texture = null;
     if(map.get("bottom")) |value| {
         const name = try value.asString();
-        bottom = try self.allocator.create(Tile.Texture);
-        bottom.?.* = try self.loadTexture(directory, name);
+        bottom = try allocator.create(Tile.Texture);
+        bottom.?.* = try loadTexture(allocator, directory, name);
     }
 
     var sides: []Tile.Texture = &.{};
@@ -126,16 +132,16 @@ fn loadTextures(self: Self, directory: fs.Dir, map: Yaml.Map) !Tile.TextureMappi
         switch (value) {
             .string => {
                 const name = value.string;
-                const texture = try self.loadTexture(directory, name);
-                sides = try self.allocator.alloc(Tile.Texture, 1);
+                const texture = try loadTexture(allocator, directory, name);
+                sides = try allocator.alloc(Tile.Texture, 1);
                 sides[0] = texture;
             },
             .list => {
                 const items = value.list;
-                sides = try self.allocator.alloc(Tile.Texture, items.len);
+                sides = try allocator.alloc(Tile.Texture, items.len);
                 for(value.list, 0..) |item, index| {
                     const name = try item.asString();
-                    const texture = try self.loadTexture(directory, name);
+                    const texture = try loadTexture(allocator, directory, name);
                     sides[index] = texture;
                 }
             },
@@ -152,7 +158,7 @@ fn loadTextures(self: Self, directory: fs.Dir, map: Yaml.Map) !Tile.TextureMappi
     
 }
 
-fn loadTexture(self: Self, directory: fs.Dir, name: []const u8) !Tile.Texture {
+fn loadTexture(allocator: Allocator, directory: fs.Dir, name: []const u8) !Tile.Texture {
     
     var file = directory.openFile(name, .{}) catch |err| {
         if (err == fs.File.OpenError.FileNotFound) {
@@ -161,10 +167,10 @@ fn loadTexture(self: Self, directory: fs.Dir, name: []const u8) !Tile.Texture {
         return err;
     };
 
-    var image = try zigimg.ImageUnmanaged.fromFile(self.allocator, &file);
+    var image = try zigimg.ImageUnmanaged.fromFile(allocator, &file);
     file.close();
 
-    try image.convert(self.allocator, .rgba32);
+    try image.convert(allocator, .rgba32);
 
     return .{
         .width = math.cast(u16, image.width) orelse return Error.TextureSize,

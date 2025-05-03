@@ -16,6 +16,9 @@ pub fn main() !void {
     const server = try Server.init(debug_allocator.allocator(), directory);
     const server_thread = try std.Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
     server_thread.join();
+    server.deinit();
+
+    _ = debug_allocator.deinit();
 
     log.info("Finished", .{});
 }

@@ -12,4 +12,4 @@ pub const TextureMapping = struct {
 
 id: ID,
 name: Name,
-textures: TextureMapping
+textures: TextureMapping,

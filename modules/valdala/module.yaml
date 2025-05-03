@@ -1,3 +1,4 @@
 name: Valdala
 tiles:
   grass: tiles/grass/tile.yaml
+  rock: tiles/rock/tile.yaml

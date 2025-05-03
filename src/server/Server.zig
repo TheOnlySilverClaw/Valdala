@@ -34,6 +34,9 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
             log.debug("texture: {d}*{d} {d}", .{ texture.width, texture.height, texture.pixels.len });
         }
     }
+    // TODO why does this work?!
+    allocator.destroy(module.arena);
+    module.deinit();
 
     return .{
         .allocator = allocator,
@@ -41,6 +44,10 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
         .module_loader = module_loader,
         .world = null
     };
+}
+
+pub fn deinit(self: Self) void {
+    self.allocator.destroy(self.module_loader);
 }
 
 pub fn launch(self: Self) Error!void {
