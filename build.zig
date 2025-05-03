@@ -48,7 +48,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
 
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
     const TrueType = b.dependency("TrueType", .{}).module("TrueType");
-    
+    const yaml = b.dependency("yaml", .{}).module("yaml");
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
 
@@ -73,6 +73,14 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     world.addImport("algebra", algebra);
     world.addImport("coordinate", coordinate);
 
+    const module = b.addModule("module", .{
+        .root_source_file = b.path("src/module/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+    module.addImport("zigimg", zigimg);
+    module.addImport("yaml", yaml);
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -91,6 +99,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("webgpu", webgpu);
 
     server.addImport("world", world);
+    server.addImport("module", module);
 
     root.addImport("client", client);
     root.addImport("server", server);

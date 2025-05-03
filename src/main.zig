@@ -12,9 +12,9 @@ pub fn main() !void {
 
     var debug_allocator = std.heap.DebugAllocator(.{}).init;
 
-    const server_allocator = debug_allocator.allocator();
-    const server = Server {};
-    const server_thread = try std.Thread.spawn(.{ .allocator = server_allocator }, Server.launch, .{ server });
+    const directory = std.fs.cwd();
+    const server = try Server.init(debug_allocator.allocator(), directory);
+    const server_thread = try std.Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
     server_thread.join();
 
     log.info("Finished", .{});

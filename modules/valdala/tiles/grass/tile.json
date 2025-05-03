@@ -1,0 +1,6 @@
+{
+    "name" : "grass",
+    "textures" : {
+        "all" : "grass.poi"
+    }
+}

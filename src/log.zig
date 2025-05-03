@@ -4,7 +4,12 @@ const thread_name_buffer = [std.Thread.max_name_len:0]u8;
 
 
 pub fn pretty(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) void {
-    write(message_level, scope, format, args) catch return;
+
+    switch (scope) {
+        // from yaml library
+        .parser, .tokenizer => {},
+        else => write(message_level, scope, format, args) catch return
+    }
 }
 
 fn write(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) !void {

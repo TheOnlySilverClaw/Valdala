@@ -19,6 +19,10 @@
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
             .hash = "glfw-1.0.1-P2aihZF_AACfZJdYFm6XytCg-PfrIzda_vqW8FYQ8pJ_"
         },
+        .yaml = .{
+            .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.1.1.zip",
+            .hash = "zig_yaml-0.1.0-C1161miEAgBCwL3YAEQZwV_4GyaaT2Xqj9nKB6hNe_TL"
+        },
 
         // binary dependencies
         // GLFW 3.4
