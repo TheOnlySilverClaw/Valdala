@@ -12,7 +12,7 @@ window: *gui.Window,
 
 pub fn init(allocator: Allocator) !Self {
 
-    if(!glfw.initialize()) return error.InitializeGLFW;
+    try glfw.initialize();
 
     const window = try allocator.create(gui.Window);
     try window.create(1000, 800, "Valdala");

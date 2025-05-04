@@ -17,7 +17,7 @@
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
-            .hash = "glfw-1.0.1-P2aihZF_AACfZJdYFm6XytCg-PfrIzda_vqW8FYQ8pJ_"
+            .hash = "glfw-1.0.1-P2aihQ6AAAC3CSE8wb-b1ERsRj2TTvZoAPqBBQd7j6lf"
         },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.1.1.zip",
