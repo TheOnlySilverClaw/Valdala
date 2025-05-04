@@ -26,7 +26,8 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
     module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
-    const module = try module_loader.loadModule("valdala");
+    const module_id = try allocator.dupe(u8, "valdala");
+    const module = try module_loader.loadModule(module_id);
     log.debug("module: {s} {s}", .{ module.id, module.name });
     for(module.tiles.items) |tile| {
         log.debug("tile {s}", .{ tile.id });
@@ -34,9 +35,8 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
             log.debug("texture: {d}*{d} {d}", .{ texture.width, texture.height, texture.pixels.len });
         }
     }
-    // TODO why does this work?!
-    allocator.destroy(module.arena);
-    module.deinit();
+    
+    module_loader.unloadModules();
 
     return .{
         .allocator = allocator,

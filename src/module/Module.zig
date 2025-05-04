@@ -2,27 +2,33 @@ const std = @import("std");
 const List = std.ArrayListUnmanaged;
 const Tile = @import("Tile.zig");
 
-const ArenaAllocator = std.heap.ArenaAllocator;
+const Allocator = std.mem.Allocator;
 
 pub const ID = []const u8;
 pub const Name = []const u8;
 
 const Self = @This();
 
-arena: *ArenaAllocator,
 id: ID,
 name: Name,
 tiles: List(*Tile),
 
-pub fn init(arena: *ArenaAllocator, id: ID) Self {
+pub fn init(id: ID) Self {
     return .{
-        .arena = arena,
         .id = id,
         .name = "",
         .tiles = .empty
     };
 }
 
-pub fn deinit(self: Self) void {
-    self.arena.deinit();
+pub fn deinit(self: *Self, allocator: Allocator) void {
+    
+    allocator.free(self.id);
+    allocator.free(self.name);
+    
+    for(self.tiles.items) |tile| {
+        tile.deinit(allocator);
+        allocator.destroy(tile);
+    }
+    self.tiles.clearAndFree(allocator);
 }

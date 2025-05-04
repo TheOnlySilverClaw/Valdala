@@ -29,26 +29,22 @@ const Dscriptor = struct {
 
 allocator: Allocator,
 root: fs.Dir,
-
+loaded: List(*Module),
 
 pub fn init(allocator: Allocator, root: fs.Dir) !Self {
     return .{
         .allocator = allocator,
-        .root = root
+        .root = root,
+        .loaded = List(*Module).empty
     };
 }
 
-pub fn loadModule(self: Self, id: []const u8) !*const Module {
+pub fn loadModule(self: *Self, id: []const u8) !*const Module {
 
     // holds intermediate memory for loaded file formats
     var parser_arena = ArenaAllocator.init(self.allocator);
     defer parser_arena.deinit();
     const parser_allocator = parser_arena.allocator();
-
-    // holds all of the resources for a module until it is unloaded
-    var module_arena = try self.allocator.create(ArenaAllocator);
-    module_arena.* = ArenaAllocator.init(self.allocator);
-    const module_allocator = module_arena.allocator();
 
     const directory = try self.root.openDir(id , .{ .no_follow = true });
     
@@ -58,16 +54,26 @@ pub fn loadModule(self: Self, id: []const u8) !*const Module {
 
     const module_name = if(module_descriptor.get("name")) |value| try value.asString() else return Error.MissingName;
 
-    const module = try module_allocator.create(Module);
-    module.* = Module.init(module_arena, id);
-    module.name = try module_allocator.dupe(u8, module_name);
+    const module = try self.allocator.create(Module);
+    module.* = Module.init(id);
+    module.name = try self.allocator.dupe(u8, module_name);
     
     if(module_descriptor.get("tiles")) |tiles| {
         const tile_map = try tiles.asMap();
-        module.tiles = try loadTiles( module_allocator, parser_allocator, directory, tile_map);
+        module.tiles = try loadTiles( self.allocator, parser_allocator, directory, tile_map);
     }
 
+    try self.loaded.append(self.allocator, module);
     return module;
+}
+
+pub fn unloadModules(self: *Self) void {
+
+    for(self.loaded.items) |module| {
+        module.deinit(self.allocator);
+        self.allocator.destroy(module);
+    }
+    self.loaded.clearAndFree(self.allocator);
 }
 
 fn loadTiles(module_allocator: Allocator, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !List(*Tile) {
@@ -127,22 +133,22 @@ fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.Te
         bottom.?.* = try loadTexture(allocator, directory, name);
     }
 
-    var sides: []Tile.Texture = &.{};
+    var sides: []*Tile.Texture = &.{};
     if(map.get("sides")) |value| {
         switch (value) {
             .string => {
                 const name = value.string;
                 const texture = try loadTexture(allocator, directory, name);
-                sides = try allocator.alloc(Tile.Texture, 1);
-                sides[0] = texture;
+                sides = try allocator.alloc(*Tile.Texture, 1);
+                sides[0].* = texture;
             },
             .list => {
                 const items = value.list;
-                sides = try allocator.alloc(Tile.Texture, items.len);
+                sides = try allocator.alloc(*Tile.Texture, items.len);
                 for(value.list, 0..) |item, index| {
                     const name = try item.asString();
                     const texture = try loadTexture(allocator, directory, name);
-                    sides[index] = texture;
+                    sides[index].* = texture;
                 }
             },
             else => return Yaml.Error.TypeMismatch
