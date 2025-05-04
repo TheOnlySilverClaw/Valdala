@@ -9,23 +9,34 @@ const Self = @This();
 
 allocator: Allocator,
 window: *gui.Window,
+controller: *gui.Controller,
 
 pub fn init(allocator: Allocator) !Self {
 
     try glfw.initialize();
 
     const window = try allocator.create(gui.Window);
+    window.* = gui.Window.init(allocator);
+
+    const controller= try allocator.create(gui.Controller);
+    controller.* = gui.Controller.init(window);
+    try controller.registerWindowListeners();
+
     try window.create(1000, 800, "Valdala");
 
     return .{
         .allocator = allocator,
-        .window = window
+        .window = window,
+        .controller = controller
     };
 }
 
 pub fn deinit(self: Self) void {
 
+    self.window.destroy();
+    self.window.deinit();
     self.allocator.destroy(self.window);
+    self.allocator.destroy(self.controller);
 
     glfw.terminate();
 }
