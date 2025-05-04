@@ -51,7 +51,9 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     const yaml = b.dependency("yaml", .{}).module("yaml");
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
-
+    _ = TrueType;
+    _ = webgpu;
+    
     const algebra = b.addModule("algebra", .{
         .root_source_file = b.path("src/algebra/module.zig" ),
         .target = target,
@@ -63,23 +65,24 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .target = target,
         .optimize = optimize
     });
-    coordinate.addImport("algebra", algebra);
 
     const world = b.addModule("world", .{
         .root_source_file = b.path("src/world/module.zig" ),
         .target = target,
         .optimize = optimize
     });
-    world.addImport("algebra", algebra);
-    world.addImport("coordinate", coordinate);
 
     const module = b.addModule("module", .{
         .root_source_file = b.path("src/module/module.zig" ),
         .target = target,
         .optimize = optimize
     });
-    module.addImport("zigimg", zigimg);
-    module.addImport("yaml", yaml);
+
+    const gui = b.addModule("gui", .{
+        .root_source_file = b.path("src/gui/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
 
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
@@ -93,10 +96,18 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
-    client.addImport("zigimig", zigimg);
-    client.addImport("TrueType", TrueType);
+    coordinate.addImport("algebra", algebra);
+
+    world.addImport("algebra", algebra);
+    world.addImport("coordinate", coordinate);
+
+    module.addImport("zigimg", zigimg);
+    module.addImport("yaml", yaml);
+
+    gui.addImport("glfw", glfw);
+
+    client.addImport("gui", gui);
     client.addImport("glfw", glfw);
-    client.addImport("webgpu", webgpu);
 
     server.addImport("world", world);
     server.addImport("module", module);
