@@ -1,6 +1,7 @@
 const std = @import("std");
 const glfw = @import("glfw");
 const gui = @import("gui");
+const Scene = @import("scene").Scene;
 
 const Allocator = std.mem.Allocator;
 
@@ -10,6 +11,7 @@ const Self = @This();
 allocator: Allocator,
 window: *gui.Window,
 controller: *gui.Controller,
+scene: ?*Scene,
 
 pub fn init(allocator: Allocator) !Self {
 
@@ -27,7 +29,8 @@ pub fn init(allocator: Allocator) !Self {
     return .{
         .allocator = allocator,
         .window = window,
-        .controller = controller
+        .controller = controller,
+        .scene = null
     };
 }
 
