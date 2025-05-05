@@ -20,9 +20,6 @@ const Self = @This();
 
 handle: *webgpu.Surface,
 capabilities: webgpu.SurfaceCapabilities,
-alphaMode: webgpu.CompositeAlphaMode,
-color_texture_format: webgpu.TextureFormat,
-depth_texture_format: webgpu.TextureFormat,
 depth_texture: ?*webgpu.Texture,
 device: *webgpu.Device,
 queue: *webgpu.Queue,
@@ -53,9 +50,6 @@ pub fn create(self: *Self, window: *glfw.Window, instance: *webgpu.Instance) !vo
 
     self.queue = self.device.getQueue();
 
-    self.alphaMode = self.capabilities.alpha_modes[0];
-    self.color_texture_format= self.capabilities.formats[0];
-    self.depth_texture_format = .depth24_plus;
     self.depth_texture = null;
 }
 
@@ -77,8 +71,8 @@ pub fn resize(self: *Self, width: u32, height: u32) void {
 pub fn configure(self: *Self) void {
     
     const configuration = webgpu.SurfaceConfiguration {
-        .alpha_mode = self.alphaMode,
-        .format = self.color_texture_format,
+        .alpha_mode = self.getAlphaMode(),
+        .format = self.getColorTextureFormat(),
         .device = self.device,
         .width = self.width,
         .height = self.height,
@@ -96,7 +90,7 @@ fn createDepthTexture(self: *Self) void {
     const descriptor = webgpu.TextureDescriptor {
         .label = webgpu.StringView.sized("depth"),
         .dimension = .@"2d",
-        .format = self.depth_texture_format,
+        .format = self.getDepthTextureFormat(),
         .size = .{
             .width = self.width,
             .height = self.height
@@ -105,14 +99,15 @@ fn createDepthTexture(self: *Self) void {
         .mip_level_count = 1,
         .sample_count = 1,
         .view_format_count = 1,
-        .view_formats = &.{ self.depth_texture_format }
+        .view_formats = &.{ self.getDepthTextureFormat() }
     };
 
     self.depth_texture = self.device.createTexture(&descriptor);
 }
 
-pub fn getQueue(self: Self) *webgpu.Queue {
-    return self.queue;
+pub fn getDepthTextureFormat(self: Self) webgpu.TextureFormat {
+    _ = self;
+    return .depth24_plus;
 }
 
 pub fn getColorTexture(self: Self) Error!*webgpu.Texture {
@@ -133,11 +128,22 @@ pub fn getColorTexture(self: Self) Error!*webgpu.Texture {
     };
 }
 
+pub fn getColorTextureFormat(self: Self) webgpu.TextureFormat {
+    return self.capabilities.formats[0];
+}
+
 /// should always be set after surface is configured
 pub fn getDepthTexture(self: Self) ?*webgpu.Texture {
     return self.depth_texture;
 }
 
+pub fn getAlphaMode(self: Self) webgpu.CompositeAlphaMode {
+    return self.capabilities.alpha_modes[0];
+}
+
+pub fn getQueue(self: Self) *webgpu.Queue {
+    return self.queue;
+}
 
 pub fn present(self: Self) void {
      // TODO handle status
