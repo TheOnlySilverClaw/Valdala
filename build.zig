@@ -52,7 +52,16 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
     _ = TrueType;
-    _ = webgpu;
+
+    // TODO move to separate repository?
+    const glfw_webgpu = b.addModule("glfw-webgpu", .{
+        .root_source_file = b.path("src/glfw-wgpu/surface.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+    if(target.result.os.tag == .macos) {
+        glfw.addCSourceFile(.{ .file = b.path("src/glfw-wgpu/metal_layer.m") });
+    }
     
     const algebra = b.addModule("algebra", .{
         .root_source_file = b.path("src/algebra/module.zig" ),
@@ -84,6 +93,12 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
+    const graphics = b.addModule("graphics", .{
+        .root_source_file = b.path("src/graphics/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -104,10 +119,19 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
 
-    gui.addImport("glfw", glfw);
+    glfw_webgpu.addImport("glfw", glfw);
+    glfw_webgpu.addImport("webgpu", webgpu);
 
-    client.addImport("gui", gui);
+    graphics.addImport("glfw", glfw);
+    graphics.addImport("webgpu", webgpu);
+    graphics.addImport("glfw-webgpu", glfw_webgpu);
+
+    gui.addImport("glfw", glfw);
+    gui.addImport("webgpu", webgpu);
+    gui.addImport("graphics", graphics);
+
     client.addImport("glfw", glfw);
+    client.addImport("gui", gui);
 
     server.addImport("world", world);
     server.addImport("module", module);

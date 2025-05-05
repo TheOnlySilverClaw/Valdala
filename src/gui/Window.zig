@@ -1,8 +1,12 @@
 const std = @import("std");
 const glfw = @import("glfw");
 const event = @import("event.zig");
+const glfw_wgpu = @import("glfw-wgpu");
+const webgpu = @import("webgpu");
+const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
+
 
 pub const Error = error {
     Create
@@ -15,17 +19,22 @@ allocator: Allocator,
 handle: *glfw.Window,
 monitor: ?*glfw.Monitor,
 key_listener: ?*event.KeyListener,
+surface: *graphics.Surface,
 
 pub fn init(allocator: Allocator) Self {
     return .{
         .allocator = allocator,
-        .handle = undefined,
         .monitor = null,
-        .key_listener = null
+        .key_listener = null,
+        .handle = undefined,
+        .surface = undefined
     };
 }
 
 pub fn deinit(self: Self) void {
+
+    self.allocator.destroy(self.surface);
+
     if(self.key_listener) |listener| {
         self.allocator.destroy(listener);
     }
@@ -43,11 +52,19 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
         return Error.Create;
     }
 
+    const instance = webgpu.Instance.create(null);
+    self.surface = try self.allocator.create(graphics.Surface);
+    try self.surface.create(self.handle, instance);
+    instance.release();
+    self.surface.resize(width, height);
+
     self.handle.setUserPoiner(self);
     _ = self.handle.setKeyCallback(Self.onKey);
 }
 
 pub fn destroy(self: *Self) void {
+
+    self.surface.destroy();
     self.handle.destroy();
 }
 
