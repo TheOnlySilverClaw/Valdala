@@ -27,6 +27,10 @@ pub fn init(allocator: Allocator, seed: Seed, grid: Grid(i32, f32)) !Self {
     };
 }
 
+pub fn deinit(self: Self) void {
+    _ = self;
+}
+
 pub fn loadChunk(self: Self, position: Chunk.Position) !*Chunk {
 
     if(self.chunks.get(position)) |chunk| {

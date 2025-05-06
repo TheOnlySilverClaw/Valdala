@@ -2,7 +2,7 @@ const std = @import("std");
 const fs = std.fs;
 const log = std.log.scoped(.server);
 
-const World = @import("world").World;
+const Simulation = @import("simulation").Simulation;
 const ModuleLoader = @import("module").Loader;
 
 
@@ -18,7 +18,7 @@ const Self = @This();
 allocator: Allocator,
 directory: fs.Dir,
 module_loader: *ModuleLoader,
-world: ?*World,
+simulation: ?*Simulation,
 
 pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
@@ -26,31 +26,28 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
     module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
-    const module_id = try allocator.dupe(u8, "valdala");
-    const module = try module_loader.loadModule(module_id);
-    log.debug("module: {s} {s}", .{ module.id, module.name });
-    for(module.tiles.items) |tile| {
-        log.debug("tile {s}", .{ tile.id });
-        if(tile.textures.all) |texture| {
-            log.debug("texture: {d}*{d} {d}", .{ texture.width, texture.height, texture.pixels.len });
-        }
-    }
-    
-    module_loader.unloadModules();
-
     return .{
         .allocator = allocator,
         .directory = directory,
         .module_loader = module_loader,
-        .world = null
+        .simulation = null
     };
 }
 
 pub fn deinit(self: Self) void {
     self.allocator.destroy(self.module_loader);
+    if(self.simulation) |simulation| {
+        simulation.deinit();
+        self.allocator.destroy(simulation);
+    }
 }
 
-pub fn launch(self: Self) Error!void {
-    _ = self;
+pub fn launch(self: *Self) !void {
+
     log.info("Launching server", .{});
+
+    const simulation = try self.allocator.create(Simulation);
+    self.simulation = simulation;
+    simulation.* = try Simulation.init(self.allocator);
+    try simulation.start();
 }

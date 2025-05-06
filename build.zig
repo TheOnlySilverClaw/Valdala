@@ -105,6 +105,12 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
+    const simulation = b.addModule("simulation", .{
+        .root_source_file = b.path("src/simulation/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -140,12 +146,17 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     scene.addImport("coordinate", coordinate);
     scene.addImport("graphics", graphics);
 
+    simulation.addImport("algebra", algebra);
+    simulation.addImport("coordinate", coordinate);
+    simulation.addImport("module", module);
+    simulation.addImport("world", world);
+
     client.addImport("glfw", glfw);
     client.addImport("gui", gui);
     client.addImport("scene", scene);
 
-    server.addImport("world", world);
     server.addImport("module", module);
+    server.addImport("simulation", simulation);
 
     root.addImport("client", client);
     root.addImport("server", server);

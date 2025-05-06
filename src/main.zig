@@ -15,17 +15,20 @@ pub fn main() !void {
     var debug_allocator = std.heap.DebugAllocator(.{}).init;
 
     const directory = std.fs.cwd();
+    const allocator = debug_allocator.allocator();
 
-    const server = try Server.init(debug_allocator.allocator(), directory);
+    const server = try allocator.create(Server);
+    server.* = try Server.init(allocator, directory);
     const server_thread = try Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
 
     // client should be on the main thread because operating system restrictions
-    const client = try Client.init(debug_allocator.allocator());
+    const client = try Client.init(allocator);
     try client.launch();
     
     server_thread.join();
     
     server.deinit();
+    allocator.destroy(server);
     client.deinit();
 
     _ = debug_allocator.deinit();
