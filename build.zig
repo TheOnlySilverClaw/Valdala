@@ -137,6 +137,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("glfw-webgpu", glfw_webgpu);
+    graphics.addImport("scene", scene);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
@@ -153,6 +154,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
 
     client.addImport("glfw", glfw);
     client.addImport("gui", gui);
+    client.addImport("graphics", graphics);
     client.addImport("scene", scene);
 
     server.addImport("module", module);

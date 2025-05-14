@@ -22,7 +22,7 @@ pub fn main() !void {
     const server_thread = try Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
 
     // client should be on the main thread because operating system restrictions
-    const client = try Client.init(allocator);
+    var client = try Client.init(allocator);
     try client.launch();
     
     try server.shutdown();
