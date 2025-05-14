@@ -26,7 +26,8 @@ pub fn init(allocator: Allocator) !Self {
     controller.* = gui.Controller.init(window);
     try controller.registerWindowListeners();
 
-    try window.create(1000, 800, "Valdala");
+    try window.create(1600, 1200, "Valdala");
+    window.center();
 
     const renderer = try allocator.create(graphics.GameRenderer);
     renderer.* = try graphics.GameRenderer.init(allocator, window.surface);

@@ -99,3 +99,14 @@ pub fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, actio
 fn getSelfPointer(handle: *glfw.Window) *Self {
     return @ptrCast(@alignCast(handle.getUserPoiner()));
 }
+
+pub fn center(self: Self) void {
+
+    if(self.monitor) |monitor| {
+        if(monitor.getVideoMode()) |mode| {
+            const x = (@as(u32, @intCast(mode.width)) - self.surface.width) / 2;
+            const y = (@as(u32, @intCast(mode.height)) - self.surface.height) / 2;
+            self.handle.setPosition(@intCast(x), @intCast(y));
+        }
+    }
+}
