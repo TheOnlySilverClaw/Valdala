@@ -49,5 +49,15 @@ pub fn launch(self: *Self) !void {
     const simulation = try self.allocator.create(Simulation);
     self.simulation = simulation;
     simulation.* = try Simulation.init(self.allocator);
-    try simulation.start();
+
+    const simulation_thread = try std.Thread.spawn(.{ .allocator = self.allocator }, Simulation.start, .{ simulation });
+    simulation_thread.join();
+}
+
+pub fn shutdown(self: *Self) !void {
+
+    log.info("Shutting down server", .{});
+    if(self.simulation) |simulation| {
+        simulation.stop();
+    }
 }

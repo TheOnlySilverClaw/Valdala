@@ -17,7 +17,7 @@ pub fn main() !void {
     const directory = std.fs.cwd();
     const allocator = debug_allocator.allocator();
 
-    const server = try allocator.create(Server);
+    var server = try allocator.create(Server);
     server.* = try Server.init(allocator, directory);
     const server_thread = try Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
 
@@ -25,6 +25,7 @@ pub fn main() !void {
     const client = try Client.init(allocator);
     try client.launch();
     
+    try server.shutdown();
     server_thread.join();
     
     server.deinit();

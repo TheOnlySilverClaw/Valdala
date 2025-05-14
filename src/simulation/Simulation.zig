@@ -56,6 +56,6 @@ pub fn update(self: *Self, delta: Delta) !void {
     std.time.sleep(std.time.ns_per_s);
 }
 
-pub fn stop(self: Self) void {
+pub fn stop(self: *Self) void {
     self.running = false;
 }
