@@ -27,7 +27,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
     const address = try net.Address.parseIp4("127.0.0.1", 4040);
     const bouncer = try allocator.create(Bouncer);
-    bouncer.* = try Bouncer.init(allocator, address);
+    bouncer.* = try Bouncer.init(allocator, address, 8);
 
     const module_loader = try allocator.create(ModuleLoader);
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
