@@ -44,6 +44,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
 pub fn deinit(self: Self) void {
 
+    self.bouncer.deinit();
     self.allocator.destroy(self.bouncer);
 
     self.allocator.destroy(self.module_loader);

@@ -22,17 +22,20 @@ pub fn init(allocator: Allocator, address: net.Address) !Self {
     };
 }
 
+pub fn deinit(self: Self) void {
+    
+    self.server.deinit();
+    self.allocator.destroy(self.server);
+}
+
 pub fn receive(self: *Self) !void {
 
     self.open = true;
 
-    log.debug("Start receiving connections", .{});
     while(self.open) {
         log.debug("Accept next connection", .{});
         try self.accept();
-        log.debug("Accepted connection", .{});
     }
-    log.debug("Stopped receiving connections", .{});
 }
 
 fn accept(self: *Self) !void {
@@ -42,8 +45,9 @@ fn accept(self: *Self) !void {
 }
 
 pub fn close(self: *Self) !void {
-    log.debug("Close!", .{});
+    
     self.open = false;
-    self.server.deinit();git
-    log.debug("Closed", .{});
+
+    const self_connection = try net.tcpConnectToAddress(self.server.listen_address);
+    self_connection.close();
 }
