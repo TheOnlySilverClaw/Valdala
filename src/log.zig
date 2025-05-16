@@ -2,9 +2,13 @@ const std = @import("std");
 
 const thread_name_buffer = [std.Thread.max_name_len:0]u8;
 
+var lock = std.Thread.Mutex {};
 
 pub fn pretty(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) void {
 
+    lock.lock();
+    defer lock.unlock();
+    
     switch (scope) {
         // from yaml library
         .parser, .tokenizer => {},
