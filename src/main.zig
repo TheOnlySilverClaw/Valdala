@@ -21,6 +21,9 @@ pub fn main() !void {
     server.* = try Server.init(allocator, directory);
     const server_thread = try Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
 
+    // TODO handle waiting for server availability
+    Thread.sleep(std.time.ns_per_s);
+
     // client should be on the main thread because operating system restrictions
     var client = try Client.init(allocator);
     try client.launch();

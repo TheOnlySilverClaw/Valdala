@@ -4,7 +4,9 @@ const gui = @import("gui");
 const Scene = @import("scene").Scene;
 const graphics = @import("graphics");
 
+
 const Allocator = std.mem.Allocator;
+const Connection = @import("Connection.zig");
 
 const Self = @This();
 
@@ -13,6 +15,7 @@ allocator: Allocator,
 window: *gui.Window,
 controller: *gui.Controller,
 renderer: *graphics.GameRenderer,
+connection: *Connection,
 scene: ?*const Scene,
 
 pub fn init(allocator: Allocator) !Self {
@@ -32,11 +35,14 @@ pub fn init(allocator: Allocator) !Self {
     const renderer = try allocator.create(graphics.GameRenderer);
     renderer.* = try graphics.GameRenderer.init(allocator, window.surface);
 
+    const connection = try allocator.create(Connection);
+
     return .{
         .allocator = allocator,
         .window = window,
         .controller = controller,
         .renderer = renderer,
+        .connection = connection,
         .scene = null
     };
 }
@@ -52,12 +58,17 @@ pub fn deinit(self: Self) void {
     self.renderer.deinit(self.allocator);
     self.allocator.destroy(self.renderer);
 
+    self.allocator.destroy(self.connection);
+
     glfw.terminate();
 }
 
 pub fn launch(self: *Self) !void {
     
     self.scene = undefined;
+
+    const address = try std.net.Address.parseIp4("127.0.0.1", 4040);
+    self.connection.* = try Connection.connect(address);
 
     while(!self.window.shouldClose()) {
         glfw.pollEvents();
