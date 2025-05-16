@@ -33,7 +33,7 @@ fn write(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_li
     };
 
     var writer = std.io.getStdOut().writer();
-    try std.fmt.format(writer, "{s} {d}  {s:<5}  @{s} \t", .{ color_code, std.time.milliTimestamp(), level_string, @tagName(scope) });
+    try std.fmt.format(writer, "{s} {d}  {s:<5}  @{s:<12}", .{ color_code, std.time.milliTimestamp(), level_string, @tagName(scope) });
     try std.fmt.format(writer, format, args);
     try writer.writeAll("\n\x1b[0m");
 }
