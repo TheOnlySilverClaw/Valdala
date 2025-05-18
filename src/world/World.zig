@@ -3,6 +3,7 @@ const math = std.math;
 const coordinate = @import("coordinate");
 
 const Allocator = std.mem.Allocator;
+const Color = @import("color").RGB;
 const Tile = @import("Tile.zig");
 const Chunk = @import("Chunk.zig");
 const ChunkMap = std.AutoHashMapUnmanaged(Chunk.Position, *Chunk);
@@ -16,6 +17,7 @@ allocator: Allocator,
 seed: Seed,
 grid: Grid(i32, f32),
 chunks: ChunkMap,
+sky_color: Color,
 
 pub fn init(allocator: Allocator, seed: Seed, grid: Grid(i32, f32)) !Self {
     
@@ -23,7 +25,8 @@ pub fn init(allocator: Allocator, seed: Seed, grid: Grid(i32, f32)) !Self {
         .allocator = allocator,
         .seed = seed,
         .grid = grid,
-        .chunks = ChunkMap.empty
+        .chunks = ChunkMap.empty,
+        .sky_color = Color.of(0.2, 0.2, 1.0)
     };
 }
 

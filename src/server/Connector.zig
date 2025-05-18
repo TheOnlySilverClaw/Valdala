@@ -1,9 +1,11 @@
 const std = @import("std");
 const net = std.net;
-const log = std.log.scoped(.bouncer);
+const log = std.log.scoped(.connector);
+const protocol = @import("protocol");
 
 const Allocator = std.mem.Allocator;
 const Thread = std.Thread;
+const Mutex = Thread.RwLock;
 const List = std.ArrayListUnmanaged;
 const Connection = @import("Connection.zig");
 
@@ -71,9 +73,16 @@ fn accept(self: *Self) !void {
     try self.thread_pool.spawn(Connection.start, .{ connection });
 }
 
+const Shutdown = extern struct {};
+
 pub fn close(self: *Self) !void {
     
     self.open = false;
+
+    try self.broadcast(Shutdown, .{
+        .header = .shutdown,
+        .body = &Shutdown {}
+    });
 
     const self_connection = try net.tcpConnectToAddress(self.server.listen_address);
     // currently required because I know of no other way to unblock an accepting server socket
@@ -87,6 +96,16 @@ pub fn close(self: *Self) !void {
     for(self.connections.items) |connection| {
         if(connection.open) {   
             try connection.close();
+        }
+    }
+}
+
+pub fn broadcast(self: *Self, T: anytype, message: protocol.server.Message(T)) !void {
+
+    for(self.connections.items) |connection| {
+        // TODO remove closed connections
+        if(connection.open) {
+            try connection.writeMessage(T, message);
         }
     }
 }

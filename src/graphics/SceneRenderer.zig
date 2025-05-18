@@ -17,8 +17,6 @@ pub fn init(surface: *Surface) !Self {
 
 pub fn render(self: *Self, scene: *const Scene) !void {
 
-    _ = scene;
-
     const surface = self.surface;
     const device = surface.device;
     const queue = surface.getQueue();
@@ -38,8 +36,15 @@ pub fn render(self: *Self, scene: *const Scene) !void {
     };
     const depth_texture_view = depth_texture.createView(&depth_texture_view_descriptor);
 
+    const clear_color = webgpu.Color {
+        .r = scene.sky_color.red,
+        .g = scene.sky_color.green,
+        .b = scene.sky_color.blue,
+        .a = 1.0
+    };
+
     const color_attachment = webgpu.RenderPassColorAttachment {
-        .clear_value = webgpu.Color { .r = 0, .g = 0, .b = 1, .a = 1 },
+        .clear_value = clear_color,
         .load_op = .clear,
         .store_op = .store,
         .view = color_texture_view

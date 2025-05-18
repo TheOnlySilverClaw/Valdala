@@ -7,6 +7,7 @@ const graphics = @import("graphics");
 const log = std.log.scoped(.client);
 
 const Allocator = std.mem.Allocator;
+const Thread = std.Thread;
 const Connection = @import("Connection.zig");
 
 const Self = @This();
@@ -17,7 +18,7 @@ window: *gui.Window,
 controller: *gui.Controller,
 renderer: *graphics.GameRenderer,
 connection: *Connection,
-scene: ?*const Scene,
+scene: *Scene,
 
 pub fn init(allocator: Allocator) !Self {
 
@@ -36,6 +37,8 @@ pub fn init(allocator: Allocator) !Self {
     const renderer = try allocator.create(graphics.GameRenderer);
     renderer.* = try graphics.GameRenderer.init(allocator, window.surface);
 
+    const scene = try allocator.create(Scene);
+
     const connection = try allocator.create(Connection);
 
     return .{
@@ -44,7 +47,7 @@ pub fn init(allocator: Allocator) !Self {
         .controller = controller,
         .renderer = renderer,
         .connection = connection,
-        .scene = null
+        .scene = scene
     };
 }
 
@@ -61,22 +64,27 @@ pub fn deinit(self: Self) void {
 
     self.allocator.destroy(self.connection);
 
+    self.allocator.destroy(self.scene);
+
     glfw.terminate();
 }
 
 pub fn launch(self: *Self) !void {
     
-    self.scene = undefined;
+    self.scene.* = try Scene.init(self.allocator, 2);
+    defer self.scene.deinit();
 
     const address = try std.net.Address.parseIp4("127.0.0.1", 4040);
+    self.connection.* = Connection.init(self.scene);
     try self.connection.connect(address);
-    defer self.connection.close() catch |err| log.err("Failed to close connection {}", .{ err });
+    const connection_thread = try Thread.spawn(.{ .allocator = self.allocator }, Connection.receive, .{ self.connection });
     
     while(!self.window.shouldClose()) {
         glfw.pollEvents();
         self.window.update();
-        if(self.scene) |scene| {
-            try self.renderer.renderScene(scene);
-        }
+        try self.renderer.renderScene(self.scene);
     }
+
+    self.connection.close() catch |err| log.err("Failed to close connection {}", .{ err });
+    connection_thread.join();
 }

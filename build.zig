@@ -75,6 +75,12 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
+    const color = b.addModule("color", .{
+        .root_source_file = b.path("src/color.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
     const world = b.addModule("world", .{
         .root_source_file = b.path("src/world/module.zig" ),
         .target = target,
@@ -117,7 +123,6 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
-
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -134,6 +139,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
 
     world.addImport("algebra", algebra);
     world.addImport("coordinate", coordinate);
+    world.addImport("color", color);
 
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
@@ -145,6 +151,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("glfw-webgpu", glfw_webgpu);
     graphics.addImport("scene", scene);
+    graphics.addImport("color", color);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
@@ -152,20 +159,26 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
 
     scene.addImport("algebra", algebra);
     scene.addImport("coordinate", coordinate);
+    scene.addImport("color", color);
     scene.addImport("graphics", graphics);
 
     simulation.addImport("algebra", algebra);
+    simulation.addImport("color", color);
     simulation.addImport("coordinate", coordinate);
     simulation.addImport("module", module);
     simulation.addImport("world", world);
 
+    protocol.addImport("color", color);
+
     client.addImport("glfw", glfw);
     client.addImport("gui", gui);
+    client.addImport("color", color);
     client.addImport("graphics", graphics);
     client.addImport("scene", scene);
     client.addImport("protocol", protocol);
 
     server.addImport("module", module);
+    server.addImport("color", color);
     server.addImport("simulation", simulation);
     server.addImport("protocol", protocol);
     

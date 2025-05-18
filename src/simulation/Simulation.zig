@@ -1,4 +1,5 @@
 const std = @import("std");
+const color = @import("color");
 
 const Allocator = std.mem.Allocator;
 const World = @import("world").World;
@@ -6,13 +7,11 @@ const Time = @import("Time.zig");
 
 const Self = @This();
 
-/// A time difference in milliseconds
-pub const Delta = u64;
 
 allocator: Allocator,
 world: *World,
 time: *Time,
-running: bool,
+last_update: i64,
 
 pub fn init(allocator: Allocator) !Self {
     
@@ -25,7 +24,7 @@ pub fn init(allocator: Allocator) !Self {
         .allocator = allocator,
         .world = world,
         .time = time,
-        .running = false
+        .last_update = undefined
     };
 }
 
@@ -36,26 +35,24 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.time);
 }
 
-pub fn start(self: *Self) !void {
-
-    self.running = true;
-    var last_update = std.time.milliTimestamp();
-
-    while(self.running) {
-        const update_start = std.time.milliTimestamp();
-        const delta: Delta = @intCast(update_start - last_update);
-        try self.update(delta);
-        last_update = update_start;
-    }
+pub fn start(self: *Self) void {
+    self.last_update = std.time.milliTimestamp();
 }
 
-pub fn update(self: *Self, delta: Delta) !void {
+pub fn tick(self: *Self) !void {
+    
+    const update_start = std.time.milliTimestamp();
+    const delta: u64 = @intCast(update_start - self.last_update);
+    try self.update(delta);
+    self.last_update = update_start;
+}
+
+pub fn update(self: *Self, delta: u64) !void {
     
     try self.time.update(delta);
     // just to keep the CPU from burning until we actually do things
-    std.time.sleep(std.time.ns_per_s);
-}
 
-pub fn stop(self: *Self) void {
-    self.running = false;
+    self.world.sky_color = color.RGB.of(0.0, 0.1, self.time.dayProgress());
+
+    std.time.sleep(std.time.ns_per_s);
 }

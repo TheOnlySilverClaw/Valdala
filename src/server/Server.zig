@@ -6,7 +6,8 @@ const log = std.log.scoped(.server);
 const Thread = std.Thread;
 const Simulation = @import("simulation").Simulation;
 const ModuleLoader = @import("module").Loader;
-const Bouncer = @import("Bouncer.zig");
+const Connector = @import("Connector.zig");
+const Loop = @import("Loop.zig");
 
 const Allocator = std.mem.Allocator;
 
@@ -18,65 +19,64 @@ pub const Error = error {
 const Self = @This();
 
 allocator: Allocator,
-bouncer: *Bouncer,
+connector: *Connector,
 directory: fs.Dir,
 module_loader: *ModuleLoader,
-simulation: ?*Simulation,
+simulation: *Simulation,
+loop: Loop,
 
 pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
     const address = try net.Address.parseIp4("127.0.0.1", 4040);
-    const bouncer = try allocator.create(Bouncer);
-    bouncer.* = try Bouncer.init(allocator, address, 8);
+    const connector = try allocator.create(Connector);
+    connector.* = try Connector.init(allocator, address, 8);
 
     const module_loader = try allocator.create(ModuleLoader);
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
     module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
+    const simulation = try allocator.create(Simulation);
+    simulation.* = try Simulation.init(allocator);
+
+    const loop = Loop.init(simulation, connector);
+
     return .{
         .allocator = allocator,
-        .bouncer = bouncer,
+        .connector = connector,
         .directory = directory,
         .module_loader = module_loader,
-        .simulation = null
+        .simulation = simulation,
+        .loop = loop
     };
 }
 
 pub fn deinit(self: Self) void {
 
-    self.bouncer.deinit();
-    self.allocator.destroy(self.bouncer);
+    self.connector.deinit();
+    self.allocator.destroy(self.connector);
 
     self.allocator.destroy(self.module_loader);
     
-    if(self.simulation) |simulation| {
-        simulation.deinit();
-        self.allocator.destroy(simulation);
-    }
+    self.simulation.deinit();
+    self.allocator.destroy(self.simulation);
 }
 
 pub fn launch(self: *Self) !void {
 
     log.info("Launching server", .{});
 
-    const simulation = try self.allocator.create(Simulation);
-    self.simulation = simulation;
-    simulation.* = try Simulation.init(self.allocator);
-
-    const simulation_thread = try Thread.spawn(.{ .allocator = self.allocator }, Simulation.start, .{ simulation });
-    const bouncer_thread = try Thread.spawn(.{ .allocator = self.allocator }, Bouncer.receive, .{ self.bouncer });
+    const loop_thread = try Thread.spawn(.{ .allocator = self.allocator }, Loop.start, .{ &self.loop });
+    const receive_thread = try Thread.spawn(.{ .allocator = self.allocator }, Connector.receive, .{ self.connector });
     
-    bouncer_thread.join();
-    simulation_thread.join();
+    receive_thread.join();
+    loop_thread.join();
 }
 
 pub fn shutdown(self: *Self) !void {
 
     log.info("Shutting down server", .{});
 
-    try self.bouncer.close();
+    self.loop.stop();
 
-    if(self.simulation) |simulation| {
-        simulation.stop();
-    }
+    try self.connector.close();
 }

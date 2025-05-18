@@ -2,6 +2,7 @@ const std = @import("std");
 const net = std.net;
 const log = std.log.scoped(.connection);
 const protocol = @import("protocol");
+const color = @import("color");
 
 const Allocator = std.mem.Allocator;
 const ClientHeader = protocol.client.Header;
@@ -28,6 +29,20 @@ pub fn start(self: *Self) void {
     self.receive() catch |err| log.err("Connection crashed: {}", .{ err });
 }
 
+pub fn close(self: *Self) !void {
+
+    self.open = false;
+    self.handle.stream.close();
+}
+
+pub fn writeMessage(self: *Self, T: anytype, message: protocol.server.Message(T)) !void {
+    
+    const writer = self.writer;
+    
+    try writer.writeByte(@intCast(@intFromEnum(message.header)));   
+    try writer.writeStructEndian(message.body.*, .big);
+}
+
 fn receive(self: *Self) !void {
     
     try self.validate();
@@ -50,10 +65,4 @@ fn validate(self: *Self) !void {
 
 fn readHeader(self: *Self) !ClientHeader {
     return try self.reader.readEnum(ClientHeader, .big);
-}
-
-pub fn close(self: *Self) !void {
-
-    self.open = false;
-    self.handle.stream.close();
 }

@@ -1,6 +1,5 @@
 const std = @import("std");
 const log = std.log.scoped(.time);
-const Delta = @import("Simulation.zig").Delta;
 
 const Self = @This();
 
@@ -8,25 +7,25 @@ const Self = @This();
 pub const day_length = std.time.ms_per_min * 24;
 
 days_passed: u32,
-day_progress: Delta,
+day_offset: u64,
 
 pub fn init() Self {
     return .{
         .days_passed = 0,
-        .day_progress = 0
+        .day_offset = 0
     };
 }
 
-pub fn update(self: *Self, delta: Delta) !void {
+pub fn update(self: *Self, delta: u64) !void {
     
-    log.info("day length {d}", .{ day_length });
-    log.debug("delta {d}", .{ delta });
-    self.day_progress += delta;
-    if(self.day_progress >= day_length) {
-        self.day_progress -= day_length;
+    self.day_offset += delta;
+    if(self.day_offset >= day_length) {
+        self.day_offset -= day_length;
         self.days_passed += 1;
     }
 
-    const fraction: f32 = @as(f32, @floatFromInt(self.day_progress)) / @as(f32, @floatFromInt(day_length));
-    log.debug("day progress: {d:.2}%", .{ fraction * 100.0 });
+}
+
+pub fn dayProgress(self: Self) f32 {
+    return @as(f32, @floatFromInt(self.day_offset)) / @as(f32, @floatFromInt(day_length));
 }
