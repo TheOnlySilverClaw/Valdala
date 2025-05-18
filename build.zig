@@ -111,6 +111,13 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
+    const protocol = b.addModule("protocol", .{
+        .root_source_file = b.path("src/protocol/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
+
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
         .target = target,
@@ -156,10 +163,12 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("gui", gui);
     client.addImport("graphics", graphics);
     client.addImport("scene", scene);
+    client.addImport("protocol", protocol);
 
     server.addImport("module", module);
     server.addImport("simulation", simulation);
-
+    server.addImport("protocol", protocol);
+    
     root.addImport("client", client);
     root.addImport("server", server);
 

@@ -1,9 +1,10 @@
 const std = @import("std");
+const net = std.net;
 const glfw = @import("glfw");
 const gui = @import("gui");
 const Scene = @import("scene").Scene;
 const graphics = @import("graphics");
-
+const log = std.log.scoped(.client);
 
 const Allocator = std.mem.Allocator;
 const Connection = @import("Connection.zig");
@@ -68,8 +69,9 @@ pub fn launch(self: *Self) !void {
     self.scene = undefined;
 
     const address = try std.net.Address.parseIp4("127.0.0.1", 4040);
-    self.connection.* = try Connection.connect(address);
-
+    try self.connection.connect(address);
+    defer self.connection.close() catch |err| log.err("Failed to close connection {}", .{ err });
+    
     while(!self.window.shouldClose()) {
         glfw.pollEvents();
         self.window.update();
