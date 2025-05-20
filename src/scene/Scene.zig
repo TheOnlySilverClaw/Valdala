@@ -23,7 +23,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
         .allocator = allocator,
         .chunk_distance = chunk_distance,
         .chunks = chunks,
-        .camera = Camera {},
+        .camera = Camera.new(),
         .sky_color = color.RGB.of(1.0, 0.0, 0.0)
     };
 }

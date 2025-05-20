@@ -15,7 +15,8 @@ pub fn Vector3(T: type) type {
 
         const Self = @This();
 
-        pub const zero = Self.of(0, 0);
+        pub const zero = Self.all(0);
+        pub const one = Self.all(1);
 
         x: T,
         y: T,
