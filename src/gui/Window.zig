@@ -60,6 +60,7 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
 
     self.handle.setUserPoiner(self);
     _ = self.handle.setKeyCallback(Self.onKey);
+    _ = self.handle.setSizeCallback(Self.onResize);
 }
 
 pub fn destroy(self: *Self) void {
@@ -86,7 +87,7 @@ pub fn createKeyListener(self: *Self, listener: event.KeyListener) !void {
     self.key_listener.?.* = listener;
 }
 
-pub fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, action: glfw.Action, modifiers: glfw.Modifiers) callconv(.C) void {
+fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, action: glfw.Action, modifiers: glfw.Modifiers) callconv(.C) void {
     
     _ = scancode;
 
@@ -94,6 +95,12 @@ pub fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, actio
     if(window.key_listener) |listener| {
         listener.onKey(key, action, modifiers);
     }
+}
+
+fn onResize(handle: *glfw.Window, width: i32, height: i32) callconv(.C) void {
+    
+    const window = getSelfPointer(handle);
+    window.surface.resize(@intCast(width), @intCast(height));
 }
 
 fn getSelfPointer(handle: *glfw.Window) *Self {
