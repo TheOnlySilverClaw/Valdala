@@ -52,7 +52,6 @@ pub fn receive(self: *Self) !void {
             .disconnect, .shutdown => try self.close(),
             .sky_color => {
                 const value = try self.reader.readStructEndian(color.RGB.Compact, .big);
-                log.debug("received sky color {d}", .{ value.blue });
                 self.scene.sky_color = value.normalize();
             },
             else => {}

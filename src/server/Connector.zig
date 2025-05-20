@@ -65,7 +65,7 @@ pub fn receive(self: *Self) !void {
 fn accept(self: *Self) !void {
 
     const connection_handle = try self.server.accept();
-    log.info("Received connection from {}", .{ connection_handle.address });
+    log.debug("Received connection from {}", .{ connection_handle.address });
 
     const connection = try self.allocator.create(Connection);
     connection.* = try Connection.init(self.allocator, connection_handle);
