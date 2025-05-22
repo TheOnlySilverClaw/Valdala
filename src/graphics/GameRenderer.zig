@@ -5,16 +5,17 @@ const Allocator = std.mem.Allocator;
 const SceneRenderer = @import("SceneRenderer.zig");
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
+const AssetLoader = @import("asset").AssetLoader;
 
 const Self = @This();
 
 surface: *Surface,
 scene_renderer: *SceneRenderer,
 
-pub fn init(allocator: Allocator, surface: *Surface) !Self {
+pub fn init(allocator: Allocator, surface: *Surface, asset_loader: *AssetLoader) !Self {
 
     const scene_renderer = try allocator.create(SceneRenderer);
-    scene_renderer.* = try SceneRenderer.init(surface);
+    scene_renderer.* = try SceneRenderer.init(surface, asset_loader);
 
     return .{
         .surface = surface,

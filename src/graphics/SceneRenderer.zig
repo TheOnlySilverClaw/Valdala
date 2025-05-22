@@ -3,15 +3,22 @@ const webgpu = @import("webgpu");
 
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
+const AssetLoader = @import("asset").AssetLoader;
+const TerrainRenderer = @import("TerrainRenderer.zig");
 
 const Self = @This();
 
 
-surface: *Surface,
+surface: *const Surface,
+terrain_renderer: TerrainRenderer,
 
-pub fn init(surface: *Surface) !Self {
+pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+
+    const terrain_renderer = try TerrainRenderer.init(surface, asset_loader);
+
     return .{
-        .surface = surface
+        .surface = surface,
+        .terrain_renderer = terrain_renderer
     };
 }
 

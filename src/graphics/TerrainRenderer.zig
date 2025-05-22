@@ -2,15 +2,20 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 
 const Scene = @import("scene").Scene;
+const Surface = @import("Surface.zig");
+const Pipeline = @import("TerrainRenderPipeline.zig");
+const AssetLoader = @import("asset").AssetLoader;
 
 const Self = @This();
 
 
-device: *webgpu.Device,
+pipeline: Pipeline,
 
-pub fn init(device: *webgpu.Device) !Self {
+pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+
+    const pipeline = try Pipeline.init(surface, asset_loader);
     return .{
-        .device = device
+        .pipeline = pipeline
     };
 }
 
@@ -20,5 +25,5 @@ pub fn render(self: *Self, scene: *const Scene) !void {
 }
 
 pub fn deinit(self: Self) void {
-    _ = self;
+    self.pipeline.deinit();
 }

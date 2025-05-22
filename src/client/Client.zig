@@ -9,6 +9,7 @@ const log = std.log.scoped(.client);
 const Allocator = std.mem.Allocator;
 const Thread = std.Thread;
 const Connection = @import("Connection.zig");
+const AssetLoader = @import("asset").AssetLoader;
 
 const Self = @This();
 
@@ -19,6 +20,7 @@ controller: *gui.Controller,
 renderer: *graphics.GameRenderer,
 connection: *Connection,
 scene: *Scene,
+asset_loader: AssetLoader,
 
 pub fn init(allocator: Allocator) !Self {
 
@@ -34,12 +36,15 @@ pub fn init(allocator: Allocator) !Self {
     try window.create(1600, 1200, "Valdala");
     window.center();
 
+    var asset_loader = try AssetLoader.init(allocator, window.surface.device,"asset");
+
     const renderer = try allocator.create(graphics.GameRenderer);
-    renderer.* = try graphics.GameRenderer.init(allocator, window.surface);
+    renderer.* = try graphics.GameRenderer.init(allocator, window.surface, &asset_loader);
 
     const scene = try allocator.create(Scene);
 
     const connection = try allocator.create(Connection);
+
 
     return .{
         .allocator = allocator,
@@ -47,7 +52,8 @@ pub fn init(allocator: Allocator) !Self {
         .controller = controller,
         .renderer = renderer,
         .connection = connection,
-        .scene = scene
+        .scene = scene,
+        .asset_loader = asset_loader
     };
 }
 
@@ -65,6 +71,8 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.connection);
 
     self.allocator.destroy(self.scene);
+
+    self.asset_loader.deinit();
 
     glfw.terminate();
 }

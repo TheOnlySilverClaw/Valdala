@@ -87,6 +87,12 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
+    const asset = b.addModule("assset", .{
+        .root_source_file = b.path("src/asset/module.zig" ),
+        .target = target,
+        .optimize = optimize
+    });
+
     const module = b.addModule("module", .{
         .root_source_file = b.path("src/module/module.zig" ),
         .target = target,
@@ -141,6 +147,10 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     world.addImport("coordinate", coordinate);
     world.addImport("color", color);
 
+    asset.addImport("zigimg", zigimg);
+    asset.addImport("yaml", yaml);
+    asset.addImport("webgpu", webgpu);
+
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
 
@@ -152,6 +162,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("glfw-webgpu", glfw_webgpu);
     graphics.addImport("scene", scene);
     graphics.addImport("color", color);
+    graphics.addImport("asset", asset);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
@@ -176,6 +187,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("graphics", graphics);
     client.addImport("scene", scene);
     client.addImport("protocol", protocol);
+    client.addImport("asset", asset);
 
     server.addImport("module", module);
     server.addImport("color", color);
