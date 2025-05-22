@@ -60,7 +60,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
     if(target.result.os.tag == .macos) {
-        glfw.addCSourceFile(.{ .file = b.path("src/glfw-wgpu/metal_layer.m") });
+        glfw_webgpu.addCSourceFile(.{ .file = b.path("src/glfw-wgpu/metal_layer.m") });
     }
     
     const algebra = b.addModule("algebra", .{
