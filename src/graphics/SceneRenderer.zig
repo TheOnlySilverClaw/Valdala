@@ -5,6 +5,7 @@ const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const AssetLoader = @import("asset").AssetLoader;
 const TerrainRenderer = @import("TerrainRenderer.zig");
+const Screenshot = @import("Screenshot.zig");
 
 const Self = @This();
 
@@ -22,7 +23,7 @@ pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
     };
 }
 
-pub fn render(self: *Self, scene: *const Scene) !void {
+pub fn render(self: *Self, scene: *const Scene, screenshot: ?*Screenshot) !void {
 
     const surface = self.surface;
     const device = surface.device;
@@ -76,6 +77,10 @@ pub fn render(self: *Self, scene: *const Scene) !void {
     render_pass.end();
     render_pass.release();
 
+    if(screenshot) |s| {
+        try s.capture(device, color_texture, command_encoder);
+    }
+    
     const command_buffer = command_encoder.finish(null);
     command_encoder.release();
 

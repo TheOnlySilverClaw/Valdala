@@ -160,6 +160,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("glfw", glfw);
     graphics.addImport("webgpu", webgpu);
     graphics.addImport("glfw-webgpu", glfw_webgpu);
+    graphics.addImport("zigimg", zigimg);
     graphics.addImport("scene", scene);
     graphics.addImport("color", color);
     graphics.addImport("asset", asset);
@@ -167,6 +168,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
     gui.addImport("graphics", graphics);
+    gui.addImport("scene", scene);
 
     scene.addImport("algebra", algebra);
     scene.addImport("coordinate", coordinate);

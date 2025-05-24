@@ -12,8 +12,7 @@
             .hash = "TrueType-0.0.0-AAAAAL4FAQCl7eLNhMnRN_JDnm2svCyrlltjoVQiZLs3"
         },
         .webgpu = .{
-            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-2.0.0-dKjiONsrAQD0CRuZV34nfQa1gXgWByJcCtlnbQKFiIK_"
+            .path = "../zig-libs/wgpu-native"
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",

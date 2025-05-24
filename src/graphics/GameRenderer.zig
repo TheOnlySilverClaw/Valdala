@@ -6,6 +6,7 @@ const SceneRenderer = @import("SceneRenderer.zig");
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const AssetLoader = @import("asset").AssetLoader;
+const Screenshot = @import("Screenshot.zig");
 
 const Self = @This();
 
@@ -23,8 +24,8 @@ pub fn init(allocator: Allocator, surface: *Surface, asset_loader: *AssetLoader)
     };
 }
 
-pub fn renderScene(self: *Self, scene: *const Scene) !void {
-    try self.scene_renderer.render(scene);
+pub fn renderScene(self: *Self, scene: *const Scene, screenshot: ?*Screenshot) !void {
+    try self.scene_renderer.render(scene, screenshot);
 }
 
 pub fn deinit(self: Self, allocator: Allocator) void {

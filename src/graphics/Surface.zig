@@ -77,7 +77,7 @@ pub fn configure(self: *Self) void {
         .width = self.width,
         .height = self.height,
         .present_mode = .fifo,
-        .usage = .{ .render_attachment = true },
+        .usage = .{ .render_attachment = true, .copy_src = true },
         .view_format_count = 0,
         .view_formats = null
     };

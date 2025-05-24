@@ -7,7 +7,6 @@ const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
 
-
 pub const Error = error {
     Create
 };

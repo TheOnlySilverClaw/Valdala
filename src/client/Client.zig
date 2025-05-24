@@ -29,19 +29,20 @@ pub fn init(allocator: Allocator) !Self {
     const window = try allocator.create(gui.Window);
     window.* = gui.Window.init(allocator);
 
-    const controller= try allocator.create(gui.Controller);
-    controller.* = gui.Controller.init(window);
-    try controller.registerWindowListeners();
-
     try window.create(1600, 1200, "Valdala");
     window.center();
-
+    
     var asset_loader = try AssetLoader.init(allocator, window.surface.device,"asset");
 
     const renderer = try allocator.create(graphics.GameRenderer);
     renderer.* = try graphics.GameRenderer.init(allocator, window.surface, &asset_loader);
 
     const scene = try allocator.create(Scene);
+
+    const controller= try allocator.create(gui.Controller);
+    controller.* = gui.Controller.init(allocator, window, renderer, scene);
+    try controller.registerWindowListeners();
+
 
     const connection = try allocator.create(Connection);
 
@@ -87,10 +88,8 @@ pub fn launch(self: *Self) !void {
     try self.connection.connect(address);
     const connection_thread = try Thread.spawn(.{ .allocator = self.allocator }, Connection.receive, .{ self.connection });
     
-    while(!self.window.shouldClose()) {
-        glfw.pollEvents();
-        self.window.update();
-        try self.renderer.renderScene(self.scene);
+    while(!self.controller.done()) {
+        try self.controller.update();
     }
 
     self.connection.close() catch |err| log.err("Failed to close connection {}", .{ err });
