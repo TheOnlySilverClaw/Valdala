@@ -1,7 +1,6 @@
 const webgpu = @import("webgpu");
 
 const AssetLoader = @import("asset").AssetLoader;
-const vertex_layout = @import("vertex_layout.zig");
 const Surface = @import("Surface.zig");
 
 const Self = @This();
@@ -50,7 +49,7 @@ fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *
     const uv_attribute = webgpu.VertexAttribute {
         .shader_location = 1,
         .format = .float16x2,
-        .offset = vertex_layout.size(vertex_position_attribute.format)
+        .offset = vertex_position_attribute.format.size()
     };
 
     const instance_position_attribute = webgpu.VertexAttribute {
@@ -62,7 +61,7 @@ fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *
     const texture_index_attribute = webgpu.VertexAttribute {
         .shader_location = 3,
         .format = .uint32,
-        .offset = instance_position_attribute.offset + vertex_layout.size(instance_position_attribute.format)
+        .offset = instance_position_attribute.offset + instance_position_attribute.format.size()
     };
     
     const vertex_attributes = [_]webgpu.VertexAttribute {
@@ -76,14 +75,14 @@ fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *
     };
 
     const vertex_buffer_layout = webgpu.VertexBufferLayout {
-        .array_stride = vertex_layout.size(vertex_position_attribute.format) + vertex_layout.size(uv_attribute.format),
+        .array_stride = vertex_position_attribute.format.size() + uv_attribute.format.size(),
         .step_mode = .vertex,
         .attribute_count = vertex_attributes.len,
         .attributes = &vertex_attributes
     };
 
     const instance_buffer_layout = webgpu.VertexBufferLayout {
-        .array_stride = vertex_layout.size(.float32x3) + vertex_layout.size(.uint32),
+        .array_stride = webgpu.VertexFormat.float32x3.size() + webgpu.VertexFormat.uint32.size(),
         .step_mode = .instance,
         .attribute_count = instance_attributes.len,
         .attributes = &instance_attributes

@@ -13,7 +13,7 @@
         },
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-2.0.0-dKjiONsrAQD0CRuZV34nfQa1gXgWByJcCtlnbQKFiIK_"
+            .hash = "wgpu_native-2.1.0-dKjiOGkzAQBDnpCL-j0LsJuCSG2ADsIklxSJ37Nef49b"
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
