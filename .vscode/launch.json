@@ -5,9 +5,9 @@
             "name": "Debug Application",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/application/zig-out/bin/Valdala",
+            "program": "${workspaceFolder}/zig-out/bin/Valdala",
             "args": [],
-            "cwd": "${workspaceFolder}/application"
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
