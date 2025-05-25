@@ -9,7 +9,7 @@
         },
         .TrueType = .{
             .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
-            .hash = "TrueType-0.0.0-AAAAAL4FAQCl7eLNhMnRN_JDnm2svCyrlltjoVQiZLs3"
+            .hash = "TrueType-0.0.0-Ne-mWPAFAQDPIZm1LKD1qr3bxcc-TpgB_4aHLAchHFrp"
         },
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
