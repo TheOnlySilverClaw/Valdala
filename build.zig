@@ -163,6 +163,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("scene", scene);
     graphics.addImport("color", color);
     graphics.addImport("asset", asset);
+    graphics.addImport("coordinate", coordinate);
+    graphics.addImport("algebra", algebra);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);

@@ -73,6 +73,8 @@ pub fn render(self: *Self, scene: *const Scene) !void {
 
     const render_pass = command_encoder.beginRenderPass(&render_pass_descriptor);
     
+    try self.terrain_renderer.render(scene, render_pass);
+
     render_pass.end();
     render_pass.release();
 

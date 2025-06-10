@@ -1,30 +1,32 @@
 const std = @import("std");
 const math = std.math;
 const color = @import("color");
+const world = @import("world");
 
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
-const ChunkMesh = @import("ChunkMesh.zig");
+const Chunk = @import("Chunk.zig");
 
 const Self = @This();
 
 
 allocator: Allocator,
 camera: Camera,
-chunks: []*ChunkMesh,
+chunks: []*Chunk,
 chunk_distance: u32,
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
 
-    const chunks = try allocator.alloc(*ChunkMesh, try math.powi(u32, chunk_distance, 2));
+    const chunk_volume = try math.powi(u32, chunk_distance, 3);
+    const chunks = try allocator.alloc(*Chunk, chunk_volume);
 
     return .{
         .allocator = allocator,
         .chunk_distance = chunk_distance,
         .chunks = chunks,
         .camera = Camera.new(),
-        .sky_color = color.RGB.of(1.0, 0.0, 0.0)
+        .sky_color = color.RGB.of(0.0, 0.0, 0.0)
     };
 }
 

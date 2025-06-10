@@ -6,6 +6,7 @@ const Vector = algebra.Vector3;
 
 
 pub fn Hexagon(T: type) type {
+
     
     if(@typeInfo(T) != .float) @compileError("Hexgon sizes must be floats");
     
@@ -44,7 +45,7 @@ pub fn Hexagon(T: type) type {
     };
 }
 
-
+/// P = position component type, V = vector component type
 pub fn Grid(P: type, V: type) type {
     
     return struct {
@@ -76,6 +77,7 @@ pub fn Grid(P: type, V: type) type {
     };
 }
 
+/// P = plane coordinate type, H = height coordinate type
 pub fn Position(T: type) type {
     
     if(@typeInfo(T) != .int) @compileError("Grid positions must be integers");
@@ -99,6 +101,13 @@ pub fn Position(T: type) type {
     };
 }
 
+pub const Orientation = enum(u4) {
+    full,
+    half_north,
+    half_north_east,
+    half_south_east
+};
+    
 
 const testing = std.testing;
 const tolerance = math.floatEps(f32);
