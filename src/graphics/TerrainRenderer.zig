@@ -11,28 +11,28 @@ const ChunkMesh = @import("ChunkMesh.zig");
 
 const Self = @This();
 
-
+surface: *const Surface,
 pipeline: Pipeline,
 
 pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
 
     const pipeline = try Pipeline.init(surface, asset_loader);
     return .{
+        .surface = surface,
         .pipeline = pipeline
     };
 }
 
 pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassEncoder) !void {
      
-     for(scene.chunks) |chunk| {
+     for(scene.chunks) |*chunk| {
         try self.renderChunk(chunk, render_pass);
      }
 }
 
 pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEncoder) !void {
 
-    _ = self;
-    const mesh = ChunkMesh.generate(chunk);
+    const mesh = ChunkMesh.generate(chunk, self.surface.device);
     render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
 }
 

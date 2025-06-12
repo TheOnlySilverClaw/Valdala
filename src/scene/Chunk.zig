@@ -1,6 +1,8 @@
+const std = @import("std");
 const algebra = @import("algebra");
 const coordinate = @import("coordinate");
 
+const Allocator = std.mem.Allocator;
 const Vector = algebra.Vector3(f32);
 const TilePosition = coordinate.Position(i64);
 const Tile = @import("Tile.zig");

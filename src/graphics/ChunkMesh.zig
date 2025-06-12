@@ -36,7 +36,7 @@ const grid = coordinate.Grid(i64, f32).of(hexagon);
 vertex_buffer: *webgpu.Buffer,
 index_buffer: *webgpu.Buffer,
 
-pub fn generate(chunk: *const Chunk) Self {
+pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     for (0..Chunk.Layout.width) |north| {
         for (0..Chunk.Layout.width) |south_east| {
@@ -57,9 +57,27 @@ pub fn generate(chunk: *const Chunk) Self {
         }
     }
 
-    return undefined;
+    const vertex_buffer_descriptor = webgpu.BufferDescriptor {
+        .size = Chunk.Layout.volume * 6 * 4,
+        .usage = .{ .vertex = true }
+    };
+
+    const index_buffer_descriptor = webgpu.BufferDescriptor {
+        .size = Chunk.Layout.volume * 4,
+        .usage = .{ .index = true }
+    };
+
+    const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
+    const index_buffer = device.createBuffer(&index_buffer_descriptor);
+
+    return .{
+        .vertex_buffer = vertex_buffer,
+        .index_buffer = index_buffer
+    };
 }
 
 pub fn generateTileMesh(tile: Tile, center: Vector) void {
-    log.debug("generate mesh {} {}", .{ tile, center});
+    _ = tile;
+    _ = center;
+    // log.debug("generate mesh {} {}", .{ tile, center});
 }

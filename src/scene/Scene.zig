@@ -6,20 +6,26 @@ const world = @import("world");
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
 const Chunk = @import("Chunk.zig");
+const Tile = @import("Tile.zig");
 
 const Self = @This();
 
 
 allocator: Allocator,
 camera: Camera,
-chunks: []*Chunk,
+chunks: []Chunk,
 chunk_distance: u32,
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
 
     const chunk_volume = try math.powi(u32, chunk_distance, 3);
-    const chunks = try allocator.alloc(*Chunk, chunk_volume);
+    const chunks = try allocator.alloc(Chunk, chunk_volume);
+
+    for(chunks) |*chunk| {
+        chunk.position = .zero;
+        @memset(&chunk.tiles, Tile.empty);
+    }
 
     return .{
         .allocator = allocator,
