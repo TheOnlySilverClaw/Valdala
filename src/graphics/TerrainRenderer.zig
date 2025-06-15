@@ -1,5 +1,6 @@
 const std = @import("std");
 const webgpu = @import("webgpu");
+const log = std.log.scoped(.terrain);
 
 const Scene = @import("scene").Scene;
 const Chunk = @import("scene").Chunk;
@@ -15,6 +16,17 @@ surface: *const Surface,
 pipeline: Pipeline,
 
 pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+
+    const texture_paths = [_][]const u8 {
+        "testing/texture_1.qoi",
+        "testing/texture_2.qoi",
+        "testing/texture_3.qoi",
+        "testing/texture_4.qoi",
+    };
+
+    const textures = try asset_loader.loadTextureArray(texture_paths[0..], 16, 16, surface.getColorTextureFormat(), .{ .label = .sized("terrain")});
+    const texture_view = textures.createView(null);
+    log.debug("loaded terrain textures {}", .{ texture_view });
 
     const pipeline = try Pipeline.init(surface, asset_loader);
     return .{
