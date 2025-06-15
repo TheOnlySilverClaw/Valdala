@@ -3,9 +3,8 @@
     .version = "0.0.2",
     .dependencies = .{
         .zigimg = .{
-            // TODO switch back to main repository as soon as that works with Zig 0.14.0
-            .url = "https://github.com/TUSF/zigimg/archive/7e098bf6be568cb8bd659397c2d5c291893095bc.zip",
-            .hash = "zigimg-0.1.0-lly-O8QREQDj96arPVPqvkcjKQpmVijvw_6U6FuqhURQ"
+            .url = "https://github.com/zigimg/zigimg/archive/refs/tags/zigimg_zig_0.14.1.zip",
+            .hash = "zigimg-0.1.0-8_eo2h6XEgAR6UkBiCtWECcml0gtx0oIXE3MX7sPCZof"
         },
         .TrueType = .{
             .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
