@@ -68,7 +68,7 @@ pub fn Grid(P: type, V: type) type {
             const se: V = @floatFromInt(position.south_east);
             const h: V = @floatFromInt(position.height);
 
-            const x = se * hex.width;
+            const x = se * hex.side * 3.0 / 2.0;
             const y = n * hex.inner - se * hex.inradius;
             const z = h * hex.height;
 

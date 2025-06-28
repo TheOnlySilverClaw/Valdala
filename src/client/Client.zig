@@ -33,7 +33,7 @@ pub fn init(allocator: Allocator) !Self {
     controller.* = gui.Controller.init(window);
     try controller.registerWindowListeners();
 
-    try window.create(1600, 1200, "Valdala");
+    try window.create(1600, 1600, "Valdala");
     window.center();
 
     var asset_loader = try AssetLoader.init(allocator, window.surface.device,"asset");
@@ -91,6 +91,7 @@ pub fn launch(self: *Self) !void {
         glfw.pollEvents();
         self.window.update();
         try self.renderer.renderScene(self.scene);
+        std.time.sleep(std.time.ns_per_ms * 16);
     }
 
     self.connection.close() catch |err| log.err("Failed to close connection {}", .{ err });

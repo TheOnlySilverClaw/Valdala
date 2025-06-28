@@ -165,20 +165,3 @@ fn createBindGroupLayout(device: *webgpu.Device) *webgpu.BindGroupLayout {
 
     return device.createBindGroupLayout(&descriptor);
 }
-
-
-fn createSampler(device: *webgpu.Device,
-    addressMode: webgpu.AddressMode,
-    filter: webgpu.FilterMode) *webgpu.Sampler {
-
-	const descriptor = webgpu.SamplerDescriptor {
-	    .address_mode_u  = addressMode,
-	    .address_mode_v = addressMode,
-	    .address_mode_w = addressMode,
-	    .mag_filter = filter,
-	    .min_filter = filter,
-	    .mipmap_filter = filter,
-    };
-	
-	return device.createSampler(&descriptor);
-}

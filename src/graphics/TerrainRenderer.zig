@@ -53,13 +53,15 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
     };
 
     const sampler_descriptor = webgpu.SamplerDescriptor {
-        .address_mode_u = .clamp_to_edge,
-        .address_mode_v = .clamp_to_edge,
-        .address_mode_w = .clamp_to_edge,
+        .address_mode_u = .mirror_repeat,
+        .address_mode_v = .mirror_repeat,
+        .address_mode_w = .undefined,
         .mag_filter = .nearest,
         .min_filter = .nearest,
         .mipmap_filter = .nearest
     };
+
+    log.debug("sampler address mode: {d}", .{ @intFromEnum(sampler_descriptor.address_mode_u)});
 
     const sampler = device.createSampler(&sampler_descriptor);
 

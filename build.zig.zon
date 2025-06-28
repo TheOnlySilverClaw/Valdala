@@ -12,11 +12,11 @@
         },
         .webgpu = .{
             .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-2.1.0-dKjiOGkzAQBDnpCL-j0LsJuCSG2ADsIklxSJ37Nef49b"
+            .hash = "wgpu_native-2.1.1-dKjiOGozAQCPookc6hZ5MqUwL0n0GgAIPLIehMpvjhWc"
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
-            .hash = "glfw-1.0.1-P2aihVKAAADhLy79PJFmUbfqW4TUH2S3okWYlbBNEoEr"
+            .hash = "glfw-1.0.2-P2aihV6AAAAifkrAggsA1L_HjK9rJKo0H_ggTeqvQUC9"
         },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.1.1.zip",
