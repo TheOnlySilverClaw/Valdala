@@ -53,8 +53,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
     };
 
     const sampler_descriptor = webgpu.SamplerDescriptor {
-        .address_mode_u = .mirror_repeat,
-        .address_mode_v = .mirror_repeat,
+        .address_mode_u = .repeat,
+        .address_mode_v = .repeat,
         .address_mode_w = .undefined,
         .mag_filter = .nearest,
         .min_filter = .nearest,
@@ -71,7 +71,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
     };
 
     const terrain_texture = try asset_loader.loadTextureArray(
-        texture_paths[0..], 8, 8, .{ .label = .sized("terrain")});
+        texture_paths[0..], 16, 16, .{ .label = .sized("terrain")});
     // omitting the descriptor only works if the texture array has more than 1 element!
     const terrain_texture_view = terrain_texture.createView(null);
 

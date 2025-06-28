@@ -82,9 +82,11 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
                 .height = 0
             };
 
+            const odd = south_east % 2 == 1;
+
             const tile = chunk.getTile(tile_offset);
             const center = grid.getCenter(tile_position).subtract(chunk_center);
-            const vertices = generateTileVertices(tile, center);
+            const vertices = generateTileVertices(tile, center, odd);
             var indices: [base_indices.len]u16 = undefined;
             for(base_indices, 0..) |base_index, index_number| {
                 indices[index_number] = @intCast(tile_index * vertices.len + base_index);
@@ -112,7 +114,7 @@ pub fn deinit(self: Self) void {
     self.index_buffer.release();
 }
 
-pub fn generateTileVertices(tile: Tile, center: Vector) [6]Vertex {
+pub fn generateTileVertices(tile: Tile, center: Vector, odd: bool) [6]Vertex {
     
     _ = tile;
     const texture_top: Vertex.Texture = 0;
@@ -127,11 +129,12 @@ pub fn generateTileVertices(tile: Tile, center: Vector) [6]Vertex {
     const pos_sw_top = Vertex.Position { .x = center.x - half_side, .y = center.y - hex.inradius, .z = hex.height };
     const pos_w_top = Vertex.Position { .x = center.x - hex.circumradius, .y = center.y, .z = hex.height };
 
-    const uv_top_left = Vertex.UV { .u = 0.0, .v = 0.0 };
-    const uv_top_right = Vertex.UV { .u = 2.0, .v = 0.0 };
-    const uv_bottom_left = Vertex.UV { .u = 0.0, .v = 2.0 };
-    const uv_bottom_right = Vertex.UV { .u = 2.0, .v = 2.0 };
-    const uv_center = Vertex.UV { .u = 1.0, .v = 1.0 };
+    const uv_off: f16 = if(odd) 0.0 else 1.0;
+    const uv_top_left = Vertex.UV { .u = uv_off, .v = uv_off };
+    const uv_top_right = Vertex.UV { .u = 2.0 + uv_off, .v = uv_off };
+    const uv_bottom_left = Vertex.UV { .u = uv_off, .v = 2.0 + uv_off };
+    const uv_bottom_right = Vertex.UV { .u = 2.0 + uv_off, .v = 2.0 + uv_off };
+    const uv_center = Vertex.UV { .u = 1.0 + uv_off, .v = 1.0 + uv_off };
 
     // const vert_center_top = Vertex { .position = pos_center_top, .uv = uv_bottom, .texture = texture_top };
     const vert_nw_top = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_top };
