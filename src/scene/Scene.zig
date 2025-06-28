@@ -24,6 +24,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
 
     for(chunks) |*chunk| {
         chunk.* = Chunk.init(.zero);
+        chunk.setTile(.{.north = Chunk.Layout.width / 2, .south_east = Chunk.Layout.width / 2, .height = 0 }, .{ .index = 1, .orientation = .full});
     }
 
     return .{

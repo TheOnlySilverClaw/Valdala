@@ -32,7 +32,12 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
     const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
 
     const texture_paths = [_][]const u8 {
-        "testing/top.png",
+        "testing/top_grass.png",
+        "testing/bottom.png",
+        "testing/side.png",
+        "testing/inner.png",
+
+        "testing/top_rock.png",
         "testing/bottom.png",
         "testing/side.png",
         "testing/inner.png",
@@ -60,8 +65,6 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
         .min_filter = .nearest,
         .mipmap_filter = .nearest
     };
-
-    log.debug("sampler address mode: {d}", .{ @intFromEnum(sampler_descriptor.address_mode_u)});
 
     const sampler = device.createSampler(&sampler_descriptor);
 

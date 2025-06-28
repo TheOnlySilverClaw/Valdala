@@ -45,8 +45,17 @@ pub fn deinit(self: Self, allocator: Allocator) void {
 }
 
 pub fn getTile(self: Self, position: TileOffset) Tile {
-    const index = @as(usize, @intCast(position.north))
+    const index = tileIndex(position);
+    return self.tiles[index];
+}
+
+pub fn setTile(self: *Self, position: TileOffset, tile: Tile) void {
+    const index = tileIndex(position);
+    self.tiles[index] = tile;
+}
+
+fn tileIndex(position: TileOffset) usize {
+    return @as(usize, @intCast(position.north))
         + @as(usize, @intCast(position.south_east)) * Layout.width
         + @as(usize, @intCast(position.height)) * Layout.area;
-    return self.tiles[index];
 }

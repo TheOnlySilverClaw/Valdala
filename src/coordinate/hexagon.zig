@@ -48,7 +48,7 @@ pub fn Hexagon(T: type) type {
 /// P = position component type, V = vector component type
 pub fn Grid(P: type, V: type) type {
 
-    const gap = 0.0;
+    const gap = 0.01;
     
     return struct {
 

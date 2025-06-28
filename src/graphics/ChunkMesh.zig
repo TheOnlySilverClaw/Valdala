@@ -61,15 +61,17 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
     const queue = device.getQueue();
     defer queue.release();
 
+    const width = Chunk.Layout.width;
+
     var tile_index: u32 = 0;
     const chunk_center = grid.getCenter(.{
-        .north = @intCast(Chunk.Layout.width / 2),
-        .south_east = @intCast(Chunk.Layout.width / 2),
+        .north = @intCast(width / 2),
+        .south_east = @intCast(width / 2),
         .height = 0
     });
 
-    for (0..Chunk.Layout.width) |north| {
-        for (0..Chunk.Layout.width) |south_east| {
+    for (0..width) |north| {
+        for (0..width) |south_east| {
             // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
@@ -116,12 +118,10 @@ pub fn deinit(self: Self) void {
 
 pub fn generateTileVertices(tile: Tile, center: Vector, odd: bool) [6]Vertex {
     
-    _ = tile;
-    const texture_top: Vertex.Texture = 0;
+    const texture_top: Vertex.Texture = tile.index * 4;
 
     const half_side = hex.side / 2;
 
-    // const pos_center_top = Vertex.Position { .x = center.x, .y = center.y, .z = hex.height };
     const pos_nw_top = Vertex.Position { .x = center.x - half_side, .y = center.y + hex.inradius, .z = hex.height };
     const pos_ne_top = Vertex.Position { .x = center.x + half_side, .y = center.y + hex.inradius, .z = hex.height };
     const pos_e_top = Vertex.Position { .x = center.x + hex.circumradius, .y = center.y, .z = hex.height };
@@ -136,7 +136,6 @@ pub fn generateTileVertices(tile: Tile, center: Vector, odd: bool) [6]Vertex {
     const uv_bottom_right = Vertex.UV { .u = 2.0 + uv_off, .v = 2.0 + uv_off };
     const uv_center = Vertex.UV { .u = 1.0 + uv_off, .v = 1.0 + uv_off };
 
-    // const vert_center_top = Vertex { .position = pos_center_top, .uv = uv_bottom, .texture = texture_top };
     const vert_nw_top = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_top };
     const vert_ne_top = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_top };
     const vert_e_top = Vertex { .position = pos_e_top, .uv = uv_center, .texture = texture_top };
