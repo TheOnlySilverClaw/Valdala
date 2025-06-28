@@ -96,7 +96,7 @@ fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *
     };
 
     const primitive = webgpu.PrimitiveState {
-        .cull_mode = .back,
+        .cull_mode = .none,
         .front_face = .counter_clockwise,
         .topology = .triangle_list,
         .strip_index_format = .undefined

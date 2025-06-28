@@ -134,7 +134,7 @@ pub fn loadTextureArray(self: Self, paths: []const []const u8, width: u32, heigh
     const descriptor = webgpu.TextureDescriptor {
         .label = options.label,
         .dimension = .@"2d",
-        .format = .rgba8_unorm,
+        .format = .rgba8_unorm_srgb,
         .mip_level_count = options.mip_levels,
         .size = .{
             .width = width,
