@@ -62,7 +62,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const uv_top_left = Vertex.UV { .u = 0.0, .v = 0.0 };
     const uv_top_right = Vertex.UV { .u = 1.0, .v = 0.0 };
-    const uv_bottom = Vertex.UV { .u = 0.5, .v = 1.0 };
+    const uv_bottom = Vertex.UV { .u = 0.0, .v = 1.0 };
 
     const pos_center_top = Vertex.Position { .x = 0.0, .y = 0.0, .z = hex.height };
     const pos_n_top = Vertex.Position { .x = 0.0, .y = hex.circumradius, .z = hex.height };
