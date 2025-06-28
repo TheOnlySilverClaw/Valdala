@@ -38,42 +38,69 @@ index_buffer: *webgpu.Buffer,
 
 pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
-    for (0..Chunk.Layout.width) |north| {
-        for (0..Chunk.Layout.width) |south_east| {
-            // TODO height
-            const tile_offset = Chunk.TileOffset {
-                .north = @intCast(north),
-                .south_east = @intCast(south_east),
-                .height = 0
-            };
-            const tile_position = TilePosition {
-                .north = @intCast(north),
-                .south_east = @intCast(south_east),
-                .height = 0
-            };
-            const tile = chunk.getTile(tile_offset);
-            const center = grid.getCenter(tile_position);
-            generateTileMesh(tile, center);
-        }
-    }
+    // for (0..Chunk.Layout.width) |north| {
+    //     for (0..Chunk.Layout.width) |south_east| {
+    //         // TODO height
+    //         const tile_offset = Chunk.TileOffset {
+    //             .north = @intCast(north),
+    //             .south_east = @intCast(south_east),
+    //             .height = 0
+    //         };
+    //         const tile_position = TilePosition {
+    //             .north = @intCast(north),
+    //             .south_east = @intCast(south_east),
+    //             .height = 0
+    //         };
+    //         const tile = chunk.getTile(tile_offset);
+    //         const center = grid.getCenter(tile_position);
+    //         generateTileMesh(tile, center);
+    //     }
+    // }
+    _ = chunk;
+
+    const vertices = [_]Vertex {
+        Vertex { .position = .{ .x = -0.5, .y = 0.5, .z = 0.0 }, .texture = undefined, .texture_index = 0 },
+        Vertex { .position = .{ .x = -0.5, .y = -0.5, .z = 0.0 }, .texture = undefined, .texture_index = 0  },
+        Vertex { .position = .{ .x = 0.5, .y = 0.5, .z = 0.0 }, .texture = undefined, .texture_index = 0  },
+        Vertex { .position = .{ .x = 0.5, .y = 0.5, .z = 0.0 }, .texture = undefined, .texture_index = 0  },
+    };
+
+    const indices = [_]u16 {
+        0, 1, 2, 3
+    };
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
         .size = Chunk.Layout.volume * 6 * 4,
-        .usage = .{ .vertex = true }
+        .usage = .{ .vertex = true, .copy_dst = true }
     };
 
     const index_buffer_descriptor = webgpu.BufferDescriptor {
         .size = Chunk.Layout.volume * 4,
-        .usage = .{ .index = true }
+        .usage = .{ .index = true, .copy_dst = true }
     };
 
     const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
 
+    const queue = device.getQueue();
+    defer queue.release();
+
+    queue.writeBuffer(vertex_buffer, Vertex, &vertices, 0);
+    queue.writeBuffer(index_buffer, u16, &indices, 0);
+
     return .{
         .vertex_buffer = vertex_buffer,
         .index_buffer = index_buffer
     };
+}
+
+pub fn deinit(self: Self) void {
+    
+    self.vertex_buffer.destroy();
+    self.vertex_buffer.release();
+
+    self.index_buffer.destroy();
+    self.index_buffer.release();
 }
 
 pub fn generateTileMesh(tile: Tile, center: Vector) void {

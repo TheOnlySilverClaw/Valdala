@@ -129,12 +129,12 @@ pub const TextureArrayOptions = struct {
     view_formaats: []webgpu.TextureFormat = &.{}
 };
 
-pub fn loadTextureArray(self: Self, paths: []const []const u8, width: u32, height: u32, format: webgpu.TextureFormat, options: TextureArrayOptions) !*webgpu.Texture {
+pub fn loadTextureArray(self: Self, paths: []const []const u8, width: u32, height: u32, options: TextureArrayOptions) !*webgpu.Texture {
 
     const descriptor = webgpu.TextureDescriptor {
         .label = options.label,
         .dimension = .@"2d",
-        .format = format,
+        .format = .rgba8_unorm,
         .mip_level_count = options.mip_levels,
         .size = .{
             .width = width,
@@ -162,6 +162,8 @@ pub fn loadTextureArray(self: Self, paths: []const []const u8, width: u32, heigh
         defer file.close();
 
         var image = try Image.fromFile(self.allocator, &file);
+        try image.convert(self.allocator, .rgba32);
+
         defer image.deinit(self.allocator);
     
         // TODO handle differing channel counts?

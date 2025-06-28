@@ -79,7 +79,7 @@ pub fn deinit(self: Self) void {
 
 pub fn launch(self: *Self) !void {
     
-    self.scene.* = try Scene.init(self.allocator, 2);
+    self.scene.* = try Scene.init(self.allocator, 1);
     defer self.scene.deinit();
 
     const address = try std.net.Address.parseIp4("127.0.0.1", 4040);

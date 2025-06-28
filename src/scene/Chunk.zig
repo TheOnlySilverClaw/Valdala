@@ -1,11 +1,13 @@
 const std = @import("std");
 const algebra = @import("algebra");
 const coordinate = @import("coordinate");
+const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
 const Vector = algebra.Vector3(f32);
 const TilePosition = coordinate.Position(i64);
 const Tile = @import("Tile.zig");
+const Mesh = graphics.ChunkMesh;
 
 const Self = @This();
 
@@ -23,7 +25,24 @@ pub const TileOffset = struct {
 };
 
 position: Vector,
+mesh: ?*const Mesh,
 tiles: [Layout.volume]Tile,
+
+pub fn init(position: Vector) Self {
+    return .{
+        .position = position,
+        .mesh = null,
+        .tiles = .{ Tile.empty } ** Layout.volume
+    };
+}
+
+pub fn deinit(self: Self, allocator: Allocator) void {
+    
+    if(self.mesh) |mesh| {
+        mesh.deinit();
+        allocator.destroy(mesh);
+    }
+}
 
 pub fn getTile(self: Self, position: TileOffset) Tile {
     const index = @as(usize, @intCast(position.north))

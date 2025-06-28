@@ -23,8 +23,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
     const chunks = try allocator.alloc(Chunk, chunk_volume);
 
     for(chunks) |*chunk| {
-        chunk.position = .zero;
-        @memset(&chunk.tiles, Tile.empty);
+        chunk.* = Chunk.init(.zero);
     }
 
     return .{
@@ -37,6 +36,10 @@ pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
 }
 
 pub fn deinit(self: *Self) void {
+    
+    for(self.chunks) |chunk| {
+        chunk.deinit(self.allocator);
+    }
     self.allocator.free(self.chunks);
 }
 

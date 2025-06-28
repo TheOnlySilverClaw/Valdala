@@ -1,6 +1,7 @@
 const std = @import("std");
 const webgpu = @import("webgpu");
 
+const Allocator = std.mem.Allocator;
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const AssetLoader = @import("asset").AssetLoader;
@@ -12,9 +13,9 @@ const Self = @This();
 surface: *const Surface,
 terrain_renderer: TerrainRenderer,
 
-pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetLoader) !Self {
 
-    const terrain_renderer = try TerrainRenderer.init(surface, asset_loader);
+    const terrain_renderer = try TerrainRenderer.init(allocator, surface, asset_loader);
 
     return .{
         .surface = surface,

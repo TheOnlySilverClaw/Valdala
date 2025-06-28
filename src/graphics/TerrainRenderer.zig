@@ -2,6 +2,7 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 const log = std.log.scoped(.terrain);
 
+const Allocator = std.mem.Allocator;
 const Scene = @import("scene").Scene;
 const Chunk = @import("scene").Chunk;
 
@@ -12,6 +13,7 @@ const ChunkMesh = @import("ChunkMesh.zig");
 
 const Self = @This();
 
+allocator: Allocator,
 surface: *const Surface,
 pipeline: Pipeline,
 
@@ -19,10 +21,10 @@ projection_buffer: *webgpu.Buffer,
 sampler: *webgpu.Sampler,
 terrain_texture: *webgpu.Texture,
 terrain_texture_view: *webgpu.TextureView,
-bindgroup: *const webgpu.BindGroup,
+bindgroup: *webgpu.BindGroup,
 
 
-pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetLoader) !Self {
 
     const device = surface.device;
 
@@ -30,17 +32,14 @@ pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
     const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
 
     const texture_paths = [_][]const u8 {
-        "testing/texture_1.qoi",
-        "testing/texture_2.qoi",
-        "testing/texture_3.qoi",
-        "testing/texture_4.qoi",
+        "testing/top.png",
+        "testing/bottom.png",
+        "testing/side.png",
+        "testing/inner.png",
     };
-
-
 
     const projection_buffer_descriptor = webgpu.BufferDescriptor {
         .label = .sized("projection"),
-        .mapped_at_creation = 0,
         .size = 4 * 4 * @sizeOf(f32),
         .usage = .{ .vertex = true, .uniform = true }
     };
@@ -70,7 +69,8 @@ pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
     };
 
     const terrain_texture = try asset_loader.loadTextureArray(
-        texture_paths[0..], 16, 16, surface.getColorTextureFormat(), .{ .label = .sized("terrain")});
+        texture_paths[0..], 8, 8, .{ .label = .sized("terrain")});
+    // omitting the descriptor only works if the texture array has more than 1 element!
     const terrain_texture_view = terrain_texture.createView(null);
 
     const terrain_texture_entry = webgpu.BindGroupEntry {
@@ -93,6 +93,7 @@ pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
     const bindgroup = surface.device.createBindGroup(&descriptor);
 
     return .{
+        .allocator = allocator,
         .surface = surface,
         .pipeline = pipeline,
         .bindgroup = bindgroup,
@@ -105,6 +106,9 @@ pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
 
 pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassEncoder) !void {
      
+     render_pass.setPipeline(self.pipeline.handle);
+     render_pass.setBindGroup(0, self.bindgroup, null);
+
      for(scene.chunks) |*chunk| {
         try self.renderChunk(chunk, render_pass);
      }
@@ -112,11 +116,16 @@ pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassE
 
 pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEncoder) !void {
 
-    _ = self;
-    _ = chunk;
-    _ = render_pass;
-    // const mesh = ChunkMesh.generate(chunk, self.surface.device);
-    // render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
+    if(chunk.mesh) |mesh| {
+        render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
+        render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
+        render_pass.drawIndexed(4, 1, 0, 0, 0);
+    } else {
+        log.debug("Generate chunk mesh", .{});
+        const mesh = try self.allocator.create(ChunkMesh);
+        mesh.* = ChunkMesh.generate(chunk, self.surface.device);
+        chunk.mesh = mesh;
+    }
 }
 
 pub fn deinit(self: Self) void {

@@ -10,12 +10,11 @@ const AssetLoader = @import("asset").AssetLoader;
 const Self = @This();
 
 surface: *Surface,
-scene_renderer: *SceneRenderer,
+scene_renderer: SceneRenderer,
 
 pub fn init(allocator: Allocator, surface: *Surface, asset_loader: *AssetLoader) !Self {
 
-    const scene_renderer = try allocator.create(SceneRenderer);
-    scene_renderer.* = try SceneRenderer.init(surface, asset_loader);
+    const scene_renderer = try SceneRenderer.init(allocator, surface, asset_loader);
 
     return .{
         .surface = surface,
@@ -28,7 +27,6 @@ pub fn renderScene(self: *Self, scene: *const Scene) !void {
 }
 
 pub fn deinit(self: Self, allocator: Allocator) void {
-    
+    _ = allocator;
     self.scene_renderer.deinit();
-    allocator.destroy(self.scene_renderer);
 }

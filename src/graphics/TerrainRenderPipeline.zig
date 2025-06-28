@@ -52,50 +52,32 @@ fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *
         .offset = vertex_position_attribute.format.size()
     };
 
-    const instance_position_attribute = webgpu.VertexAttribute {
+    const texture_attribute = webgpu.VertexAttribute {
         .shader_location = 2,
-        .format = .float32x3,
-        .offset = 0
-    };
-
-    const texture_index_attribute = webgpu.VertexAttribute {
-        .shader_location = 3,
         .format = .uint32,
-        .offset = instance_position_attribute.offset + instance_position_attribute.format.size()
+        .offset = uv_attribute.offset + uv_attribute.format.size()
     };
     
     const vertex_attributes = [_]webgpu.VertexAttribute {
         vertex_position_attribute,
         uv_attribute,
+        texture_attribute
     };
     
-    const instance_attributes = [_]webgpu.VertexAttribute {
-        instance_position_attribute,
-        texture_index_attribute
-    };
-
     const vertex_buffer_layout = webgpu.VertexBufferLayout {
-        .array_stride = vertex_position_attribute.format.size() + uv_attribute.format.size(),
+        .array_stride = vertex_position_attribute.format.size() + uv_attribute.format.size() + texture_attribute.format.size(),
         .step_mode = .vertex,
         .attribute_count = vertex_attributes.len,
         .attributes = &vertex_attributes
     };
 
-    const instance_buffer_layout = webgpu.VertexBufferLayout {
-        .array_stride = webgpu.VertexFormat.float32x3.size() + webgpu.VertexFormat.uint32.size(),
-        .step_mode = .instance,
-        .attribute_count = instance_attributes.len,
-        .attributes = &instance_attributes
-    };
+    const vertex_buffer_layouts = [_]webgpu.VertexBufferLayout { vertex_buffer_layout };
 
     const vertex = webgpu.VertexState {
         .module = shader,
         .entry_point = webgpu.StringView.sized("vertex"),
-        .buffer_count = 2,
-        .buffers = &.{
-            vertex_buffer_layout,
-            instance_buffer_layout
-        },
+        .buffer_count = vertex_buffer_layouts.len,
+        .buffers = &vertex_buffer_layouts,
         .constant_count = 0,
         .constants = null
     };
