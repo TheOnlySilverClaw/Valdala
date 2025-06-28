@@ -30,7 +30,7 @@ pub const Vertex = extern struct {
     texture: Texture,
 };
 
-const hex = coordinate.Hexagon(f32).new(0.025, 0);
+const hex = coordinate.Hexagon(f32).new(0.5, 0);
 const grid = coordinate.Grid(i64, f32).of(hex);
 
 vertex_buffer: *webgpu.Buffer,
@@ -39,12 +39,19 @@ index_buffer: *webgpu.Buffer,
 pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * 6 * 4,
+        .size = Chunk.Layout.volume * 6 * @sizeOf(Vertex),
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
+    const base_indices = [_]u16 {
+        0, 4, 1,
+        1, 4, 3,
+        0, 5, 4,
+        1, 3, 2
+    };
+
     const index_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * 4,
+        .size = Chunk.Layout.volume * base_indices.len * @sizeOf(u16),
         .usage = .{ .index = true, .copy_dst = true }
     };
 
@@ -54,20 +61,12 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
     const queue = device.getQueue();
     defer queue.release();
 
-    const base_indices = [12]u16 {
-        0, 5, 1,
-        5, 4, 1,
-        1, 4, 2,
-        4, 3, 2
-    };
-
     var tile_index: u32 = 0;
     const chunk_center = grid.getCenter(.{
         .north = @intCast(Chunk.Layout.width / 2),
         .south_east = @intCast(Chunk.Layout.width / 2),
         .height = 0
     });
-
 
     for (0..Chunk.Layout.width) |north| {
         for (0..Chunk.Layout.width) |south_east| {
@@ -82,21 +81,21 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
                 .south_east = @intCast(south_east),
                 .height = 0
             };
+
             const tile = chunk.getTile(tile_offset);
             const center = grid.getCenter(tile_position).subtract(chunk_center);
             const vertices = generateTileVertices(tile, center);
-            var indices: [12]u16 = undefined;
+            var indices: [base_indices.len]u16 = undefined;
             for(base_indices, 0..) |base_index, index_number| {
-                indices[index_number] = @intCast(tile_index * 6 + base_index);
+                indices[index_number] = @intCast(tile_index * vertices.len + base_index);
             }
 
-            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_index * 6 * @sizeOf(Vertex));
-            queue.writeBuffer(index_buffer, u16, &indices, tile_index * 12 * @sizeOf(u16));
+            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_index * vertices.len * @sizeOf(Vertex));
+            queue.writeBuffer(index_buffer, u16, &indices, tile_index * indices.len * @sizeOf(u16));
 
             tile_index += 1;
         }
     }
-    log.debug("generated {} tiles", .{ tile_index });
 
     return .{
         .vertex_buffer = vertex_buffer,
@@ -118,14 +117,9 @@ pub fn generateTileVertices(tile: Tile, center: Vector) [6]Vertex {
     _ = tile;
     const texture_top: Vertex.Texture = 0;
 
-    const uv_top_left = Vertex.UV { .u = 0.0, .v = 0.0 };
-    const uv_top_right = Vertex.UV { .u = 2.0, .v = 0.0 };
-    const uv_bottom_left = Vertex.UV { .u = 0.0, .v = 1.0 };
-    const uv_bottom_right = Vertex.UV { .u = 2.0, .v = 1.0 };
-    const uv_center = Vertex.UV { .u = 1.0, .v = 0.5 };
-
     const half_side = hex.side / 2;
-    // const pos_center_top = Vertex.Position { .x = 0.0, .y = 0.0, .z = hex.height };
+
+    // const pos_center_top = Vertex.Position { .x = center.x, .y = center.y, .z = hex.height };
     const pos_nw_top = Vertex.Position { .x = center.x - half_side, .y = center.y + hex.inradius, .z = hex.height };
     const pos_ne_top = Vertex.Position { .x = center.x + half_side, .y = center.y + hex.inradius, .z = hex.height };
     const pos_e_top = Vertex.Position { .x = center.x + hex.circumradius, .y = center.y, .z = hex.height };
@@ -133,13 +127,19 @@ pub fn generateTileVertices(tile: Tile, center: Vector) [6]Vertex {
     const pos_sw_top = Vertex.Position { .x = center.x - half_side, .y = center.y - hex.inradius, .z = hex.height };
     const pos_w_top = Vertex.Position { .x = center.x - hex.circumradius, .y = center.y, .z = hex.height };
 
-    // const vert_center_top = Vertex { .position = pos_center_top, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_nw_top = Vertex { .position = pos_nw_top, .uv = uv_center, .texture = texture_top };
+    const uv_top_left = Vertex.UV { .u = 0.0, .v = 0.0 };
+    const uv_top_right = Vertex.UV { .u = 2.0, .v = 0.0 };
+    const uv_bottom_left = Vertex.UV { .u = 0.0, .v = 2.0 };
+    const uv_bottom_right = Vertex.UV { .u = 2.0, .v = 2.0 };
+    const uv_center = Vertex.UV { .u = 1.0, .v = 1.0 };
+
+    // const vert_center_top = Vertex { .position = pos_center_top, .uv = uv_bottom, .texture = texture_top };
+    const vert_nw_top = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_top };
     const vert_ne_top = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_e_top = Vertex { .position = pos_e_top, .uv = uv_bottom_right, .texture = texture_top };
-    const vert_se_top = Vertex { .position = pos_se_top, .uv = uv_center, .texture = texture_top };
+    const vert_e_top = Vertex { .position = pos_e_top, .uv = uv_center, .texture = texture_top };
+    const vert_se_top = Vertex { .position = pos_se_top, .uv = uv_bottom_right, .texture = texture_top };
     const vert_sw_top = Vertex { .position = pos_sw_top, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_w_top = Vertex { .position = pos_w_top, .uv = uv_top_left, .texture = texture_top };
+    const vert_w_top = Vertex { .position = pos_w_top, .uv = uv_center, .texture = texture_top };
 
 
     const vertices = [_]Vertex {

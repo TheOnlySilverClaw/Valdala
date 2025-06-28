@@ -47,6 +47,8 @@ pub fn Hexagon(T: type) type {
 
 /// P = position component type, V = vector component type
 pub fn Grid(P: type, V: type) type {
+
+    const gap = 0.01;
     
     return struct {
 
@@ -72,7 +74,7 @@ pub fn Grid(P: type, V: type) type {
             const y = n * hex.inner - se * hex.inradius;
             const z = h * hex.height;
 
-            return Vector(V).of(x, y, z);
+            return Vector(V).of(x, y, z).times(1 + gap);
         }
     };
 }
