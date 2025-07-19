@@ -1,6 +1,7 @@
 const std = @import("std");
 const webgpu = @import("webgpu");
 const log = std.log.scoped(.terrain);
+const algebra = @import("algebra");
 
 const Allocator = std.mem.Allocator;
 const Scene = @import("scene").Scene;
@@ -46,7 +47,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
     const projection_buffer_descriptor = webgpu.BufferDescriptor {
         .label = .sized("projection"),
         .size = 4 * 4 * @sizeOf(f32),
-        .usage = .{ .vertex = true, .uniform = true }
+        .usage = .{ .vertex = true, .uniform = true, .copy_dst = true }
     };
 
     const projection_buffer = device.createBuffer(&projection_buffer_descriptor);
@@ -111,8 +112,24 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
 
 pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassEncoder) !void {
      
+     const surface = self.surface;
+     const queue = surface.getQueue();
+
      render_pass.setPipeline(self.pipeline.handle);
      render_pass.setBindGroup(0, self.bindgroup, null);
+
+    const camera_matrix = scene.camera.toMatrix();
+    _ = camera_matrix;
+
+    const aspect_ratio = @as(f32, @floatFromInt(surface.width)) / @as(f32, @floatFromInt(surface.height));
+
+    var projection_matrix = algebra.Matrix(f32, 4, 4).identity();
+    projection_matrix.set(1, 1, aspect_ratio);
+
+    const view_matrix = scene.camera.toMatrix();
+    const view_projection_matrix = view_matrix.multiply(projection_matrix);
+
+    queue.writeBuffer(self.projection_buffer, f32, &view_projection_matrix.values, 0);
 
      for(scene.chunks) |*chunk| {
         try self.renderChunk(chunk, render_pass);

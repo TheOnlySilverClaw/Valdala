@@ -16,7 +16,7 @@ struct Fragment {
 fn vertex(vertex: Vertex) -> Fragment {
 
   var fragment: Fragment;
-  fragment.position = vec4<f32>(vertex.position, 1.0);
+  fragment.position = projection * vec4<f32>(vertex.position, 1.0);
   fragment.uv = vertex.uv;
   fragment.texture = vertex.texture;
 

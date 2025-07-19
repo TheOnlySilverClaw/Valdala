@@ -169,6 +169,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
     gui.addImport("graphics", graphics);
+    gui.addImport("scene", scene);
 
     scene.addImport("algebra", algebra);
     scene.addImport("coordinate", coordinate);

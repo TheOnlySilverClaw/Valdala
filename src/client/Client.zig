@@ -45,7 +45,6 @@ pub fn init(allocator: Allocator) !Self {
 
     const connection = try allocator.create(Connection);
 
-
     return .{
         .allocator = allocator,
         .window = window,
@@ -81,6 +80,8 @@ pub fn launch(self: *Self) !void {
     
     self.scene.* = try Scene.init(self.allocator, 1);
     defer self.scene.deinit();
+
+    self.controller.camera = &self.scene.camera;
 
     const address = try std.net.Address.parseIp4("127.0.0.1", 4040);
     self.connection.* = Connection.init(self.scene);

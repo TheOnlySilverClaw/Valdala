@@ -1,6 +1,8 @@
 const std = @import("std");
 const math = std.math;
+const quaternion = @import("quaternion.zig");
 const assert = std.debug.assert;
+
 
 pub fn Vector3(T: type) type {
 
@@ -13,10 +15,18 @@ pub fn Vector3(T: type) type {
 
     return struct {
 
+        const Quaternion = quaternion.Quaternion(T);
+
         const Self = @This();
 
         pub const zero = Self.all(0);
         pub const one = Self.all(1);
+
+        pub const Axis = struct {
+            pub const x = Self.of(1, 0, 0);
+            pub const y = Self.of(0, 1, 0);
+            pub const z = Self.of(0, 0, 1);
+        };
 
         x: T,
         y: T,
@@ -80,6 +90,10 @@ pub fn Vector3(T: type) type {
             };
         }
 
+        pub fn rotate(self: Self, rotation: Quaternion) Self {
+            return rotation.apply(self);
+        }
+
         /// dot product
         pub fn dot(self: Self, other: Self) T {
             return self.x * other.x + self.y * other.y + self.z * other.z;
@@ -118,6 +132,10 @@ pub fn Vector3(T: type) type {
             }
 
             return self.times(1 / len);
+        }
+
+        pub fn inverse(self: Self) Self {
+            return self.times(-1);
         }
 
         /// convert to 2 dimensional vector, ignoring the z component
