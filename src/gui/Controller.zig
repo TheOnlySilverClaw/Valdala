@@ -36,12 +36,14 @@ pub fn onKey(ptr: *anyopaque, key: glfw.Key, action: glfw.Action, modifiers: glf
 
     switch (key) {
         .escape => self.window.close(),
-        .n => if(self.camera) |c| { c.zoomIn(0.1); },
-        .m => if(self.camera) |c| { c.zoomOut(0.1); },
-        .a => if(self.camera) |c| { c.moveX(-0.1); },
-        .d => if(self.camera) |c| { c.moveX(0.1); },
-        .w => if(self.camera) |c| { c.moveY(0.1); },
-        .s => if(self.camera) |c| { c.moveY(-0.1); },
+        .n => if(self.camera) |c| c.zoomIn(0.1),
+        .m => if(self.camera) |c| c.zoomOut(0.1),
+        .a => if(self.camera) |c| c.movePitch(-0.1),
+        .d => if(self.camera) |c| c.movePitch(0.1),
+        .w => if(self.camera) |c| c.moveYaw(0.1),
+        .s => if(self.camera) |c| c.moveYaw(-0.1),
+        .j => if(self.camera) |c| c.rotateRoll(-0.1),
+        .l => if(self.camera) |c| c.rotateRoll(0.1),
         else => log.debug("unbound key {s} {s} {s} {s}", .{
             @tagName(key),
             @tagName(action),

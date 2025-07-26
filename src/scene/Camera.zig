@@ -35,6 +35,24 @@ pub fn moveY(self: *Self, amount: f32) void {
     self.position.y += amount;
 }
 
+pub fn movePitch(self: *Self, amount: f32) void {
+    const pitch_axis = self.rotation.apply(Vector.Axis.x);
+    const move_vector = pitch_axis.times(amount);
+    self.position = self.position.add(move_vector);
+}
+
+pub fn moveYaw(self: *Self, amount: f32) void {
+    const yaw_axis = self.rotation.apply(Vector.Axis.y);
+    const move_vector = yaw_axis.times(amount);
+    self.position = self.position.add(move_vector);
+}
+
+pub fn rotateRoll(self: *Self, angle: f32) void {
+    const roll_axis = self.rotation.apply(Vector.Axis.z);
+    const axis_rotation = Quaternion.aroundAxis(roll_axis, angle);
+    self.rotation = self.rotation.multiply(axis_rotation);
+}
+
 pub fn toMatrix(self: Self) Matrix {
 
     // const forward = self.rotation.apply(Vector.Axis.y);
@@ -50,5 +68,9 @@ pub fn toMatrix(self: Self) Matrix {
     const offset = self.position.inverse();
     matrix.setDiagonal(.{ zoom_factor, zoom_factor, zoom_factor, 1 });
     matrix.setColumn(3, .{ offset.x, offset.y, offset.z, 1 });
+
+    const rotation = self.rotation.inverse().toMatrix();
+    matrix = rotation.multiply(matrix);
+
     return matrix;
 }
