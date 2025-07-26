@@ -59,18 +59,20 @@ pub fn toMatrix(self: Self) Matrix {
     // const right = self.rotation.apply(Vector.Axis.x);
     // const up = self.rotation.apply(Vector.Axis.z);
 
-    var matrix = Matrix.zero();
+    // var model_matrix = Matrix.zero();
     // matrix.setRow(0, .{ forward.x, forward.y, forward.z, 0 });
     // matrix.setRow(1, .{ right.x, right.y, right.z, 0 });
     // matrix.setRow(2, .{ up.x, up.y, up.z, 0 });
 
-    const zoom_factor = 1 / self.zoom;
-    const offset = self.position.inverse();
-    matrix.setDiagonal(.{ zoom_factor, zoom_factor, zoom_factor, 1 });
-    matrix.setColumn(3, .{ offset.x, offset.y, offset.z, 1 });
+    const scale = 1 / self.zoom;
+    const scale_matrix = Matrix.diagonal(.{ scale, scale, scale, 1 });
 
-    const rotation = self.rotation.inverse().toMatrix();
-    matrix = rotation.multiply(matrix);
+    const translation = self.position.inverse();
+    var translation_matrix = Matrix.identity;
+    translation_matrix.setColumn(3, .{ translation.x, translation.y, translation.z, 1 });
 
-    return matrix;
+    const rotation_matrix = self.rotation.inverse().toMatrix();
+    const model_matrix = scale_matrix.multiply(rotation_matrix).multiply(translation_matrix);
+    
+    return model_matrix;
 }

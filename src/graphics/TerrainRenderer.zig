@@ -118,12 +118,9 @@ pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassE
      render_pass.setPipeline(self.pipeline.handle);
      render_pass.setBindGroup(0, self.bindgroup, null);
 
-    const camera_matrix = scene.camera.toMatrix();
-    _ = camera_matrix;
-
     const aspect_ratio = @as(f32, @floatFromInt(surface.width)) / @as(f32, @floatFromInt(surface.height));
 
-    var projection_matrix = algebra.Matrix(f32, 4, 4).identity();
+    var projection_matrix = algebra.Matrix(f32, 4, 4).identity;
     projection_matrix.set(1, 1, aspect_ratio);
 
     const view_matrix = scene.camera.toMatrix();

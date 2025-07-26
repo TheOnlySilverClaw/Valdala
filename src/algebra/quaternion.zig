@@ -122,7 +122,7 @@ pub fn Quaternion(comptime T: type) type {
             const y = self.y;
             const z = self.z;
 
-            var m = Matrix.zero();
+            var m = Matrix.zero;
 
             m.set(0, 0, 1 - 2 * y * y - 2 * z * z);
             m.set(1, 0, 2 * x * y + 2 * w * z);

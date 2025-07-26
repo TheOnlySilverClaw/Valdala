@@ -10,6 +10,10 @@ pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type 
         pub const C = columns;
         pub const R = rows;
 
+
+        pub const zero = all(0);
+        pub const identity = diagonal(.{ 1 } ** C);
+
         const length = C * R;
 
         values: [C * R]T,
@@ -22,14 +26,12 @@ pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type 
             return of(.{ value } ** length);
         }
 
-        pub fn zero() Self {
-            return all(0);
-        }
+        pub fn diagonal(values: [C]T) Self {
+            
+            comptime if(!isQuadratic()) @compileError("Matrix must be quadratic");
 
-        pub fn identity() Self {
-
-            var m = zero();
-            m.setDiagonal(.{ 1 } ** C);
+            var m = zero;
+            m.setDiagonal(values);
             return m;
         }
 
@@ -63,8 +65,8 @@ pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type 
 
             comptime if(!isQuadratic()) @compileError("Matrix must be quadratic");
 
-            inline for(0..C) |diagonal| {
-                self.set( diagonal, diagonal, values[diagonal]);
+            inline for(0..C) |d| {
+                self.set( d, d, values[d]);
             }
         }
 
@@ -167,7 +169,7 @@ const tolerance = math.floatEps(f32);
 
 test "add" {
     
-    const a = Mat2.identity();
+    const a = Mat2.identity;
     const b = Mat2.all(1);
     const c = a.add(b);
     
@@ -179,7 +181,7 @@ test "add" {
 
 test "subtract" {
 
-    const a = Mat2.identity();
+    const a = Mat2.identity;
     const b = Mat2.all(1);
     const c = a.substract(b);
 
