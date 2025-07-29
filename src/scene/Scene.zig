@@ -22,9 +22,25 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
     const chunk_volume = try math.powi(u32, chunk_distance, 3);
     const chunks = try allocator.alloc(Chunk, chunk_volume);
 
+    var random = std.Random.DefaultPrng.init(123);
+
     for(chunks) |*chunk| {
         chunk.* = Chunk.init(.zero);
-        chunk.setTile(.{.north = Chunk.Layout.width / 2, .south_east = Chunk.Layout.width / 2, .height = 0 }, .{ .index = 1, .orientation = .full});
+        for(0..Chunk.Layout.width) |x| {
+            for(0..Chunk.Layout.width) |y| {
+                const position = Chunk.TileOffset {
+                    .north = @intCast(x),
+                    .south_east = @intCast(y),
+                    .height = 0
+                };
+                const tile_type = @as(u16, @truncate(random.next())) % 2;
+                const tile = Tile {
+                    .index = tile_type,
+                    .orientation = .full
+                };
+                chunk.setTile(position, tile);
+            }
+        }
     }
 
     return .{
