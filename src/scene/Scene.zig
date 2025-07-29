@@ -17,7 +17,7 @@ chunks: []Chunk,
 chunk_distance: u32,
 sky_color: color.RGB,
 
-pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
+pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     const chunk_volume = try math.powi(u32, chunk_distance, 3);
     const chunks = try allocator.alloc(Chunk, chunk_volume);
@@ -31,7 +31,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32) !Self {
         .allocator = allocator,
         .chunk_distance = chunk_distance,
         .chunks = chunks,
-        .camera = Camera.new(),
+        .camera = Camera.new(math.degreesToRadians(120), aspect),
         .sky_color = color.RGB.of(0.0, 0.0, 0.0)
     };
 }

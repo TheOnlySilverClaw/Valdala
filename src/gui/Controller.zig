@@ -44,6 +44,10 @@ pub fn onKey(ptr: *anyopaque, key: glfw.Key, action: glfw.Action, modifiers: glf
         .s => if(self.camera) |c| c.moveYaw(-0.1),
         .j => if(self.camera) |c| c.rotateRoll(-0.1),
         .l => if(self.camera) |c| c.rotateRoll(0.1),
+        .k => if(self.camera) |c| c.rotatePitch(-0.1),
+        .i => if(self.camera) |c| c.rotatePitch(0.1),
+        .u => if(self.camera) |c| c.rotateYaw(-0.1),
+        .o => if(self.camera) |c| c.rotateYaw(0.1),
         else => log.debug("unbound key {s} {s} {s} {s}", .{
             @tagName(key),
             @tagName(action),

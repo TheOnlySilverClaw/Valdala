@@ -62,12 +62,10 @@ pub fn Quaternion(comptime T: type) type {
             return result.normalized();
         }
 
-        pub fn apply(self: Self, v: Vector) Vector {
+        pub fn rotate(self: Self, v: Vector) Vector {
             
             const w = self.w;
-            // flipping y and z flips the x axis, TODO: there is probably
-            // a cleaner way of doing this
-            const r: Vector = .{ .x = self.x, .y = -self.y, .z = -self.z };
+            const r: Vector = .{ .x = self.x, .y = self.y, .z = self.z };
             const t = r.cross(v).times(2.0);
             return v.add(t.times(w)).add(r.cross(t));
         }

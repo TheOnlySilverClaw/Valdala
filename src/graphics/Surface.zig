@@ -25,7 +25,7 @@ device: *webgpu.Device,
 queue: *webgpu.Queue,
 width: u32,
 height: u32,
-
+aspect: f32,
 
 pub fn create(self: *Self, window: *glfw.Window, instance: *webgpu.Instance) !void {
     
@@ -66,6 +66,7 @@ pub fn resize(self: *Self, width: u32, height: u32) void {
     }
     
     self.createDepthTexture();
+    self.aspect = @as(f32, @floatFromInt(self.width)) / @as(f32, @floatFromInt(self.height));
 }
 
 pub fn configure(self: *Self) void {

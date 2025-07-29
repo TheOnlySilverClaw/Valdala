@@ -121,7 +121,7 @@ pub fn Vector3(T: type) type {
         }
 
         pub fn isNormalized(self: Self) bool {
-            return math.approxEqAbs(T, self.lengthSquared() - 1, 0, math.floatEps(T));
+            return math.approxEqAbs(T, self.lengthSquared() - 1, 0, 1e-5);
         }
 
         pub fn normalize(self: Self) error{CloseToZero}!Self {
