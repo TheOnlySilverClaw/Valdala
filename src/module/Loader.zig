@@ -9,7 +9,7 @@ const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 
 const Yaml = @import("yaml").Yaml;
-const Module = @import("Module.zig");
+const Module = @import("LoadedModule.zig");
 const Tile = @import("Tile.zig");
 const List = std.ArrayListUnmanaged;
 
