@@ -62,7 +62,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     if(target.result.os.tag == .macos) {
         glfw_webgpu.addCSourceFile(.{ .file = b.path("src/glfw-wgpu/metal_layer.m") });
     }
-    
+
     const algebra = b.addModule("algebra", .{
         .root_source_file = b.path("src/algebra/module.zig" ),
         .target = target,
@@ -196,7 +196,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     server.addImport("color", color);
     server.addImport("simulation", simulation);
     server.addImport("protocol", protocol);
-    
+
     root.addImport("client", client);
     root.addImport("server", server);
 
@@ -251,7 +251,7 @@ fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarg
                 .optimize = optimize,
                 .target = target,
             });
-            exe.addCSourceFile(.{ .file = b.path("src/glfw/metal_layer.m") });
+            metal_layer_mod.addCSourceFile(.{ .file = b.path("src/glfw-wgpu/metal_layer.m") });
 
             exe.linkLibrary(b.addLibrary(.{
                 .name = "metalLayer",
