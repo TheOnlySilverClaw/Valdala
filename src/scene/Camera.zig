@@ -93,8 +93,7 @@ pub fn toMatrix(self: Self) Matrix {
     
     const view = self.viewMatrix();
     const projection = self.projectionMatrix();
-    _ = projection;
-    return view;
+    return projection.multiply(view);
 }
 
 fn viewMatrix(self: Self) Matrix {
@@ -124,7 +123,7 @@ fn projectionMatrix(self: Self) Matrix {
     matrix.set(0, 0, f / aspect);
     matrix.set(1, 1, f);
     matrix.set(2, 2, far / (far - near));
-    matrix.set(2, 3, -1.0);
+    matrix.set(2, 3, 1.0);
     matrix.set(3, 2, -(far * near) / (far - near));
     
     return matrix;

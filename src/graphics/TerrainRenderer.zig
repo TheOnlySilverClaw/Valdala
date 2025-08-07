@@ -129,11 +129,11 @@ pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassE
     queue.writeBuffer(self.projection_buffer, f32, &view_projection_matrix.values, 0);
 
      for(scene.chunks) |*chunk| {
-        try self.renderChunk(chunk, render_pass);
+        try self.renderChunk(&scene.camera, chunk, render_pass);
      }
 }
 
-pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEncoder) !void {
+pub fn renderChunk(self: *Self, camera: *const @import("scene").Camera, chunk: *Chunk, render_pass: *webgpu.RenderPassEncoder) !void {
 
     if(chunk.mesh) |mesh| {
         render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
@@ -141,7 +141,7 @@ pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEn
         render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(u16)), 1, 0, 0, 0);
     } else {
         const mesh = try self.allocator.create(ChunkMesh);
-        mesh.* = ChunkMesh.generate(chunk, self.surface.device);
+        mesh.* = ChunkMesh.generate(camera, chunk, self.surface.device);
         chunk.mesh = mesh;
     }
 }

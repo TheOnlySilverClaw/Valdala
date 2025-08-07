@@ -36,7 +36,7 @@ const grid = coordinate.Grid(i64, f32).of(hex);
 vertex_buffer: *webgpu.Buffer,
 index_buffer: *webgpu.Buffer,
 
-pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
+pub fn generate(camera: *const @import("scene").Camera, chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
         .size = Chunk.Layout.volume * 6 * @sizeOf(Vertex),
@@ -70,8 +70,8 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
         .height = 0
     });
 
-    for (0..width) |north| {
-        for (0..width) |south_east| {
+    for (31..32) |north| {
+        for (31..32) |south_east| {
             // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
@@ -89,6 +89,14 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
             const tile = chunk.getTile(tile_offset);
             const center = grid.getCenter(tile_position).subtract(chunk_center);
             const vertices = generateTileVertices(tile, center, odd);
+            
+            const camera_matrix = camera.toMatrix();
+            for(vertices, 0..) |v, i| {
+
+                const vm = algebra.Matrix(f32, 1, 4).of(.{ v.position.x, v.position.y, v.position.z, 1 });
+                const p = camera_matrix.multiply(vm);
+                log.debug("v{} {d:.5} {d:.5} {d:.5}", .{ i, p.values[0], p.values[1], p.values[2] });
+            }
             var indices: [base_indices.len]u16 = undefined;
             for(base_indices, 0..) |base_index, index_number| {
                 indices[index_number] = @intCast(tile_index * vertices.len + base_index);
