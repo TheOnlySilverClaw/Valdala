@@ -70,8 +70,8 @@ pub fn generate(camera: *const @import("scene").Camera, chunk: *const Chunk, dev
         .height = 0
     });
 
-    for (31..32) |north| {
-        for (31..32) |south_east| {
+    for (32..33) |north| {
+        for (32..33) |south_east| {
             // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),

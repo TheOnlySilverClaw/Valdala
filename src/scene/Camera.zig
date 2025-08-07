@@ -16,7 +16,7 @@ aspect: f32,
 near: f32,
 far: f32,
 
-pub fn new(fov: f32, aspect: f32) Self {
+pub fn init(fov: f32, aspect: f32) Self {
     return .{
         .position = .zero,
         .rotation = .identity,
@@ -42,6 +42,10 @@ pub fn moveX(self: *Self, amount: f32) void {
 
 pub fn moveY(self: *Self, amount: f32) void {
     self.position.y += amount;
+}
+
+pub fn moveZ(self: *Self, amount: f32) void {
+    self.position.z += amount;
 }
 
 pub fn movePitch(self: *Self, distance: f32) void {
@@ -113,17 +117,16 @@ fn viewMatrix(self: Self) Matrix {
 
 fn projectionMatrix(self: Self) Matrix {
 
-    const fov_half = self.fov / 2;
-    const f = 1 / @tan(fov_half);
+    const tan_half = @tan(self.fov / 2);
     const aspect = self.aspect;
     const far = self.far;
     const near = self.near;
 
     var matrix = Matrix.zero;
-    matrix.set(0, 0, f / aspect);
-    matrix.set(1, 1, f);
-    matrix.set(2, 2, far / (far - near));
-    matrix.set(2, 3, 1.0);
+    matrix.set(0, 0, 1 / (aspect * tan_half));
+    matrix.set(1, 1, 1 / tan_half);
+    matrix.set(2, 2, far / (near - far));
+    matrix.set(2, 3, -1.0);
     matrix.set(3, 2, -(far * near) / (far - near));
     
     return matrix;

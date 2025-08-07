@@ -43,11 +43,17 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
         }
     }
 
+    var camera = Camera.init(math.degreesToRadians(70), aspect);
+    // move up
+    camera.moveZ(2.0);
+    // look down
+    // camera.rotatePitch(math.degreesToRadians(90));
+
     return .{
         .allocator = allocator,
         .chunk_distance = chunk_distance,
         .chunks = chunks,
-        .camera = Camera.new(math.degreesToRadians(120), aspect),
+        .camera = camera,
         .sky_color = color.RGB.of(0.0, 0.0, 0.0)
     };
 }
