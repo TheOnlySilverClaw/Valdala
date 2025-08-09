@@ -137,8 +137,8 @@ pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEn
 
     if(chunk.mesh) |mesh| {
         render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
-        render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
-        render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(u16)), 1, 0, 0, 0);
+        render_pass.setIndexBuffer(mesh.index_buffer, .uint32, 0, mesh.index_buffer.size());
+        render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(ChunkMesh.Index)), 1, 0, 0, 0);
     } else {
         const mesh = try self.allocator.create(ChunkMesh);
         mesh.* = ChunkMesh.generate(chunk, self.surface.device);
