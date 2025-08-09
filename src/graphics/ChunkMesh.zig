@@ -42,7 +42,7 @@ index_buffer: *webgpu.Buffer,
 pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * 6 * @sizeOf(Vertex),
+        .size = Chunk.Layout.volume * vertices_per_tile * @sizeOf(Vertex),
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
@@ -95,7 +95,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
     const queue = device.getQueue();
     defer queue.release();
 
-    const width = 4; // Chunk.Layout.width;
+    const width = Chunk.Layout.width;
 
     var tile_index: u32 = 0;
     const chunk_center = grid.getCenter(.{
@@ -154,8 +154,8 @@ pub fn generateTileVertices(tile: Tile, center: Vector, odd: bool) [vertices_per
     
     const texture_top: Vertex.Texture = tile.index * 4;
 
-    const z_top = hex.height;
-    const z_bottom = 0;
+    const z_top = center.z + hex.height;
+    const z_bottom = center.z;
 
     const half_side = hex.side / 2;
 
