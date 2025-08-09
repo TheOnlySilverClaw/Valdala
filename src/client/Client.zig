@@ -33,7 +33,20 @@ pub fn init(allocator: Allocator) !Self {
     controller.* = gui.Controller.init(window);
     try controller.registerWindowListeners();
 
-    try window.create(1600, 1600, "Valdala");
+    const monitor = glfw.Monitor.getPrimary() orelse {
+        log.err("Could not find primary monitor", .{});
+        return error.MonitorUnavailable;
+    };
+
+    const video_mode = monitor.getVideoMode() orelse {
+        log.err("Could not get video mode", .{});
+        return error.VideoModeUnavailable;
+    };
+
+    const window_percentage: f32 = 0.6;
+    const window_width: u32 = @intFromFloat(window_percentage * @as(f32, @floatFromInt(video_mode.width)));
+    const window_height: u32 = @intFromFloat(window_percentage * @as(f32, @floatFromInt(video_mode.height)));
+    try window.create(window_width, window_height,"Valdala");
     window.center();
 
     var asset_loader = try AssetLoader.init(allocator, window.surface.device,"asset");
