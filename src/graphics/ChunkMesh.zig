@@ -30,7 +30,9 @@ pub const Vertex = extern struct {
     texture: Texture,
 };
 
-const hex = coordinate.Hexagon(f32).new(0.5, 0.5);
+pub const Index = u32;
+
+const hex = coordinate.Hexagon(f32).new(0.5 * 1, 0.5);
 const grid = coordinate.Grid(i64, f32).of(hex);
 const vertices_per_tile = (2 * 6) + (4 * 6);
 
@@ -44,7 +46,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
-    const base_indices = [_]u16 {
+    const base_indices = [_]Index {
         // top
         0, 4, 1,
         1, 4, 3,
@@ -83,7 +85,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
     };
 
     const index_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * base_indices.len * @sizeOf(u16),
+        .size = Chunk.Layout.volume * base_indices.len * @sizeOf(Index),
         .usage = .{ .index = true, .copy_dst = true }
     };
 
@@ -121,13 +123,13 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
             const tile = chunk.getTile(tile_offset);
             const center = grid.getCenter(tile_position).subtract(chunk_center);
             const vertices = generateTileVertices(tile, center, odd);
-            var indices: [base_indices.len]u16 = undefined;
+            var indices: [base_indices.len]Index = undefined;
             for(base_indices, 0..) |base_index, index_number| {
                 indices[index_number] = @intCast(tile_index * vertices.len + base_index);
             }
 
             queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_index * vertices.len * @sizeOf(Vertex));
-            queue.writeBuffer(index_buffer, u16, &indices, tile_index * indices.len * @sizeOf(u16));
+            queue.writeBuffer(index_buffer, Index, &indices, tile_index * indices.len * @sizeOf(Index));
 
             tile_index += 1;
         }
