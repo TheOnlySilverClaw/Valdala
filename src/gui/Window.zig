@@ -56,7 +56,7 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
     self.surface = try self.allocator.create(graphics.Surface);
     try self.surface.create(self.handle, instance);
     instance.release();
-    self.surface.resize(1200, 1200);
+    self.surface.resize(width, height);
 
     self.handle.setUserPoiner(self);
     _ = self.handle.setKeyCallback(Self.onKey);
