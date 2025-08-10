@@ -103,6 +103,8 @@ pub fn launch(self: *Self) !void {
     
     while(!self.window.shouldClose()) {
         glfw.pollEvents();
+        // TODO this should propably move into an event handler
+        self.scene.camera.aspect = self.window.surface.aspect;
         self.window.update();
         try self.renderer.renderScene(self.scene);
         std.time.sleep(std.time.ns_per_ms * 16);
