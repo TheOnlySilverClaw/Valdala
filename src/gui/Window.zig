@@ -111,8 +111,9 @@ pub fn center(self: Self) void {
 
     if(self.monitor) |monitor| {
         if(monitor.getVideoMode()) |mode| {
-            const x = (@as(u32, @intCast(mode.width)) - self.surface.width) / 2;
-            const y = (@as(u32, @intCast(mode.height)) - self.surface.height) / 2;
+            const window_size = self.handle.getSize();
+            const x = @as(u32, @intCast(mode.width - window_size.width)) / 2;
+            const y = @as(u32, @intCast(mode.height - window_size.height)) / 2;
             self.handle.setPosition(@intCast(x), @intCast(y));
         }
     }
