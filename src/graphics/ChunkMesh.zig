@@ -77,7 +77,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
         // side 4
         26, 27, 28,
-        28, 28, 27,
+        29, 28, 27,
 
         // side 5
         30, 31, 32,
