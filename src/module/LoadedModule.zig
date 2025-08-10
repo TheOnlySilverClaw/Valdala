@@ -13,10 +13,10 @@ id: ID,
 name: Name,
 tiles: List(*Tile),
 
-pub fn init(id: ID) Self {
+pub fn init(id: ID, name: Name) Self {
     return .{
         .id = id,
-        .name = "",
+        .name = name,
         .tiles = .empty
     };
 }
