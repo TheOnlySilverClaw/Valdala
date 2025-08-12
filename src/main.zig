@@ -25,7 +25,7 @@ pub fn main() !void {
     Thread.sleep(std.time.ns_per_s);
 
     // client should be on the main thread because operating system restrictions
-    var client = try Client.init(allocator);
+    var client = try Client.init(allocator, directory);
     try client.launch();
     
     try server.shutdown();

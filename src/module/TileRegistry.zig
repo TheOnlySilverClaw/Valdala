@@ -8,35 +8,20 @@ const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
 const Image = zigimg.ImageUnmanaged;
-const List = std.ArrayList;
+const List = std.ArrayListUnmanaged;
+const Tile = @import("Tile.zig");
 
-pub const Entry = struct {
-    textures: TextureOffsets
-};
-
-pub const TextureOffsets = struct {
-    single: u8,
-    bottom: u8,
-    side: u8
-};
 const Self = @This();
 
 const texture_size = 8;
 const file_size_limit = 256;
 
 allocator: Allocator,
-entries: List(Entry),
+entries: List(Tile),
 texture_array: graphics.TextureArray,
 texture_counter: u32,
 
-pub fn init(allocator: Allocator, device: *webgpu.Device, expected_entries: u32) !Self {
-
-    const texture_array: graphics.TextureArray = undefined;
-    texture_array.create(texture_size, texture_size, expected_entries, device, .{
-        .label = webgpu.StringView.sized("tiles"),
-        // TODO generate mip maps
-        // .mip_levels = 4
-    });
+pub fn init(allocator: Allocator, texture_array: graphics.TextureArray) !Self {
 
     return .{
         .allocator = allocator,
@@ -46,11 +31,23 @@ pub fn init(allocator: Allocator, device: *webgpu.Device, expected_entries: u32)
     };
 }
 
-pub fn loadTile(self: *Self, directory: fs.Dir, descriptor: Yaml.Map) !void {
-    try loadTextures(self.allocator, directory, descriptor);
+pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Map) !void {
+
+    var tile: Tile = undefined;
+    
+    tile.id = id;
+
+    const name = descriptor.get("name") orelse return error.MissingName;
+    tile.name = try self.allocator.dupe(u8, try name.asString());
+    
+    const textures = descriptor.get("textures") orelse return error.MissingTextures;
+    tile.textures = try loadTextures(self.allocator, directory, try textures.asMap());
+
+    try self.entries.append(self.allocator, tile);
+
 }
 
-fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Entry.TextureOffsets {
+fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
 
 
     if(map.get("all")) |value| {
@@ -93,6 +90,7 @@ fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !u32 {
     return index;
 }
 
-pub fn deinit(self: Self) void {
+pub fn deinit(self: *Self) void {
+    self.entries.clearAndFree(self.allocator);
     self.texture_array.destroy();
 }

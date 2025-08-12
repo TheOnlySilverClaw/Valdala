@@ -18,7 +18,7 @@ handle: *webgpu.Texture,
 queue: *webgpu.Queue,
 
 
-pub fn create(self: Self, width: u32, height: u32, layers: u32, device: *webgpu.Device, options: Options) void {
+pub fn create(self: *Self, width: u32, height: u32, layers: u32, device: *webgpu.Device, options: Options) void {
 
     const descriptor = webgpu.TextureDescriptor {
         .label = options.label,

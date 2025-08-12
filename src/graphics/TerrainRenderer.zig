@@ -1,16 +1,17 @@
 const std = @import("std");
 const webgpu = @import("webgpu");
-const log = std.log.scoped(.terrain);
 const algebra = @import("algebra");
+const module = @import("module");
+const log = std.log.scoped(.terrain);
 
 const Allocator = std.mem.Allocator;
 const Scene = @import("scene").Scene;
 const Chunk = @import("scene").Chunk;
-
 const Surface = @import("Surface.zig");
 const Pipeline = @import("TerrainRenderPipeline.zig");
 const AssetLoader = @import("asset").AssetLoader;
 const ChunkMesh = @import("ChunkMesh.zig");
+const TileRegistry = @import("module").TileRegistry;
 
 const Self = @This();
 
@@ -25,24 +26,12 @@ terrain_texture_view: *webgpu.TextureView,
 bindgroup: *webgpu.BindGroup,
 
 
-pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetLoader) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRegistry) !Self {
 
     const device = surface.device;
 
-    const pipeline = try Pipeline.init(surface, asset_loader);
+    const pipeline = try Pipeline.init(surface);
     const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
-
-    const texture_paths = [_][]const u8 {
-        "testing/top_grass.png",
-        "testing/bottom.png",
-        "testing/side.png",
-        "testing/inner.png",
-
-        "testing/top_rock.png",
-        "testing/bottom.png",
-        "testing/side.png",
-        "testing/inner.png",
-    };
 
     const projection_buffer_descriptor = webgpu.BufferDescriptor {
         .label = .sized("projection"),
@@ -74,14 +63,12 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
         .sampler = sampler
     };
 
-    const terrain_texture = try asset_loader.loadTextureArray(
-        texture_paths[0..], 16, 16, .{ .label = .sized("terrain")});
     // omitting the descriptor only works if the texture array has more than 1 element!
-    const terrain_texture_view = terrain_texture.createView(null);
+    const tile_texture_view = tile_registry.texture_array.handle.createView(null);
 
     const terrain_texture_entry = webgpu.BindGroupEntry {
         .binding = 2,
-        .texture_view = terrain_texture_view
+        .texture_view = tile_texture_view
     };
 
     const entries = [_] webgpu.BindGroupEntry {
@@ -104,8 +91,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, asset_loader: *AssetL
         .pipeline = pipeline,
         .bindgroup = bindgroup,
         .projection_buffer = projection_buffer,
-        .terrain_texture = terrain_texture,
-        .terrain_texture_view = terrain_texture_view,
+        .terrain_texture = tile_registry.texture_array.handle,
+        .terrain_texture_view = tile_texture_view,
         .sampler = sampler
     };
 }

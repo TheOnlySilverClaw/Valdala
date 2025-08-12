@@ -1,5 +1,6 @@
 const std = @import("std");
 const net = std.net;
+const fs = std.fs;
 const glfw = @import("glfw");
 const gui = @import("gui");
 const Scene = @import("scene").Scene;
@@ -9,7 +10,7 @@ const log = std.log.scoped(.client);
 const Allocator = std.mem.Allocator;
 const Thread = std.Thread;
 const Connection = @import("Connection.zig");
-const AssetLoader = @import("asset").AssetLoader;
+const ModuleLoader = @import("module").Loader;
 
 const Self = @This();
 
@@ -17,12 +18,12 @@ const Self = @This();
 allocator: Allocator,
 window: *gui.Window,
 controller: *gui.Controller,
-renderer: *graphics.GameRenderer,
+renderer: graphics.GameRenderer,
 connection: *Connection,
 scene: *Scene,
-asset_loader: AssetLoader,
+module_loader: ModuleLoader,
 
-pub fn init(allocator: Allocator) !Self {
+pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
     try glfw.initialize();
 
@@ -49,10 +50,13 @@ pub fn init(allocator: Allocator) !Self {
     try window.create(window_width, window_height,"Valdala");
     window.center();
 
-    var asset_loader = try AssetLoader.init(allocator, window.surface.device,"asset");
+    var tile_textures: graphics.TextureArray = undefined;
+    tile_textures.create(9, 9, 64, window.surface.device, .{ .label = .sized("tiles")});
 
-    const renderer = try allocator.create(graphics.GameRenderer);
-    renderer.* = try graphics.GameRenderer.init(allocator, window.surface, &asset_loader);
+    const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
+    const module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures);
+
+    const renderer = try graphics.GameRenderer.init(allocator, window.surface, module_loader.tile_registry);
 
     const scene = try allocator.create(Scene);
 
@@ -65,11 +69,11 @@ pub fn init(allocator: Allocator) !Self {
         .renderer = renderer,
         .connection = connection,
         .scene = scene,
-        .asset_loader = asset_loader
+        .module_loader = module_loader
     };
 }
 
-pub fn deinit(self: Self) void {
+pub fn deinit(self: *Self) void {
 
     self.window.destroy();
     self.window.deinit();
@@ -78,13 +82,12 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.controller);
     
     self.renderer.deinit(self.allocator);
-    self.allocator.destroy(self.renderer);
 
     self.allocator.destroy(self.connection);
 
     self.allocator.destroy(self.scene);
 
-    self.asset_loader.deinit();
+    self.module_loader.deinit();
 
     glfw.terminate();
 }

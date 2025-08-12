@@ -3,15 +3,18 @@ const fs = std.fs;
 const math = std.math;
 const zigimg = @import("zigimg");
 const log = std.log.scoped(.module_loader);
+const graphics = @import("graphics");
 
 
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 
 const Yaml = @import("yaml").Yaml;
-const Module = @import("LoadedModule.zig");
-const Tile = @import("Tile.zig");
 const List = std.ArrayListUnmanaged;
+const Tile = @import("Tile.zig");
+const TileRegistry = @import("TileRegistry.zig");
+const TextureArray = graphics.TextureArray;
+const Module = @import("LoadedModule.zig");
 
 pub const Error = error {
     MissingName,
@@ -30,13 +33,22 @@ const Descriptor = struct {
 allocator: Allocator,
 root: fs.Dir,
 loaded: List(*Module),
+tile_registry: TileRegistry,
 
-pub fn init(allocator: Allocator, root: fs.Dir) !Self {
+pub fn init(allocator: Allocator, root: fs.Dir, tile_textures: TextureArray) !Self {
+    
+    const tile_registry = try TileRegistry.init(allocator, tile_textures);
+
     return .{
         .allocator = allocator,
         .root = root,
-        .loaded = List(*Module).empty
+        .loaded = .empty,
+        .tile_registry = tile_registry
     };
+}
+
+pub fn deinit(self: *Self) void {
+    self.unloadModules();
 }
 
 pub fn loadModule(self: *Self, id: []const u8) !*const Module {
@@ -60,7 +72,7 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     
     if(module_descriptor.get("tiles")) |tiles| {
         const tile_map = try tiles.asMap();
-        module.tiles = try loadTiles( self.allocator, parser_allocator, directory, tile_map);
+        module.tiles = try loadTiles( self.allocator, parser_allocator, directory, tile_map, self.tile_registry);
     }
 
     try self.loaded.append(self.allocator, module);
@@ -76,11 +88,8 @@ pub fn unloadModules(self: *Self) void {
     self.loaded.clearAndFree(self.allocator);
 }
 
-fn loadTiles(module_allocator: Allocator, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !List(*Tile) {
+fn loadTiles(self: Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !void {
     
-    var tiles = List(*Tile).empty;
-    try tiles.ensureTotalCapacity(module_allocator, map.entries.len);
-
     var iterator = map.iterator();
     while(iterator.next()) |entry| {
         
@@ -90,23 +99,12 @@ fn loadTiles(module_allocator: Allocator, arena: Allocator, directory: fs.Dir, m
 
         const parent_path = fs.path.dirname(file_name) orelse return Error.InvalidDirectory;
 
-        const descriptor = try loadYamlMap(arena, file);
-        const name = if(descriptor.get("name")) |name| try name.asString() else return Error.MissingName;
+        const id_copy = try self.allocator.dupe(u8, entry.key_ptr.*);
+        const descriptor = try loadYamlMap(arena, file);    
 
-        const tile = try module_allocator.create(Tile);
-        tile.id = try module_allocator.dupe(u8, entry.key_ptr.*);
-        tile.name = try module_allocator.dupe(u8, name);
-
-        if(descriptor.get("textures")) |textures| {
-            const texture_map = try textures.asMap();
-            const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
-            tile.textures = try loadTextures(module_allocator, parent_directory, texture_map);
-        }
-        
-        tiles.appendAssumeCapacity(tile);
+        const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
+        try self.tile_registry.loadTile(parent_directory, id_copy, descriptor);
     }
-
-    return tiles;
 }
 
 fn loadYamlItems(allocator: Allocator, file: fs.File) ![]Yaml.Value {
