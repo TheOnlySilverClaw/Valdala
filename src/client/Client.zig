@@ -51,10 +51,12 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     window.center();
 
     var tile_textures: graphics.TextureArray = undefined;
-    tile_textures.create(9, 9, 64, window.surface.device, .{ .label = .sized("tiles")});
+    tile_textures.create(8, 8, 64, window.surface.device, .{ .label = .sized("tiles")});
 
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
-    const module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures);
+    var module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures);
+    const module_id = try allocator.dupe(u8, "valdala");
+    _ = try module_loader.loadModule(module_id);
 
     const renderer = try graphics.GameRenderer.init(allocator, window.surface, module_loader.tile_registry);
 

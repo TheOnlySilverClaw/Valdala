@@ -48,6 +48,7 @@ pub fn init(allocator: Allocator, root: fs.Dir, tile_textures: TextureArray) !Se
 }
 
 pub fn deinit(self: *Self) void {
+    self.tile_registry.deinit();
     self.unloadModules();
 }
 
@@ -72,7 +73,7 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     
     if(module_descriptor.get("tiles")) |tiles| {
         const tile_map = try tiles.asMap();
-        module.tiles = try loadTiles( self.allocator, parser_allocator, directory, tile_map, self.tile_registry);
+        try self.loadTiles(parser_allocator, directory, tile_map);
     }
 
     try self.loaded.append(self.allocator, module);
@@ -88,7 +89,7 @@ pub fn unloadModules(self: *Self) void {
     self.loaded.clearAndFree(self.allocator);
 }
 
-fn loadTiles(self: Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !void {
+fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !void {
     
     var iterator = map.iterator();
     while(iterator.next()) |entry| {

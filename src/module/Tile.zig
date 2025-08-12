@@ -6,7 +6,7 @@ pub const ID = []const u8;
 pub const Name = []const u8;
 
 pub const Textures = struct {
-    single: u8,
+    top: u8,
     bottom: u8,
     side: u8
 };

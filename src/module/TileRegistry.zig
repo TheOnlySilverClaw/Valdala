@@ -17,7 +17,7 @@ const texture_size = 8;
 const file_size_limit = 256;
 
 allocator: Allocator,
-entries: List(Tile),
+tiles: List(Tile),
 texture_array: graphics.TextureArray,
 texture_counter: u32,
 
@@ -25,10 +25,20 @@ pub fn init(allocator: Allocator, texture_array: graphics.TextureArray) !Self {
 
     return .{
         .allocator = allocator,
-        .entries = .empty,
+        .tiles = .empty,
         .texture_array = texture_array,
         .texture_counter = 0
     };
+}
+
+pub fn deinit(self: *Self) void {
+
+    for(self.tiles.items) |tile| {
+        tile.deinit(self.allocator);
+    }
+
+    self.tiles.clearAndFree(self.allocator);
+    self.texture_array.destroy();
 }
 
 pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Map) !void {
@@ -41,17 +51,17 @@ pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Ma
     tile.name = try self.allocator.dupe(u8, try name.asString());
     
     const textures = descriptor.get("textures") orelse return error.MissingTextures;
-    tile.textures = try loadTextures(self.allocator, directory, try textures.asMap());
+    tile.textures = try self.loadTextures(directory, try textures.asMap());
 
-    try self.entries.append(self.allocator, tile);
+    try self.tiles.append(self.allocator, tile);
 
 }
 
-fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
+fn loadTextures(self: *Self, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
 
 
     if(map.get("all")) |value| {
-        try loadTexture(allocator, directory, try value.asString());
+        try self.loadTexture(directory, try value.asString());
         return .{
             .top = 0,
             .bottom = 0,
@@ -61,9 +71,9 @@ fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.Te
 
     if(map.contains("top") and map.contains("bottom") and map.contains("side")) {
         
-        try loadTexture(allocator, directory, try map.get("top").?.asString());
-        try loadTexture(allocator, directory, try map.get("bottom").?.asString());
-        try loadTexture(allocator, directory, try map.get("side").?.asString());
+        try self.loadTexture(directory, try map.get("top").?.asString());
+        try self.loadTexture(directory, try map.get("bottom").?.asString());
+        try self.loadTexture(directory, try map.get("side").?.asString());
 
         return .{
             .top = 0,
@@ -75,22 +85,15 @@ fn loadTextures(allocator: Allocator, directory: fs.Dir, map: Yaml.Map) !Tile.Te
     return error.MissingTextures;
 }
 
-fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !u32 {
+fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !void {
     
     var file = try directory.openFile(path, .{});
     defer file.close();
 
-    var image = try Image.fromFile(self.allocator, file);
+    var image = try Image.fromFile(self.allocator, &file);
     try image.convert(self.allocator, .rgba32);
-    defer self.allocator.free(image.pixels);
+    defer image.deinit(self.allocator);
 
-    try self.texture_array.write(self.texture_counter, image.pixels);
-    const index = self.texture_counter;
+    try self.texture_array.write(self.texture_counter, image.pixels.asConstBytes());
     self.texture_counter += 1;
-    return index;
-}
-
-pub fn deinit(self: *Self) void {
-    self.entries.clearAndFree(self.allocator);
-    self.texture_array.destroy();
 }
