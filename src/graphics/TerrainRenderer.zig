@@ -18,7 +18,7 @@ const Self = @This();
 allocator: Allocator,
 surface: *const Surface,
 pipeline: Pipeline,
-
+tile_registry: TileRegistry,
 projection_buffer: *webgpu.Buffer,
 sampler: *webgpu.Sampler,
 terrain_texture: *webgpu.Texture,
@@ -93,7 +93,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRe
         .projection_buffer = projection_buffer,
         .terrain_texture = tile_registry.texture_array.handle,
         .terrain_texture_view = tile_texture_view,
-        .sampler = sampler
+        .sampler = sampler,
+        .tile_registry = tile_registry
     };
 }
 
@@ -128,7 +129,7 @@ pub fn renderChunk(self: *Self, chunk: *Chunk, render_pass: *webgpu.RenderPassEn
         render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(ChunkMesh.Index)), 1, 0, 0, 0);
     } else {
         const mesh = try self.allocator.create(ChunkMesh);
-        mesh.* = ChunkMesh.generate(chunk, self.surface.device);
+        mesh.* = ChunkMesh.generate(chunk, self.surface.device, self.tile_registry);
         chunk.mesh = mesh;
     }
 }

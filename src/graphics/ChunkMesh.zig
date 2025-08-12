@@ -2,12 +2,14 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 const coordinate = @import("coordinate");
 const algebra = @import("algebra");
+const module = @import("module");
 const log = std.log.scoped(.mesh);
 
 const Chunk = @import("scene").Chunk;
 const Tile = @import("scene").Tile;
 const TilePosition = coordinate.Position(i64);
 const Vector = algebra.Vector3(f32);
+const TileRegistry = module.TileRegistry;
 
 const Self = @This();
 
@@ -39,7 +41,7 @@ const vertices_per_tile = (2 * 7) + (6 * 4);
 vertex_buffer: *webgpu.Buffer,
 index_buffer: *webgpu.Buffer,
 
-pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
+pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: TileRegistry) Self {
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
         .size = Chunk.Layout.volume * vertices_per_tile * @sizeOf(Vertex),
@@ -101,12 +103,13 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const width = Chunk.Layout.width;
 
-    var tile_index: u32 = 0;
+    var tile_counter: u32 = 0;
     const chunk_center = grid.getCenter(.{
         .north = @intCast(width / 2),
         .south_east = @intCast(width / 2),
         .height = 0
     });
+
 
     for (0..width) |north| {
         for (0..width) |south_east| {
@@ -123,17 +126,18 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
             };
 
             const tile = chunk.getTile(tile_offset);
+            const tile_textures = tile_registry.tiles.items[tile.index].textures;
             const center = grid.getCenter(tile_position).subtract(chunk_center);
-            const vertices = generateTileVertices(tile, center);
+            const vertices = generateTileVertices(tile, center, tile_textures);
             var indices: [base_indices.len]Index = undefined;
             for(base_indices, 0..) |base_index, index_number| {
-                indices[index_number] = @intCast(tile_index * vertices.len + base_index);
+                indices[index_number] = @intCast(tile_counter * vertices.len + base_index);
             }
 
-            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_index * vertices.len * @sizeOf(Vertex));
-            queue.writeBuffer(index_buffer, Index, &indices, tile_index * indices.len * @sizeOf(Index));
+            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_counter * vertices.len * @sizeOf(Vertex));
+            queue.writeBuffer(index_buffer, Index, &indices, tile_counter * indices.len * @sizeOf(Index));
 
-            tile_index += 1;
+            tile_counter += 1;
         }
     }
 
@@ -152,9 +156,9 @@ pub fn deinit(self: Self) void {
     self.index_buffer.release();
 }
 
-pub fn generateTileVertices(tile: Tile, center: Vector) [vertices_per_tile]Vertex {
+pub fn generateTileVertices(tile: Tile, center: Vector, textures: module.Tile.Textures) [vertices_per_tile]Vertex {
     
-    const texture_top: Vertex.Texture = tile.index * 4;
+    const texture_top: Vertex.Texture = tile.index + textures.top;
 
     const z_top = center.z + hex.height;
     const z_bottom = center.z;
