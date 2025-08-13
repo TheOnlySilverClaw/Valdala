@@ -61,31 +61,31 @@ fn loadTextures(self: *Self, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
 
 
     if(map.get("all")) |value| {
-        try self.loadTexture(directory, try value.asString());
+        const index = try self.loadTexture(directory, try value.asString());
         return .{
-            .top = 0,
-            .bottom = 0,
-            .side = 0
+            .top = index,
+            .bottom = index,
+            .side = index
         };
     }
 
     if(map.contains("top") and map.contains("bottom") and map.contains("side")) {
         
-        try self.loadTexture(directory, try map.get("top").?.asString());
-        try self.loadTexture(directory, try map.get("bottom").?.asString());
-        try self.loadTexture(directory, try map.get("side").?.asString());
+        const top_index = try self.loadTexture(directory, try map.get("top").?.asString());
+        const bottom_index = try self.loadTexture(directory, try map.get("bottom").?.asString());
+        const side_index = try self.loadTexture(directory, try map.get("side").?.asString());
 
         return .{
-            .top = 0,
-            .bottom = 1,
-            .side = 2
+            .top = top_index,
+            .bottom = bottom_index,
+            .side = side_index
         };
     }
 
     return error.MissingTextures;
 }
 
-fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !void {
+fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !u32 {
     
     var file = try directory.openFile(path, .{});
     defer file.close();
@@ -95,5 +95,7 @@ fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !void {
     defer image.deinit(self.allocator);
 
     try self.texture_array.write(self.texture_counter, image.pixels.asConstBytes());
+    const index = self.texture_counter;
     self.texture_counter += 1;
+    return index;
 }

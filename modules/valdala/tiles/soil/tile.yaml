@@ -1,3 +1,5 @@
-name: Grass
+name: Soil
 textures:
-    all: soil_all.png
+    top: cover.png
+    side: side.png
+    bottom: cover.png

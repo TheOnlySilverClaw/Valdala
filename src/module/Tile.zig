@@ -6,9 +6,9 @@ pub const ID = []const u8;
 pub const Name = []const u8;
 
 pub const Textures = struct {
-    top: u8,
-    bottom: u8,
-    side: u8
+    top: u32,
+    bottom: u32,
+    side: u32
 };
 
 const Self = @This();

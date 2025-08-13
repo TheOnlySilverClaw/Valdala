@@ -33,7 +33,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
                     .south_east = @intCast(y),
                     .height = 0
                 };
-                const tile_type = @as(u16, @truncate(random.next())) % 2;
+                const tile_type = @as(u16, @truncate(random.next())) % 4;
                 const tile = Tile {
                     .index = tile_type,
                     .orientation = .full
