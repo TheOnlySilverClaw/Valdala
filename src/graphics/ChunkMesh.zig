@@ -113,16 +113,17 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
 
     for (0..width) |north| {
         for (0..width) |south_east| {
+            for(0..Chunk.Layout.height) |height| {
             // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
-                .height = 0
+                .height = @intCast(height)
             };
             const tile_position = TilePosition {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
-                .height = 0
+                .height = @intCast(height)
             };
 
             const tile = chunk.getTile(tile_offset);
@@ -141,6 +142,7 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
             queue.writeBuffer(index_buffer, Index, &indices, tile_counter * indices.len * @sizeOf(Index));
 
             tile_counter += 1;
+            }
         }
     }
 
