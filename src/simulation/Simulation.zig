@@ -52,7 +52,7 @@ pub fn update(self: *Self, delta: u64) !void {
     try self.time.update(delta);
     // just to keep the CPU from burning until we actually do things
 
-    self.world.sky_color = color.RGB.of(0.0, 0.1, self.time.dayProgress());
+    self.world.sky_color = color.RGB.of(0.2, 0.2, 0.9 - self.time.dayProgress());
 
     std.time.sleep(std.time.ns_per_s);
 }
