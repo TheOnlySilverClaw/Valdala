@@ -1,16 +1,16 @@
 const webgpu = @import("webgpu");
 
-const AssetLoader = @import("asset").AssetLoader;
 const Surface = @import("Surface.zig");
+const Shader = @import("Shader.zig");
 
 const Self = @This();
 
 
 handle: *webgpu.RenderPipeline,
 
-pub fn init(surface: *const Surface, asset_loader: *AssetLoader) !Self {
+pub fn init(surface: *const Surface) !Self {
 
-    const shader = try asset_loader.loadShader("textured.wgsl");
+    const shader = Shader.load("textured", surface.device);
     defer shader.release();
 
     const handle = createRenderPipeline(surface, shader);

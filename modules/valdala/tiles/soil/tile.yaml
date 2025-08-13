@@ -1,0 +1,5 @@
+name: Soil
+textures:
+    top: cover.png
+    side: side.png
+    bottom: cover.png

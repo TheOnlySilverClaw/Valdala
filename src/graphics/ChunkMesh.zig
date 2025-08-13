@@ -2,12 +2,14 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 const coordinate = @import("coordinate");
 const algebra = @import("algebra");
+const module = @import("module");
 const log = std.log.scoped(.mesh);
 
 const Chunk = @import("scene").Chunk;
 const Tile = @import("scene").Tile;
 const TilePosition = coordinate.Position(i64);
 const Vector = algebra.Vector3(f32);
+const TileRegistry = module.TileRegistry;
 
 const Self = @This();
 
@@ -39,7 +41,7 @@ const vertices_per_tile = (2 * 7) + (6 * 4);
 vertex_buffer: *webgpu.Buffer,
 index_buffer: *webgpu.Buffer,
 
-pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
+pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: TileRegistry) Self {
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
         .size = Chunk.Layout.volume * vertices_per_tile * @sizeOf(Vertex),
@@ -101,39 +103,46 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device) Self {
 
     const width = Chunk.Layout.width;
 
-    var tile_index: u32 = 0;
+    var tile_counter: u32 = 0;
     const chunk_center = grid.getCenter(.{
         .north = @intCast(width / 2),
         .south_east = @intCast(width / 2),
         .height = 0
     });
 
+
     for (0..width) |north| {
         for (0..width) |south_east| {
+            for(0..Chunk.Layout.height) |height| {
             // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
-                .height = 0
+                .height = @intCast(height)
             };
             const tile_position = TilePosition {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
-                .height = 0
+                .height = @intCast(height)
             };
 
             const tile = chunk.getTile(tile_offset);
+            // don't render air blocks
+            if(tile.index == 0) continue;
+
+            const tile_textures = tile_registry.tiles.items[tile.index - 1].textures;
             const center = grid.getCenter(tile_position).subtract(chunk_center);
-            const vertices = generateTileVertices(tile, center);
+            const vertices = generateTileVertices( center, tile_textures);
             var indices: [base_indices.len]Index = undefined;
             for(base_indices, 0..) |base_index, index_number| {
-                indices[index_number] = @intCast(tile_index * vertices.len + base_index);
+                indices[index_number] = @intCast(tile_counter * vertices.len + base_index);
             }
 
-            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_index * vertices.len * @sizeOf(Vertex));
-            queue.writeBuffer(index_buffer, Index, &indices, tile_index * indices.len * @sizeOf(Index));
+            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_counter * vertices.len * @sizeOf(Vertex));
+            queue.writeBuffer(index_buffer, Index, &indices, tile_counter * indices.len * @sizeOf(Index));
 
-            tile_index += 1;
+            tile_counter += 1;
+            }
         }
     }
 
@@ -152,9 +161,11 @@ pub fn deinit(self: Self) void {
     self.index_buffer.release();
 }
 
-pub fn generateTileVertices(tile: Tile, center: Vector) [vertices_per_tile]Vertex {
+pub fn generateTileVertices(center: Vector, textures: module.Tile.Textures) [vertices_per_tile]Vertex {
     
-    const texture_top: Vertex.Texture = tile.index * 4;
+    const texture_top: Vertex.Texture = textures.top;
+    const texture_side: Vertex.Texture = textures.side;
+    const texture_bottom: Vertex.Texture = textures.bottom;
 
     const z_top = center.z + hex.height;
     const z_bottom = center.z;
@@ -192,43 +203,43 @@ pub fn generateTileVertices(tile: Tile, center: Vector) [vertices_per_tile]Verte
     const vert_sw_top = Vertex { .position = pos_sw_top, .uv = uv_top_left, .texture = texture_top };
     const vert_w_top = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_top };
 
-    const ver_center_bottom = Vertex { .position = pos_center_bottom, .uv = uv_bottom_center, .texture = texture_top };
-    const vert_nw_bottom = Vertex { .position = pos_nw_bottom, .uv = uv_top_left, .texture = texture_top };
-    const vert_ne_bottom = Vertex { .position = pos_ne_bottom, .uv = uv_top_right, .texture = texture_top };
-    const vert_e_bottom = Vertex { .position = pos_e_bottom, .uv = uv_top_left, .texture = texture_top };
-    const vert_se_bottom = Vertex { .position = pos_se_bottom, .uv = uv_top_right, .texture = texture_top };
-    const vert_sw_bottom = Vertex { .position = pos_sw_bottom, .uv = uv_top_left, .texture = texture_top };
-    const vert_w_bottom = Vertex { .position = pos_w_bottom, .uv = uv_top_right, .texture = texture_top };
+    const ver_center_bottom = Vertex { .position = pos_center_bottom, .uv = uv_bottom_center, .texture = texture_bottom };
+    const vert_nw_bottom = Vertex { .position = pos_nw_bottom, .uv = uv_top_left, .texture = texture_bottom };
+    const vert_ne_bottom = Vertex { .position = pos_ne_bottom, .uv = uv_top_right, .texture = texture_bottom };
+    const vert_e_bottom = Vertex { .position = pos_e_bottom, .uv = uv_top_left, .texture = texture_bottom };
+    const vert_se_bottom = Vertex { .position = pos_se_bottom, .uv = uv_top_right, .texture = texture_bottom };
+    const vert_sw_bottom = Vertex { .position = pos_sw_bottom, .uv = uv_top_left, .texture = texture_bottom };
+    const vert_w_bottom = Vertex { .position = pos_w_bottom, .uv = uv_top_right, .texture = texture_bottom };
 
-    const vert_ne_top_side1 = Vertex { .position = pos_ne_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_ne_bottom_side1 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_nw_top_side1 = Vertex { .position = pos_nw_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_nw_bottom_side1 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_ne_top_side1 = Vertex { .position = pos_ne_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_ne_bottom_side1 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_nw_top_side1 = Vertex { .position = pos_nw_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_nw_bottom_side1 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_e_top_side2 = Vertex { .position = pos_e_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_e_bottom_side2 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_ne_top_side2 = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_ne_bottom_side2 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_e_top_side2 = Vertex { .position = pos_e_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_e_bottom_side2 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_ne_top_side2 = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_ne_bottom_side2 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_se_top_side3 = Vertex { .position = pos_se_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_se_bottom_side3 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_e_top_side3 = Vertex { .position = pos_e_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_e_bottom_side3 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_se_top_side3 = Vertex { .position = pos_se_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_se_bottom_side3 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_e_top_side3 = Vertex { .position = pos_e_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_e_bottom_side3 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_sw_top_side4 = Vertex { .position = pos_sw_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_sw_bottom_side4 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_se_top_side4 = Vertex { .position = pos_se_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_se_bottom_side4 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_sw_top_side4 = Vertex { .position = pos_sw_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_sw_bottom_side4 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_se_top_side4 = Vertex { .position = pos_se_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_se_bottom_side4 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_w_top_side5 = Vertex { .position = pos_w_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_w_bottom_side5 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_sw_top_side5 = Vertex { .position = pos_sw_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_sw_bottom_side5 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_w_top_side5 = Vertex { .position = pos_w_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_w_bottom_side5 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_sw_top_side5 = Vertex { .position = pos_sw_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_sw_bottom_side5 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_nw_top_side6 = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_top };
-    const vert_nw_bottom_side6 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_left, .texture = texture_top };
-    const vert_w_top_side6 = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_top };
-    const vert_w_bottom_side6 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_right, .texture = texture_top };
+    const vert_nw_top_side6 = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_nw_bottom_side6 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_w_top_side6 = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_w_bottom_side6 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
     const vertices = [_]Vertex {
         ver_center_top,

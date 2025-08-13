@@ -151,9 +151,6 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     asset.addImport("yaml", yaml);
     asset.addImport("webgpu", webgpu);
 
-    module.addImport("zigimg", zigimg);
-    module.addImport("yaml", yaml);
-
     glfw_webgpu.addImport("glfw", glfw);
     glfw_webgpu.addImport("webgpu", webgpu);
 
@@ -165,6 +162,11 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("asset", asset);
     graphics.addImport("coordinate", coordinate);
     graphics.addImport("algebra", algebra);
+    graphics.addImport("module", module);
+
+    module.addImport("zigimg", zigimg);
+    module.addImport("yaml", yaml);
+    module.addImport("graphics", graphics);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
@@ -191,6 +193,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("scene", scene);
     client.addImport("protocol", protocol);
     client.addImport("asset", asset);
+    client.addImport("module", module);
 
     server.addImport("module", module);
     server.addImport("color", color);

@@ -32,8 +32,9 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     connector.* = try Connector.init(allocator, address, 8);
 
     const module_loader = try allocator.create(ModuleLoader);
-    const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
-    module_loader.* = try ModuleLoader.init(allocator, module_directory);
+    // TODO figure out what module patrts to load server-side
+    // const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
+    // module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
     const simulation = try allocator.create(Simulation);
     simulation.* = try Simulation.init(allocator);

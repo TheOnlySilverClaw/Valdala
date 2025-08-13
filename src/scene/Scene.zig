@@ -28,17 +28,19 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
         chunk.* = Chunk.init(.zero);
         for(0..Chunk.Layout.width) |x| {
             for(0..Chunk.Layout.width) |y| {
-                const position = Chunk.TileOffset {
-                    .north = @intCast(x),
-                    .south_east = @intCast(y),
-                    .height = 0
-                };
-                const tile_type = @as(u16, @truncate(random.next())) % 2;
-                const tile = Tile {
-                    .index = tile_type,
-                    .orientation = .full
-                };
-                chunk.setTile(position, tile);
+                for(0..4) |z| {
+                    const position = Chunk.TileOffset {
+                        .north = @intCast(x),
+                        .south_east = @intCast(y),
+                        .height = @intCast(z)
+                    };
+                    const tile_type = @as(u16, @truncate(random.next())) % 4;
+                    const tile = Tile {
+                        .index = tile_type,
+                        .orientation = .full
+                    };
+                    chunk.setTile(position, tile);
+                }
             }
         }
     }
