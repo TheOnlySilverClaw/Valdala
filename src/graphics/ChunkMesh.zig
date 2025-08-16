@@ -114,7 +114,6 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
     for (0..width) |north| {
         for (0..width) |south_east| {
             for(0..Chunk.Layout.height) |height| {
-            // TODO height
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
