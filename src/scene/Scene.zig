@@ -2,11 +2,14 @@ const std = @import("std");
 const math = std.math;
 const color = @import("color");
 const world = @import("world");
+const algebra = @import("algebra");
+const log = std.log.scoped(.scene);
 
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
 const Chunk = @import("Chunk.zig");
 const Tile = @import("Tile.zig");
+const Vector = algebra.Vector3(f32);
 
 const Self = @This();
 
@@ -24,8 +27,21 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     var random = std.Random.DefaultPrng.init(123);
 
+    for(0..chunk_distance) |x| {
+        for(0..chunk_distance) |y| {
+            for(0..chunk_distance) |z| {
+                const index = z + y * chunk_distance + x * chunk_distance * chunk_distance;
+                const start_x: f32 = @floatFromInt(x * Chunk.Layout.width);
+                const start_y: f32 = @floatFromInt(y * Chunk.Layout.width);
+                const start_z: f32 = @floatFromInt(z * Chunk.Layout.height);
+                log.debug("chunk index {} gets position {d} {d} {d}", .{ index, start_x, start_y, start_z});
+                const start = Vector.of(start_x, start_y, start_z);
+                chunks[index] = Chunk.init(start);
+            }
+        }
+    }
+
     for(chunks) |*chunk| {
-        chunk.* = Chunk.init(.zero);
         for(0..Chunk.Layout.width) |x| {
             for(0..Chunk.Layout.width) |y| {
                 for(0..4) |z| {
