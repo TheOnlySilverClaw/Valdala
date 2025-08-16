@@ -47,7 +47,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     var camera = Camera.init(math.degreesToRadians(70), aspect);
     // move up
-    camera.moveZ(2.0);
+    camera.moveZ(20.0);
     // look down
     // camera.rotatePitch(math.degreesToRadians(90));
 
@@ -56,7 +56,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
         .chunk_distance = chunk_distance,
         .chunks = chunks,
         .camera = camera,
-        .sky_color = color.RGB.of(0.0, 0.0, 0.0)
+        .sky_color = color.RGB.of(0.2, 0.2, 0.8)
     };
 }
 
