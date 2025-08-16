@@ -96,7 +96,7 @@ pub fn deinit(self: *Self) void {
 
 pub fn launch(self: *Self) !void {
     
-    self.scene.* = try Scene.init(self.allocator, 1, self.renderer.surface.aspect);
+    self.scene.* = try Scene.init(self.allocator, 4, self.renderer.surface.aspect);
     defer self.scene.deinit();
 
     self.controller.camera = &self.scene.camera;

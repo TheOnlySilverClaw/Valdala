@@ -4,12 +4,10 @@ const coordinate = @import("coordinate");
 const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
-const Vector = algebra.Vector3(f32);
-const TilePosition = coordinate.Position(i64);
 const Tile = @import("Tile.zig");
 const Mesh = graphics.ChunkMesh;
 
-const Self = @This();
+pub const Position = coordinate.Position(i64);
 
 pub const Layout = struct {
     pub const width = 64;
@@ -24,11 +22,14 @@ pub const TileOffset = struct {
     height: u4
 };
 
-position: Vector,
+const Self = @This();
+
+
+position: Position,
 mesh: ?*const Mesh,
 tiles: [Layout.volume]Tile,
 
-pub fn init(position: Vector) Self {
+pub fn init(position: Position) Self {
     return .{
         .position = position,
         .mesh = null,

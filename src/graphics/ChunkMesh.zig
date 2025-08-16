@@ -104,11 +104,13 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
     const width = Chunk.Layout.width;
 
     var tile_counter: u32 = 0;
-    const chunk_center = grid.getCenter(.{
+    const chunk_start = grid.getCenter(chunk.position);
+    const chunk_center_offset = grid.getCenter(.{
         .north = @intCast(width / 2),
         .south_east = @intCast(width / 2),
         .height = 0
     });
+    const chunk_center = chunk_start.add(chunk_center_offset);
 
 
     for (0..width) |north| {

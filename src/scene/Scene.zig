@@ -27,21 +27,20 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     var random = std.Random.DefaultPrng.init(123);
 
+    // TODO all this should be done when chunk updates arrive
     for(0..chunk_distance) |x| {
         for(0..chunk_distance) |y| {
             for(0..chunk_distance) |z| {
                 const index = z + y * chunk_distance + x * chunk_distance * chunk_distance;
-                const start_x: f32 = @floatFromInt(x * Chunk.Layout.width);
-                const start_y: f32 = @floatFromInt(y * Chunk.Layout.width);
-                const start_z: f32 = @floatFromInt(z * Chunk.Layout.height);
-                log.debug("chunk index {} gets position {d} {d} {d}", .{ index, start_x, start_y, start_z});
-                const start = Vector.of(start_x, start_y, start_z);
-                chunks[index] = Chunk.init(start);
+                const positiion = Chunk.Position.of
+                    (@intCast(x * Chunk.Layout.width), @intCast(y * Chunk.Layout.width), @intCast(z * Chunk.Layout.height));
+                chunks[index] = Chunk.init(positiion);
             }
         }
     }
 
     for(chunks) |*chunk| {
+        if(chunk.position.height != 0) continue;
         for(0..Chunk.Layout.width) |x| {
             for(0..Chunk.Layout.width) |y| {
                 for(0..4) |z| {
@@ -63,7 +62,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     var camera = Camera.init(math.degreesToRadians(70), aspect);
     // move up
-    camera.moveZ(20.0);
+    camera.moveZ(40.0);
     // look down
     // camera.rotatePitch(math.degreesToRadians(90));
 
