@@ -116,6 +116,6 @@ Ask before adding new dependencies.
 
 ## Current State
 
-Tile grid works!
+Multiple chunks, horrible performance :)
 
 ![screenshot](screenshot.png)
