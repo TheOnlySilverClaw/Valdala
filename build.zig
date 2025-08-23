@@ -46,6 +46,13 @@ pub fn build(b: *Build) void {
 
 fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
 
+    const FastNoiseLite = b.dependency("FastNoiseLite", .{});
+    const fastnoise = b.addModule("fastnoise", .{
+        .root_source_file = FastNoiseLite.path("Zig/fastnoise.zig"),
+        .target = target,
+        .optimize = optimize
+    });
+
     const zigimg = b.dependency("zigimg", .{}).module("zigimg");
     const TrueType = b.dependency("TrueType", .{}).module("TrueType");
     const yaml = b.dependency("yaml", .{}).module("yaml");
@@ -177,6 +184,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     scene.addImport("coordinate", coordinate);
     scene.addImport("color", color);
     scene.addImport("graphics", graphics);
+    // TODO move to world generation
+    scene.addImport("fastnoise", fastnoise);
 
     simulation.addImport("algebra", algebra);
     simulation.addImport("color", color);
