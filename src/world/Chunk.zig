@@ -5,42 +5,45 @@ const coordinate = @import("coordinate");
 const Allocator = std.mem.Allocator;
 const Tile = @import("Tile.zig");
 
-const TileOffset = coordinate.Position(u6, u4);
+pub const TileOffset = coordinate.hexagon.Position(u16);
 
 pub const layout = struct {
     pub const width = 64;
     pub const height = 16;
+    pub const area = width * width;
+    pub const volume = area * height;
 };
 
-pub const Layer = []Tile;
-
-pub const Position = algebra.Vector3(i32);
+pub const Position = coordinate.hexagon.Position(i64);
 
 const Self = @This();
 
 
-layers: []Layer,
+tiles: []Tile,
 
-pub fn init(allocator: Allocator, height: u32) Self {
-    
-    const layers = try allocator.alloc(Layer, height);
-    for(layers) |*layer| {
-        layer = try allocator.alloc(Tile, layout.width * layout.width);
-        @memset(layer, Tile.air);
-    }
+pub fn init(allocator: Allocator) Allocator.Error!Self {
+
+    const tiles = try allocator.alloc(Tile, layout.volume);
+    const air = Tile { .index = 0 };
+    @memset(tiles, air);
 
     return .{
-        .layers = layers
+        .tiles = tiles
     };
-    
+}
+
+pub fn deinit(self: Self, allocator: Allocator) void {
+    allocator.free(self.tiles);
 }
 
 pub fn getTile(self: Self, offset: TileOffset) Tile {
-    
-    if(offset.height >= self.layers.len) {
-        return Tile.air;
-    }
-    
-    const layer_index = @as(u64, offset.south_east) * layout.width + offset.north;
-    return self.layers[offset.height][layer_index];
+    return self.tiles[indexOf(offset)];
+}
+
+pub fn setTile(self: *Self, offset: TileOffset, tile: Tile) void {
+    self.tiles[indexOf(offset)] = tile;
+}
+
+fn indexOf(offset: TileOffset) usize {
+    return @as(usize, offset.height) * layout.area + offset.south_east * layout.width + offset.north;
 }

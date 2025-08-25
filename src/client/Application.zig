@@ -3,7 +3,6 @@ const net = std.net;
 const fs = std.fs;
 const glfw = @import("glfw");
 const gui = @import("gui");
-const Scene = @import("scene").Scene;
 const graphics = @import("graphics");
 const log = std.log.scoped(.client);
 
@@ -11,6 +10,8 @@ const Allocator = std.mem.Allocator;
 const Thread = std.Thread;
 const Connection = @import("Connection.zig");
 const ModuleLoader = @import("module").Loader;
+const World = @import("world").World;
+const Scene = @import("scene").Scene;
 
 const Self = @This();
 
@@ -20,6 +21,7 @@ window: *gui.Window,
 controller: *gui.Controller,
 renderer: graphics.GameRenderer,
 connection: *Connection,
+world: *World,
 scene: *Scene,
 module_loader: ModuleLoader,
 
@@ -60,6 +62,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
     const renderer = try graphics.GameRenderer.init(allocator, window.surface, module_loader.tile_registry);
 
+    const world = try allocator.create(World);
     const scene = try allocator.create(Scene);
 
     const connection = try allocator.create(Connection);
@@ -70,6 +73,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
         .controller = controller,
         .renderer = renderer,
         .connection = connection,
+        .world = world,
         .scene = scene,
         .module_loader = module_loader
     };
@@ -87,6 +91,9 @@ pub fn deinit(self: *Self) void {
 
     self.allocator.destroy(self.connection);
 
+    self.world.deinit();
+    self.allocator.destroy(self.world);
+
     self.allocator.destroy(self.scene);
 
     self.module_loader.deinit();
@@ -96,7 +103,27 @@ pub fn deinit(self: *Self) void {
 
 pub fn launch(self: *Self) !void {
     
-    self.scene.* = try Scene.init(self.allocator, 1, self.renderer.surface.aspect);
+    const chunk_distance = 8;
+
+    self.world.* = try World.init(self.allocator, 12345678);
+    self.scene.* = try Scene.init(self.allocator, chunk_distance, self.renderer.surface.aspect);
+
+    const chunk_mesher = @import("scene").ChunkMesher {
+        .device = self.window.surface.device,
+        .grid = self.world.grid,
+        .tile_registry = self.module_loader.tile_registry
+    };
+
+    for(0..chunk_distance) |north| {
+        for(0..chunk_distance) |south_east| {
+            const chunk_position = @import("world").Chunk.Position.of(@intCast(north), @intCast(south_east), 0);
+            const chunk = try self.world.loadChunk(chunk_position);
+            const mesh = chunk_mesher.generate(chunk_position, chunk);
+            try self.scene.addChunkMesh(chunk_position, mesh);
+   
+        }
+    }
+
     defer self.scene.deinit();
 
     self.controller.camera = &self.scene.camera;

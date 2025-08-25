@@ -1,0 +1,38 @@
+const std = @import("std");
+const webgpu = @import("webgpu");
+
+const Self = @This();
+
+pub const Vertex = extern struct {
+    pub const format = [_]webgpu.VertexFormat{ .float32x3, .float32x2, .uint32 };
+
+    pub const Position = extern struct { x: f32, y: f32, z: f32 };
+
+    pub const UV = extern struct {
+        /// horizontal offset: left = 0.0 right = 1.0
+        u: f16,
+        /// vertical offset: top = 0.0 bottom = 1.0
+        v: f16,
+    };
+
+    pub const Texture = u32;
+
+    position: Position,
+    uv: UV,
+    texture: Texture,
+};
+
+pub const Index = u32;
+
+
+vertex_buffer: *webgpu.Buffer,
+index_buffer: *webgpu.Buffer,
+
+pub fn deinit(self: Self) void {
+    
+    self.vertex_buffer.destroy();
+    self.vertex_buffer.release();
+
+    self.index_buffer.destroy();
+    self.index_buffer.release();
+}

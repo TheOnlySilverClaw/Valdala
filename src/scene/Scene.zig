@@ -1,68 +1,31 @@
 const std = @import("std");
 const math = std.math;
 const color = @import("color");
-const world = @import("world");
 const algebra = @import("algebra");
-const fastnoise = @import("fastnoise");
 const log = std.log.scoped(.scene);
 
+const Map = std.AutoHashMapUnmanaged;
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
-const Chunk = @import("Chunk.zig");
+const ChunkMesh = @import("ChunkMesh.zig");
 const Tile = @import("Tile.zig");
-const Vector = algebra.Vector3(f32);
-const Noise = fastnoise.Noise(f32);
+const Vector = algebra.Vector3;
+const World = @import("world").World;
+const ChunkModel = @import("world").Chunk;
+const ChunkPosition = @import("world").Chunk.Position;
 
 const Self = @This();
 
 
 allocator: Allocator,
 camera: Camera,
-chunks: []Chunk,
+chunks: Map(ChunkPosition, ChunkMesh),
 chunk_distance: u32,
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
-    const chunk_volume = try math.powi(u32, chunk_distance, 3);
-    const chunks = try allocator.alloc(Chunk, chunk_volume);
-
-    // TODO all this should be done when chunk updates arrive
-
-    const noise = Noise {};
-
-    for(0..chunk_distance) |x| {
-        for(0..chunk_distance) |y| {
-            for(0..chunk_distance) |z| {
-                const index = z + y * chunk_distance + x * chunk_distance * chunk_distance;
-                const positiion = Chunk.Position.of
-                    (@intCast(x * Chunk.Layout.width), @intCast(y * Chunk.Layout.width), @intCast(z * Chunk.Layout.height));
-                chunks[index] = Chunk.init(positiion);
-            }
-        }
-    }
-
-    for(chunks) |*chunk| {
-        if(chunk.position.height != 0) continue;
-        for(0..Chunk.Layout.width) |x| {
-            for(0..Chunk.Layout.width) |y| {
-
-                const height = noise.genNoise2D(@floatFromInt(x), @floatFromInt(y));
-                const z: u4 = @intFromFloat((height + 1.0) * 8.0);
-                const position = Chunk.TileOffset {
-                    .north = @intCast(x),
-                    .south_east = @intCast(y),
-                    .height = z
-                };
-                const tile_type = 1;
-                const tile = Tile {
-                    .index = tile_type,
-                    .orientation = .full
-                };
-                chunk.setTile(position, tile);
-            }
-        }
-    }
+    const chunks = Map(ChunkPosition, ChunkMesh).empty;
 
     var camera = Camera.init(math.degreesToRadians(70), aspect);
     // move up
@@ -81,13 +44,13 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
 pub fn deinit(self: *Self) void {
     
-    for(self.chunks) |chunk| {
-        chunk.deinit(self.allocator);
+    var chunk_iterator = self.chunks.valueIterator();
+    while(chunk_iterator.next()) |chunk| {
+        chunk.deinit();
     }
-    self.allocator.free(self.chunks);
+    self.chunks.clearAndFree(self.allocator);
 }
 
-pub fn render(self: Self, delta: u64) !void {
-    _ = self;
-    _ = delta;
+pub fn addChunkMesh(self: *Self, position: ChunkPosition, mesh: ChunkMesh) Allocator.Error!void {
+    try self.chunks.put(self.allocator, position, mesh);
 }
