@@ -13,5 +13,5 @@
 | protocol | data structures exchanged between client and server |
 | scene | client-side game state presented to a specific player |
 | server | server-side application loop and network handling |
-| simulation | game logic updates |
+| game | shared game logic |
 | world | server-side game state |

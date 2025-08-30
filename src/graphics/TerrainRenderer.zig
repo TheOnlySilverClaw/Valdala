@@ -97,7 +97,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRe
     };
 }
 
-pub fn render(self: *Self, scene: *const Scene, render_pass: *webgpu.RenderPassEncoder) !void {
+pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.RenderPassEncoder) !void {
      
      const surface = self.surface;
      const queue = surface.getQueue();

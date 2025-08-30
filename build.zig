@@ -124,8 +124,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
-    const simulation = b.addModule("simulation", .{
-        .root_source_file = b.path("src/simulation/module.zig" ),
+    const game = b.addModule("game", .{
+        .root_source_file = b.path("src/game/module.zig" ),
         .target = target,
         .optimize = optimize
     });
@@ -189,11 +189,11 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     scene.addImport("world", world);
     scene.addImport("module", module);
 
-    simulation.addImport("algebra", algebra);
-    simulation.addImport("color", color);
-    simulation.addImport("coordinate", coordinate);
-    simulation.addImport("module", module);
-    simulation.addImport("world", world);
+    game.addImport("algebra", algebra);
+    game.addImport("color", color);
+    game.addImport("coordinate", coordinate);
+    game.addImport("module", module);
+    game.addImport("world", world);
 
     protocol.addImport("color", color);
 
@@ -206,10 +206,11 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("asset", asset);
     client.addImport("module", module);
     client.addImport("world", world);
+    client.addImport("game", game);
 
     server.addImport("module", module);
     server.addImport("color", color);
-    server.addImport("simulation", simulation);
+    server.addImport("game", game);
     server.addImport("protocol", protocol);
 
     root.addImport("client", client);
