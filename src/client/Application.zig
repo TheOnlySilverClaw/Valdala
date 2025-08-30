@@ -29,8 +29,8 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     window.* = gui.Window.init(allocator);
 
     const controller= try allocator.create(gui.Controller);
-    controller.* = gui.Controller.init(window);
-    try controller.registerWindowListeners();
+    controller.* = gui.Controller.new();
+    try controller.registerWindowListeners(window);
 
     const monitor = glfw.Monitor.getPrimary() orelse {
         log.err("Could not find primary monitor", .{});
@@ -86,10 +86,11 @@ pub fn launch(self: *Self) !void {
     defer scene.deinit();
     var renderer = try graphics.GameRenderer.init(self.allocator, self.window.surface, self.module_loader.tile_registry);
 
-    self.controller.camera = &scene.camera;
-    
-    while(!self.window.shouldClose()) {
-        glfw.pollEvents();
+    while(true) {
+        
+        const input = self.controller.poll();
+        if(input.window.close) break;
+
         try game.tick();
         try renderer.renderScene(scene);
     }

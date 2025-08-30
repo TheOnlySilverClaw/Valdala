@@ -1,12 +1,10 @@
 const std = @import("std");
 const glfw = @import("glfw");
-const event = @import("event.zig");
-const glfw_wgpu = @import("glfw-wgpu");
 const webgpu = @import("webgpu");
 const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
-
+const listeners = @import("listeners.zig");
 
 pub const Error = error {
     Create
@@ -18,7 +16,9 @@ const Self = @This();
 allocator: Allocator,
 handle: *glfw.Window,
 monitor: ?*glfw.Monitor,
-key_listener: ?*event.KeyListener,
+key_listener: ?*listeners.KeyListener,
+resize_listener: ?*listeners.ResizeListener,
+close_listener: ?*listeners.CloseListener,
 surface: *graphics.Surface,
 
 pub fn init(allocator: Allocator) Self {
@@ -26,6 +26,8 @@ pub fn init(allocator: Allocator) Self {
         .allocator = allocator,
         .monitor = null,
         .key_listener = null,
+        .resize_listener = null,
+        .close_listener = null,
         .handle = undefined,
         .surface = undefined
     };
@@ -36,6 +38,14 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.surface);
 
     if(self.key_listener) |listener| {
+        self.allocator.destroy(listener);
+    }
+    
+    if(self.resize_listener) |listener| {
+        self.allocator.destroy(listener);
+    }
+
+    if(self.close_listener) |listener| {
         self.allocator.destroy(listener);
     }
 }
@@ -61,6 +71,7 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
     self.handle.setUserPoiner(self);
     _ = self.handle.setKeyCallback(Self.onKey);
     _ = self.handle.setSizeCallback(Self.onResize);
+    _ = self.handle.setCloseCallback(Self.onClose);
 }
 
 pub fn destroy(self: *Self) void {
@@ -81,10 +92,11 @@ pub fn update(self: Self) void {
     _ = self;
 }
 
-pub fn createKeyListener(self: *Self, listener: event.KeyListener) !void {
+pub fn createKeyListener(self: *Self, listener: listeners.KeyListener) !void {
 
-    self.key_listener = try self.allocator.create(event.KeyListener);
-    self.key_listener.?.* = listener;
+    const pointer = try self.allocator.create(listeners.KeyListener);
+    pointer.* = listener;
+    self.key_listener = pointer;
 }
 
 fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, action: glfw.Action, modifiers: glfw.Modifiers) callconv(.C) void {
@@ -97,10 +109,40 @@ fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, action: g
     }
 }
 
+pub fn createResizeListener(self: *Self, listener: listeners.ResizeListener) !void {
+
+    const pointer = try self.allocator.create(listeners.ResizeListener);
+    pointer.* = listener;
+    self.resize_listener = pointer;
+}
+
 fn onResize(handle: *glfw.Window, width: i32, height: i32) callconv(.C) void {
     
     const window = getSelfPointer(handle);
-    window.surface.resize(@intCast(width), @intCast(height));
+    
+    const width_unsigned: u32 = @intCast(width);
+    const height_unsigned: u32 = @intCast(height);
+    
+    window.surface.resize(width_unsigned, height_unsigned);
+
+    if(window.resize_listener) |listener| {
+        listener.onResize(width_unsigned, height_unsigned);
+    }
+}
+
+pub fn createCloseListener(self: *Self, listener: listeners.CloseListener) !void {
+
+    const pointer = try self.allocator.create(listeners.CloseListener);
+    pointer.* = listener;
+    self.close_listener = pointer;
+}
+
+fn onClose(handle: *glfw.Window) callconv(.C) void {
+    
+    const window = getSelfPointer(handle);
+    if(window.close_listener) |listener| {
+        listener.onClose();
+    }
 }
 
 fn getSelfPointer(handle: *glfw.Window) *Self {

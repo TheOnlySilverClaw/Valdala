@@ -180,6 +180,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     gui.addImport("webgpu", webgpu);
     gui.addImport("graphics", graphics);
     gui.addImport("scene", scene);
+    gui.addImport("algebra", algebra);
 
     scene.addImport("algebra", algebra);
     scene.addImport("coordinate", coordinate);
