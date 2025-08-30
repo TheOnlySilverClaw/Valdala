@@ -1,2 +1,2 @@
-pub const Client = @import("Client.zig");
+pub const Application = @import("Application.zig");
 

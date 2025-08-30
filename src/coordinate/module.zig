@@ -1,1 +1,1 @@
-pub usingnamespace @import("hexagon.zig");
+pub const hexagon = @import("hexagon.zig");

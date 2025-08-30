@@ -3,52 +3,51 @@ const webgpu = @import("webgpu");
 const coordinate = @import("coordinate");
 const algebra = @import("algebra");
 const module = @import("module");
-const log = std.log.scoped(.mesh);
+const world = @import("world");
+const log = std.log.scoped(.mesher);
 
-const Chunk = @import("scene").Chunk;
-const Tile = @import("scene").Tile;
-const TilePosition = coordinate.Position(i64);
+const Tile = @import("Tile.zig");
+const TilePosition = coordinate.hexagon.Position(i64);
 const Vector = algebra.Vector3(f32);
 const TileRegistry = module.TileRegistry;
+const Chunk = world.Chunk;
+const Mesh = @import("ChunkMesh.zig");
+const Vertex = Mesh.Vertex;
+const Index = Mesh.Index;
 
 const Self = @This();
 
-pub const Vertex = extern struct {
-    pub const format = [_]webgpu.VertexFormat{ .float32x3, .float32x2, .uint32 };
 
-    pub const Position = extern struct { x: f32, y: f32, z: f32 };
-
-    pub const UV = extern struct {
-        /// horizontal offset: left = 0.0 right = 1.0
-        u: f16,
-        /// vertical offset: top = 0.0 bottom = 1.0
-        v: f16,
-    };
-
-    pub const Texture = u32;
-
-    position: Position,
-    uv: UV,
-    texture: Texture,
-};
-
-pub const Index = u32;
-
-const hex = coordinate.Hexagon(f32).new(0.5 * 1, 0.5);
-const grid = coordinate.Grid(i64, f32).of(hex);
 const vertices_per_tile = (2 * 7) + (6 * 4);
 
-vertex_buffer: *webgpu.Buffer,
-index_buffer: *webgpu.Buffer,
 
-pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: TileRegistry) Self {
+grid: coordinate.hexagon.Grid(i64, f32),
+device: *webgpu.Device,
+tile_registry: TileRegistry,
+
+
+pub fn generate(self: Self, position: Chunk.Position, chunk: world.Chunk) Mesh {
+
+    const device = self.device;
+    const queue = device.getQueue();
+    defer queue.release();
+
+    const grid = self.grid;
+
+    const world_position = TilePosition {
+        .north = position.north * Chunk.layout.width,
+        .south_east = position.south_east * Chunk.layout.width,
+        .height = position.height * Chunk.layout.height
+    };
+
+    const chunk_start = grid.getCenter(world_position);
 
     const vertex_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * vertices_per_tile * @sizeOf(Vertex),
+        .size = Chunk.layout.volume * vertices_per_tile * @sizeOf(Vertex),
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
-    const base_indices = [_]Index {
+    const base_indices = [_]Mesh.Index {
         // top
         1, 0, 2,
         2, 0, 3,
@@ -91,31 +90,20 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
     };
 
     const index_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.Layout.volume * base_indices.len * @sizeOf(Index),
+        .size = world.Chunk.layout.volume * base_indices.len * @sizeOf(Mesh.Index),
         .usage = .{ .index = true, .copy_dst = true }
     };
 
     const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
 
-    const queue = device.getQueue();
-    defer queue.release();
-
-    const width = Chunk.Layout.width;
+    const width = Chunk.layout.width;
 
     var tile_counter: u32 = 0;
-    const chunk_start = grid.getCenter(chunk.position);
-    const chunk_center_offset = grid.getCenter(.{
-        .north = @intCast(width / 2),
-        .south_east = @intCast(width / 2),
-        .height = 0
-    });
-    const chunk_center = chunk_start.add(chunk_center_offset);
-
 
     for (0..width) |north| {
         for (0..width) |south_east| {
-            for(0..Chunk.Layout.height) |height| {
+            for(0..Chunk.layout.height) |height| {
             const tile_offset = Chunk.TileOffset {
                 .north = @intCast(north),
                 .south_east = @intCast(south_east),
@@ -131,9 +119,9 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
             // don't render air blocks
             if(tile.index == 0) continue;
 
-            const tile_textures = tile_registry.tiles.items[tile.index - 1].textures;
-            const center = grid.getCenter(tile_position).subtract(chunk_center);
-            const vertices = generateTileVertices( center, tile_textures);
+            const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
+            const center = grid.getCenter(tile_position).add(chunk_start);
+            const vertices = generateTileVertices( grid.hexagon, center, tile_textures);
             var indices: [base_indices.len]Index = undefined;
             for(base_indices, 0..) |base_index, index_number| {
                 indices[index_number] = @intCast(tile_counter * vertices.len + base_index);
@@ -153,16 +141,8 @@ pub fn generate(chunk: *const Chunk, device: *webgpu.Device, tile_registry: Tile
     };
 }
 
-pub fn deinit(self: Self) void {
-    
-    self.vertex_buffer.destroy();
-    self.vertex_buffer.release();
 
-    self.index_buffer.destroy();
-    self.index_buffer.release();
-}
-
-pub fn generateTileVertices(center: Vector, textures: module.Tile.Textures) [vertices_per_tile]Vertex {
+fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, textures: module.Tile.Textures) [vertices_per_tile]Vertex {
     
     const texture_top: Vertex.Texture = textures.top;
     const texture_side: Vertex.Texture = textures.side;

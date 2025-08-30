@@ -2,7 +2,7 @@ const std = @import("std");
 const log = std.log.scoped(.main);
 const Thread = std.Thread;
 const Server = @import("server").Server;
-const Client = @import("client").Client;
+const Client = @import("client").Application;
 
 pub const std_options = std.Options {
     .logFn = @import("log.zig").pretty

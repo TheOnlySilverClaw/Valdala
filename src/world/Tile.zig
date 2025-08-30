@@ -18,3 +18,4 @@ const Slot = struct {
 
 pub const air: Index = 0;
 
+index: u32

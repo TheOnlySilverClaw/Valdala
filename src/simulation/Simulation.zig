@@ -16,7 +16,7 @@ last_update: i64,
 pub fn init(allocator: Allocator) !Self {
     
     const world = try allocator.create(World);
-    world.* = try World.init(allocator, 1234, undefined);
+    world.* = try World.init(allocator, 1234);
     const time = try allocator.create(Time);
     time.* = Time.init();
 

@@ -153,6 +153,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     world.addImport("algebra", algebra);
     world.addImport("coordinate", coordinate);
     world.addImport("color", color);
+    world.addImport("fastnoise", fastnoise);
 
     asset.addImport("zigimg", zigimg);
     asset.addImport("yaml", yaml);
@@ -184,8 +185,9 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     scene.addImport("coordinate", coordinate);
     scene.addImport("color", color);
     scene.addImport("graphics", graphics);
-    // TODO move to world generation
-    scene.addImport("fastnoise", fastnoise);
+    scene.addImport("webgpu", webgpu);
+    scene.addImport("world", world);
+    scene.addImport("module", module);
 
     simulation.addImport("algebra", algebra);
     simulation.addImport("color", color);
@@ -203,6 +205,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("protocol", protocol);
     client.addImport("asset", asset);
     client.addImport("module", module);
+    client.addImport("world", world);
 
     server.addImport("module", module);
     server.addImport("color", color);
