@@ -35,7 +35,7 @@ Valdala is a passion project and I'm willing to spend countless hours trying to 
 
 However, if anyone is willing to help out and learn a thing or two on the way, I'd appreaciate that.
 
-Since this project does not generate revenue and probably never will, there's no promise of compensation beyond that.
+Find us [on Discord](https://discord.gg/9rcr2EVSTA).
 
 
 ## Contribution Guildelines
