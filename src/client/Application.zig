@@ -82,14 +82,43 @@ pub fn launch(self: *Self) !void {
     
     var game = try Game.init(self.allocator);
     defer game.deinit();
-    var scene = try Scene.init(self.allocator, 4, self.window.surface.aspect);
+    var scene = try Scene.init(self.allocator, 1, self.window.surface.aspect);
     defer scene.deinit();
     var renderer = try graphics.GameRenderer.init(self.allocator, self.window.surface, self.module_loader.tile_registry);
+
+    const chunk_mesher = @import("scene").ChunkMesher {
+        .device = self.window.surface.device,
+        .tile_registry = self.module_loader.tile_registry,
+        .grid = game.world.grid
+    };
+
+    const position = @import("world").Chunk.Position {
+        .height = 0,
+        .north = 0,
+        .south_east = 0
+    };
+
+    try game.world.loadChunks(position, 3);
+
+    var chunks = game.world.chunks.iterator();
+    while(chunks.next()) |entry| {
+        const mesh = chunk_mesher.generate(entry.key_ptr.*, entry.value_ptr.*);
+        try scene.addChunkMesh(entry.key_ptr.*, mesh);
+    }
+
 
     while(true) {
         
         const input = self.controller.poll();
         if(input.window.close) break;
+        
+        const player_direction = scene.camera.rotation.rotate(input.movement.direction);
+        scene.camera.movePitch(player_direction.x);
+        scene.camera.moveRoll(player_direction.y);
+        scene.camera.moveYaw(player_direction.z);
+        scene.camera.rotatePitch(input.movement.rotation.pitch * 0.1);
+        scene.camera.rotateYaw(input.movement.rotation.yaw * 0.1);
+        scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
 
         try game.tick();
         try renderer.renderScene(scene);

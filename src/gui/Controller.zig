@@ -40,10 +40,25 @@ pub fn registerWindowListeners(self: *Self, window: *Window) !void {
 pub fn onKey(ptr: *anyopaque, key: glfw.Key, action: glfw.Action, modifiers: glfw.Modifiers) void {
     
     var self: *Self = castSelfPointer(ptr);
-    var input = &self.input;
+    const input = &self.input;
+    var window = &input.window;
+    var direction = &input.movement.direction;
+    var rotation = &input.movement.rotation;
 
     switch (key) {
-        .escape => input.window.close = true,
+        .escape => window.close = true,
+        .w => direction.y = 1,
+        .a => direction.x = -1,
+        .s => direction.y = -1,
+        .d => direction.x = 1,
+        .e => direction.z = 1,
+        .q => direction.z = -1,
+        .i => rotation.pitch = 1,
+        .k => rotation.pitch = -1,
+        .o => rotation.yaw = 1,
+        .u => rotation.yaw = -1,
+        .l => rotation.roll = 1,
+        .j => rotation.roll = -1,
         else => {
             log.debug("unbound key {s} {s} {s} {s}", .{
             @tagName(key),
