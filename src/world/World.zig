@@ -99,15 +99,19 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
             const world_south_east = start_south_east + @as(f32, @floatFromInt(south_east));
             const normal_height = self.noise.genNoise2D(world_north, world_south_east);
             const world_height: i64 = @intFromFloat(normal_height * chunk_height_factor);
-            const height_offset = world_height - position.height * Chunk.layout.height;
+            const tile_height = world_height - position.height * Chunk.layout.height;
 
-            if(height_offset >= 0 and height_offset < Chunk.layout.height) {
-                const offset = Chunk.TileOffset {
-                    .south_east = @intCast(south_east),
-                    .north = @intCast(north),
-                    .height = @intCast(height_offset)
-                };
-                chunk.setTile(offset, .{ .index = 1 });
+            if(tile_height >= 0) {
+                const height_limit = @min(tile_height, Chunk.layout.height);
+                for(0..@intCast(height_limit)) |height| {
+
+                    const offset = Chunk.TileOffset {
+                        .south_east = @intCast(south_east),
+                        .north = @intCast(north),
+                        .height = @intCast(height)
+                    };
+                    chunk.setTile(offset, .{ .index = 1 });
+                }
             }
         }
     }
