@@ -77,7 +77,6 @@ pub fn Grid(P: type, V: type) type {
     };
 }
 
-/// P = plane coordinate type, H = height coordinate type
 pub fn Position(T: type) type {
     
     if(@typeInfo(T) != .int) @compileError("Grid positions must be integers");
