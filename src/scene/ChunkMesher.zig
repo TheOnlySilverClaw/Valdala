@@ -17,6 +17,12 @@ const Vertex = Mesh.Vertex;
 const Index = Mesh.Index;
 const List = std.ArrayListUnmanaged;
 
+const Visibility = struct {
+    top: bool,
+    bottom: bool,
+    sides: [6]bool
+};
+
 const Self = @This();
 
 
@@ -76,8 +82,14 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
 
             const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
             const center = grid.getCenter(tile_position).add(chunk_start);
+
+            const visibility = Visibility {
+                .top = true,
+                .bottom = true,
+                .sides = .{ true } ** 6
+            };
             
-            generateTileVertices( grid.hexagon, center, tile_textures, &vertex_list, &index_list);
+            generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
             }
         }
     }
@@ -109,7 +121,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
 }
 
 
-fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, textures: module.Tile.Textures, vertex_list: *List(Vertex), index_list: *List(Index)) void {
+fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, textures: module.Tile.Textures, visibility: Visibility, vertex_list: *List(Vertex), index_list: *List(Index)) void {
     
     const texture_top: Vertex.Texture = textures.top;
     const texture_side: Vertex.Texture = textures.side;
@@ -189,67 +201,102 @@ fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, te
     const vert_w_top_side6 = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_side };
     const vert_w_bottom_side6 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vertices = [_]Vertex {
-        ver_center_top,
-        vert_nw_top,
-        vert_ne_top,
-        vert_e_top,
-        vert_se_top,
-        vert_sw_top,
-        vert_w_top,
-        
-        ver_center_bottom,
-        vert_nw_bottom,
-        vert_ne_bottom,
-        vert_e_bottom,
-        vert_se_bottom,
-        vert_sw_bottom,
-        vert_w_bottom,
+    if(visibility.top) {
+        const vertices = [_]Vertex {
+            ver_center_top,
+            vert_nw_top,
+            vert_ne_top,
+            vert_e_top,
+            vert_se_top,
+            vert_sw_top,
+            vert_w_top,
+        };
+        appendTopIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_ne_top_side1,
-        vert_ne_bottom_side1,
-        vert_nw_top_side1,
-        vert_nw_bottom_side1,
+    if(visibility.bottom) {
+        const vertices = [_]Vertex {
+            ver_center_bottom,
+            vert_nw_bottom,
+            vert_ne_bottom,
+            vert_e_bottom,
+            vert_se_bottom,
+            vert_sw_bottom,
+            vert_w_bottom,
+        };
+        appendBottomIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_e_top_side2,
-        vert_e_bottom_side2,
-        vert_ne_top_side2,
-        vert_ne_bottom_side2,
+    if(visibility.sides[0]) {
+        const vertices = [_]Vertex {
+            vert_ne_top_side1,
+            vert_ne_bottom_side1,
+            vert_nw_top_side1,
+            vert_nw_bottom_side1,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_se_top_side3,
-        vert_se_bottom_side3,
-        vert_e_top_side3,
-        vert_e_bottom_side3,
+    if(visibility.sides[1]) {
+        const vertices = [_]Vertex {
+            vert_e_top_side2,
+            vert_e_bottom_side2,
+            vert_ne_top_side2,
+            vert_ne_bottom_side2,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_sw_top_side4,
-        vert_sw_bottom_side4,
-        vert_se_top_side4,
-        vert_se_bottom_side4,
+    if(visibility.sides[2]) {
+        const vertices = [_]Vertex {
+            vert_se_top_side3,
+            vert_se_bottom_side3,
+            vert_e_top_side3,
+            vert_e_bottom_side3,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_w_top_side5,
-        vert_w_bottom_side5,
-        vert_sw_top_side5,
-        vert_sw_bottom_side5,
+    if(visibility.sides[3]) {
+        const vertices = [_]Vertex {
+            vert_sw_top_side4,
+            vert_sw_bottom_side4,
+            vert_se_top_side4,
+            vert_se_bottom_side4,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 
-        vert_nw_top_side6,
-        vert_nw_bottom_side6,
-        vert_w_top_side6,
-        vert_w_bottom_side6,
-    };
-    vertex_list.appendSliceAssumeCapacity(&vertices);
-    
-    const len: u32 = @intCast(vertex_list.items.len);
-    appendHexagonIndices(len, index_list);
-    appendHexagonIndices(len + 7, index_list);
-    appendSquareIndices(len + 7 + (0 * 4), index_list);
-    appendSquareIndices(len + 7 + (1 * 4), index_list);
-    appendSquareIndices(len + 7 + (2 * 4), index_list);
-    appendSquareIndices(len + 7 + (3 * 4), index_list);
-    appendSquareIndices(len + 7 + (4 * 4), index_list);
-    appendSquareIndices(len + 7 + (5 * 4), index_list);
+    if(visibility.sides[4]) {
+        const vertices = [_]Vertex {
+            vert_w_top_side5,
+            vert_w_bottom_side5,
+            vert_sw_top_side5,
+            vert_sw_bottom_side5,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
+
+    if(visibility.sides[5]) {
+        const vertices = [_]Vertex {
+            vert_nw_top_side6,
+            vert_nw_bottom_side6,
+            vert_w_top_side6,
+            vert_w_bottom_side6,
+        };
+        appendSquareIndices(@intCast(vertex_list.items.len), index_list);
+        vertex_list.appendSliceAssumeCapacity(&vertices);
+    }
 }
 
-fn appendHexagonIndices(start: Index, list: *List(Index)) void {
+fn appendTopIndices(start: Index, list: *List(Index)) void {
     
     const indices = [_]Index {
         start + 1, start, start + 2,
@@ -257,7 +304,20 @@ fn appendHexagonIndices(start: Index, list: *List(Index)) void {
         start + 3, start, start + 4,
         start + 4, start, start + 5,
         start + 5, start, start + 6,
-        start + 6, start, start + 1,
+        start + 6, start, start + 1
+    };
+    list.appendSliceAssumeCapacity(&indices);
+}
+
+fn appendBottomIndices(start: Index, list: *List(Index)) void {
+    
+    const indices = [_]Index {
+        start, start + 1, start + 2,
+        start, start + 2, start + 3,
+        start, start + 3, start + 4,
+        start, start + 4, start + 5,
+        start, start + 5, start + 6,
+        start, start + 6, start + 1
     };
     list.appendSliceAssumeCapacity(&indices);
 }
@@ -266,7 +326,7 @@ fn appendSquareIndices(start: Index, list: *List(Index)) void {
     
     const indices = [_]Index {
         start, start + 1, start + 2,
-        start + 3, start + 2, start + 1,
+        start + 3, start + 2, start + 1
     };
     list.appendSliceAssumeCapacity(&indices);
 }
