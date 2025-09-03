@@ -18,7 +18,7 @@ pub const Position = coordinate.hexagon.Position(i64);
 
 const Self = @This();
 
-
+visible: bool,
 tiles: []Tile,
 
 pub fn init(allocator: Allocator) Allocator.Error!Self {
@@ -28,6 +28,7 @@ pub fn init(allocator: Allocator) Allocator.Error!Self {
     @memset(tiles, air);
 
     return .{
+        .visible = false,
         .tiles = tiles
     };
 }
