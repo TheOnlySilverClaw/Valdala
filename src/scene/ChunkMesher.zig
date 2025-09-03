@@ -22,49 +22,9 @@ const Self = @This();
 
 const vertices_per_tile = (2 * 7) + (6 * 4);
 const vertices_per_chunk_max = vertices_per_tile * Chunk.layout.volume;
-const indices_per_chunk_max = base_indices.len * Chunk.layout.volume;
+const indices_per_tile = (3 * 6 * 2) + (2 * 3 * 6);
+const indices_per_chunk_max = indices_per_tile * Chunk.layout.volume;
 
-const base_indices = [_]Mesh.Index {
-    // top
-    1, 0, 2,
-    2, 0, 3,
-    3, 0, 4,
-    4, 0, 5,
-    5, 0, 6,
-    6, 0, 1,
-
-    // bottom
-    7, 8, 9,
-    7, 9, 10,
-    7, 10, 11,
-    7, 11, 12,
-    7, 12, 13,
-    7, 13, 8,
-
-    // side 1
-    14, 15, 16,
-    17, 16, 15,
-
-    // side 2
-    18, 19, 20,
-    21, 20, 19,
-
-    // side 3
-    22, 23, 24,
-    25, 24, 23,
-
-    // side 4
-    26, 27, 28,
-    29, 28, 27,
-
-    // side 5
-    30, 31, 32,
-    33, 32, 31,
-
-    // side 6
-    34, 35, 36,
-    37, 36, 35
-};
 
 vertex_count: u64 = 0,
 grid: coordinate.hexagon.Grid(i64, f32),
@@ -96,8 +56,6 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
 
     const width = Chunk.layout.width;
 
-    var tile_counter: u32 = 0;
-
     for (0..width) |north| {
         for (0..width) |south_east| {
             for(0..Chunk.layout.height) |height| {
@@ -119,15 +77,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
             const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
             const center = grid.getCenter(tile_position).add(chunk_start);
             
-            const vertices = generateTileVertices( grid.hexagon, center, tile_textures);
-            vertex_list.appendSliceAssumeCapacity(&vertices);
-
-            for(base_indices) |base_index| {
-                const index: Index = @intCast(tile_counter * vertices.len + base_index);
-                index_list.appendAssumeCapacity(index);
-            }
-
-            tile_counter += 1;
+            generateTileVertices( grid.hexagon, center, tile_textures, &vertex_list, &index_list);
             }
         }
     }
@@ -159,7 +109,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
 }
 
 
-fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, textures: module.Tile.Textures) [vertices_per_tile]Vertex {
+fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, textures: module.Tile.Textures, vertex_list: *List(Vertex), index_list: *List(Index)) void {
     
     const texture_top: Vertex.Texture = textures.top;
     const texture_side: Vertex.Texture = textures.side;
@@ -286,5 +236,37 @@ fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, te
         vert_w_top_side6,
         vert_w_bottom_side6,
     };
-    return vertices;
+    vertex_list.appendSliceAssumeCapacity(&vertices);
+    
+    const len: u32 = @intCast(vertex_list.items.len);
+    appendHexagonIndices(len, index_list);
+    appendHexagonIndices(len + 7, index_list);
+    appendSquareIndices(len + 7 + (0 * 4), index_list);
+    appendSquareIndices(len + 7 + (1 * 4), index_list);
+    appendSquareIndices(len + 7 + (2 * 4), index_list);
+    appendSquareIndices(len + 7 + (3 * 4), index_list);
+    appendSquareIndices(len + 7 + (4 * 4), index_list);
+    appendSquareIndices(len + 7 + (5 * 4), index_list);
+}
+
+fn appendHexagonIndices(start: Index, list: *List(Index)) void {
+    
+    const indices = [_]Index {
+        start + 1, start, start + 2,
+        start + 2, start, start + 3,
+        start + 3, start, start + 4,
+        start + 4, start, start + 5,
+        start + 5, start, start + 6,
+        start + 6, start, start + 1,
+    };
+    list.appendSliceAssumeCapacity(&indices);
+}
+
+fn appendSquareIndices(start: Index, list: *List(Index)) void {
+    
+    const indices = [_]Index {
+        start, start + 1, start + 2,
+        start + 3, start + 2, start + 1,
+    };
+    list.appendSliceAssumeCapacity(&indices);
 }
