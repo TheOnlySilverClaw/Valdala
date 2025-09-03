@@ -102,8 +102,8 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
             const tile_height = world_height - position.height * Chunk.layout.height;
 
             if(tile_height >= 0) {
+                chunk.visible = true;
                 const height_limit = @min(tile_height, Chunk.layout.height);
-                chunk.visible = height_limit > 0;
 
                 for(0..@intCast(height_limit)) |height| {
 
