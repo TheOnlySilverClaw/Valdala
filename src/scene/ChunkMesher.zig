@@ -6,6 +6,7 @@ const module = @import("module");
 const world = @import("world");
 const log = std.log.scoped(.mesher);
 
+const Allocator = std.mem.Allocator;
 const Tile = @import("Tile.zig");
 const TilePosition = coordinate.hexagon.Position(i64);
 const Vector = algebra.Vector3(f32);
@@ -14,19 +15,64 @@ const Chunk = world.Chunk;
 const Mesh = @import("ChunkMesh.zig");
 const Vertex = Mesh.Vertex;
 const Index = Mesh.Index;
+const List = std.ArrayListUnmanaged;
 
 const Self = @This();
 
 
 const vertices_per_tile = (2 * 7) + (6 * 4);
+const vertices_per_chunk_max = vertices_per_tile * Chunk.layout.volume;
+const indices_per_chunk_max = base_indices.len * Chunk.layout.volume;
 
+const base_indices = [_]Mesh.Index {
+    // top
+    1, 0, 2,
+    2, 0, 3,
+    3, 0, 4,
+    4, 0, 5,
+    5, 0, 6,
+    6, 0, 1,
 
+    // bottom
+    7, 8, 9,
+    7, 9, 10,
+    7, 10, 11,
+    7, 11, 12,
+    7, 12, 13,
+    7, 13, 8,
+
+    // side 1
+    14, 15, 16,
+    17, 16, 15,
+
+    // side 2
+    18, 19, 20,
+    21, 20, 19,
+
+    // side 3
+    22, 23, 24,
+    25, 24, 23,
+
+    // side 4
+    26, 27, 28,
+    29, 28, 27,
+
+    // side 5
+    30, 31, 32,
+    33, 32, 31,
+
+    // side 6
+    34, 35, 36,
+    37, 36, 35
+};
+
+vertex_count: u64 = 0,
 grid: coordinate.hexagon.Grid(i64, f32),
 device: *webgpu.Device,
 tile_registry: TileRegistry,
 
 
-pub fn generate(self: Self, position: Chunk.Position, chunk: world.Chunk) Mesh {
+pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chunk: world.Chunk) !Mesh {
 
     const device = self.device;
     const queue = device.getQueue();
@@ -42,60 +88,11 @@ pub fn generate(self: Self, position: Chunk.Position, chunk: world.Chunk) Mesh {
 
     const chunk_start = grid.getCenter(world_position);
 
-    const vertex_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = Chunk.layout.volume * vertices_per_tile * @sizeOf(Vertex),
-        .usage = .{ .vertex = true, .copy_dst = true }
-    };
-
-    const base_indices = [_]Mesh.Index {
-        // top
-        1, 0, 2,
-        2, 0, 3,
-        3, 0, 4,
-        4, 0, 5,
-        5, 0, 6,
-        6, 0, 1,
-
-        // bottom
-        7, 8, 9,
-        7, 9, 10,
-        7, 10, 11,
-        7, 11, 12,
-        7, 12, 13,
-        7, 13, 8,
-
-        // side 1
-        14, 15, 16,
-        17, 16, 15,
-
-        // side 2
-        18, 19, 20,
-        21, 20, 19,
-
-        // side 3
-        22, 23, 24,
-        25, 24, 23,
-
-        // side 4
-        26, 27, 28,
-        29, 28, 27,
-
-        // side 5
-        30, 31, 32,
-        33, 32, 31,
-
-        // side 6
-        34, 35, 36,
-        37, 36, 35
-    };
-
-    const index_buffer_descriptor = webgpu.BufferDescriptor {
-        .size = world.Chunk.layout.volume * base_indices.len * @sizeOf(Mesh.Index),
-        .usage = .{ .index = true, .copy_dst = true }
-    };
-
-    const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
-    const index_buffer = device.createBuffer(&index_buffer_descriptor);
+    // TODO reuse memory?
+    var vertex_list = try List(Vertex).initCapacity(allocator, vertices_per_chunk_max);
+    defer vertex_list.clearAndFree(allocator);
+    var index_list = try List(Index).initCapacity(allocator, indices_per_chunk_max);
+    defer index_list.clearAndFree(allocator);
 
     const width = Chunk.layout.width;
 
@@ -121,19 +118,39 @@ pub fn generate(self: Self, position: Chunk.Position, chunk: world.Chunk) Mesh {
 
             const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
             const center = grid.getCenter(tile_position).add(chunk_start);
+            
             const vertices = generateTileVertices( grid.hexagon, center, tile_textures);
-            var indices: [base_indices.len]Index = undefined;
-            for(base_indices, 0..) |base_index, index_number| {
-                indices[index_number] = @intCast(tile_counter * vertices.len + base_index);
-            }
+            vertex_list.appendSliceAssumeCapacity(&vertices);
 
-            queue.writeBuffer(vertex_buffer, Vertex, &vertices, tile_counter * vertices.len * @sizeOf(Vertex));
-            queue.writeBuffer(index_buffer, Index, &indices, tile_counter * indices.len * @sizeOf(Index));
+            for(base_indices) |base_index| {
+                const index: Index = @intCast(tile_counter * vertices.len + base_index);
+                index_list.appendAssumeCapacity(index);
+            }
 
             tile_counter += 1;
             }
         }
     }
+
+    // TODO find smallest valid sizes (with some extra space for remeshing)?
+    const vertex_buffer_descriptor = webgpu.BufferDescriptor {
+        .size = vertices_per_chunk_max * @sizeOf(Vertex),
+        .usage = .{ .vertex = true, .copy_dst = true }
+    };
+
+    const index_buffer_descriptor = webgpu.BufferDescriptor {
+        .size = indices_per_chunk_max * @sizeOf(Index),
+        .usage = .{ .index = true, .copy_dst = true }
+    };
+
+    const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
+    const index_buffer = device.createBuffer(&index_buffer_descriptor);
+
+    queue.writeBuffer(vertex_buffer, Vertex, vertex_list.items, 0);
+    queue.writeBuffer(index_buffer, Index, index_list.items, 0);
+
+    self.vertex_count += vertex_list.items.len;
+    log.debug("vertex count: {}", .{ self.vertex_count });
 
     return .{
         .vertex_buffer = vertex_buffer,
