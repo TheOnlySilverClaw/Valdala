@@ -65,31 +65,118 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
     for (0..width) |north| {
         for (0..width) |south_east| {
             for(0..Chunk.layout.height) |height| {
-            const tile_offset = Chunk.TileOffset {
-                .north = @intCast(north),
-                .south_east = @intCast(south_east),
-                .height = @intCast(height)
-            };
-            const tile_position = TilePosition {
-                .north = @intCast(north),
-                .south_east = @intCast(south_east),
-                .height = @intCast(height)
-            };
+                const tile_offset = Chunk.TileOffset {
+                    .north = @intCast(north),
+                    .south_east = @intCast(south_east),
+                    .height = @intCast(height)
+                };
+                const tile_position = TilePosition {
+                    .north = @intCast(north),
+                    .south_east = @intCast(south_east),
+                    .height = @intCast(height)
+                };
 
-            const tile = chunk.getTile(tile_offset);
-            // don't render air blocks
-            if(tile.index == 0) continue;
+                const tile = chunk.getTile(tile_offset);
+                // don't render air blocks
+                if(tile.index == 0) continue;
 
-            const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
-            const center = grid.getCenter(tile_position).add(chunk_start);
+                const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
+                const center = grid.getCenter(tile_position).add(chunk_start);
 
-            const visibility = Visibility {
-                .top = true,
-                .bottom = true,
-                .sides = .{ true } ** 6
-            };
-            
-            generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
+                if(north > 0 and north < Chunk.layout.width - 1 and south_east > 0 and south_east < Chunk.layout.width - 1 and height > 0 and height < Chunk.layout.height - 1) {
+                    
+                    const top_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north),
+                        .south_east = @intCast(south_east),
+                        .height = @intCast(height + 1)
+                    };
+                    
+                    const top_neighbor_tile = chunk.getTile(top_neighbor_offset);
+
+                    const bottom_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north),
+                        .south_east = @intCast(south_east),
+                        .height = @intCast(height - 1)
+                    };
+                    
+                    const bottom_neighbor_tile = chunk.getTile(bottom_neighbor_offset);
+
+                    const side1_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north + 1),
+                        .south_east = @intCast(south_east),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side1_neighbor_tile = chunk.getTile(side1_neighbor_offset);
+
+
+                    const side2_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north + 1),
+                        .south_east = @intCast(south_east + 1),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side2_neighbor_tile = chunk.getTile(side2_neighbor_offset);
+
+                    const side3_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north),
+                        .south_east = @intCast(south_east + 1),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side3_neighbor_tile = chunk.getTile(side3_neighbor_offset);
+
+
+                    const side4_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north - 1),
+                        .south_east = @intCast(south_east),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side4_neighbor_tile = chunk.getTile(side4_neighbor_offset);
+
+                    const side5_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north - 1),
+                        .south_east = @intCast(south_east - 1),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side5_neighbor_tile = chunk.getTile(side5_neighbor_offset);
+
+
+                    const side6_neighbor_offset = Chunk.TileOffset {
+                        .north = @intCast(north),
+                        .south_east = @intCast(south_east - 1),
+                        .height = @intCast(height)
+                    };
+                    
+                    const side6_neighbor_tile = chunk.getTile(side6_neighbor_offset);
+
+                    const visibility = Visibility {
+                        .top = top_neighbor_tile.index == 0,
+                        .bottom = bottom_neighbor_tile.index == 0,
+                        .sides = .{
+                            side1_neighbor_tile.index == 0,
+                            side2_neighbor_tile.index == 0,
+                            side3_neighbor_tile.index == 0,
+                            side4_neighbor_tile.index == 0,
+                            side5_neighbor_tile.index == 0,
+                            side6_neighbor_tile.index == 0
+                        }
+                    };
+
+                    generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
+
+                } else {
+                    // TODO handle chunk borders better
+                    const visibility = Visibility {
+                        .top = true,
+                        .bottom = true,
+                        .sides = .{ true } ** 6
+                    };
+
+                    generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
+                }
             }
         }
     }
