@@ -24,7 +24,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRe
     };
 }
 
-pub fn render(self: *Self, scene: *const Scene) !void {
+pub fn render(self: *Self, scene: Scene) !void {
 
     const surface = self.surface;
     const device = surface.device;

@@ -1,64 +1,101 @@
 const std = @import("std");
 const glfw = @import("glfw");
-const event = @import("event.zig");
-const scene = @import("scene");
+const algebra = @import("algebra");
 const log = std.log.scoped(.controller);
 
 
 const Allocator = std.mem.Allocator;
+const List = std.ArrayListUnmanaged;
 const Window = @import("Window.zig");
-const Camera = scene.Camera;
+const Input = @import("Input.zig");
 
 const Self = @This();
 
-window: *Window,
-camera: ?*Camera,
+input: Input,
 
-pub fn init(window: *Window) Self {
+pub fn new() Self {
     return .{
-        .window = window,
-        .camera = null
+        .input = Input.new()
     };
 }
 
-pub fn registerWindowListeners(self: *Self) !void {
+pub fn registerWindowListeners(self: *Self, window: *Window) !void {
     
-    try self.window.createKeyListener(.{
+    try window.createKeyListener(.{
         .ptr = self,
         .call = &Self.onKey
+    });
+
+    try window.createResizeListener(.{
+        .ptr = self,
+        .call = &Self.onResize
+    });
+
+    try window.createCloseListener(.{
+        .ptr = self,
+        .call = &Self.onClose
     });
 }
 
 pub fn onKey(ptr: *anyopaque, key: glfw.Key, action: glfw.Action, modifiers: glfw.Modifiers) void {
     
-    // TODO is there any better way?
-    const self: *Self = @ptrCast(@alignCast(ptr));
+    var self: *Self = castSelfPointer(ptr);
+    const input = &self.input;
+    var window = &input.window;
+    var direction = &input.movement.direction;
+    var rotation = &input.movement.rotation;
 
     switch (key) {
-        .escape => self.window.close(),
-        .n => if(self.camera) |c| c.zoomIn(0.1),
-        .m => if(self.camera) |c| c.zoomOut(0.1),
-        .q => if(self.camera) |c| c.moveYaw(-0.1),
-        .e => if(self.camera) |c| c.moveYaw(0.1),
-        .a => if(self.camera) |c| c.movePitch(-0.1),
-        .d => if(self.camera) |c| c.movePitch(0.1),
-        .w => if(self.camera) |c| c.moveRoll(0.1),
-        .s => if(self.camera) |c| c.moveRoll(-0.1),
-        .j => if(self.camera) |c| c.rotateRoll(-0.1),
-        .l => if(self.camera) |c| c.rotateRoll(0.1),
-        .k => if(self.camera) |c| c.rotatePitch(-0.1),
-        .i => if(self.camera) |c| c.rotatePitch(0.1),
-        .u => if(self.camera) |c| c.rotateYaw(-0.1),
-        .o => if(self.camera) |c| c.rotateYaw(0.1),
-        else => log.debug("unbound key {s} {s} {s} {s}", .{
+        .escape => window.close = true,
+        .w => direction.y = 1,
+        .a => direction.x = -1,
+        .s => direction.y = -1,
+        .d => direction.x = 1,
+        .e => direction.z = 1,
+        .q => direction.z = -1,
+        .i => rotation.pitch = 1,
+        .k => rotation.pitch = -1,
+        .o => rotation.yaw = 1,
+        .u => rotation.yaw = -1,
+        .l => rotation.roll = 1,
+        .j => rotation.roll = -1,
+        else => {
+            log.debug("unbound key {s} {s} {s} {s}", .{
             @tagName(key),
             @tagName(action),
             if(modifiers.shift) "shift" else "",
-            if(modifiers.alt) "alt" else ""
-        })
+            if(modifiers.alt) "alt" else ""});
+            return;
+        }
     }
 }
 
-pub fn update(self: Self) void {
-    _= self;
+pub fn onResize(ptr: *anyopaque, width: u32, height: u32) void {
+
+    var self: *Self = @ptrCast(@alignCast(ptr));
+    self.input.window.resize = .{
+        .size = .{
+            .width = width,
+            .height = height
+        }
+    };
+}
+
+pub fn onClose(ptr: *anyopaque) void {
+
+    var self: *Self = castSelfPointer(ptr);
+    self.input.window.close = true;
+}
+
+fn castSelfPointer(ptr: *anyopaque) *Self {
+    return @ptrCast(@alignCast(ptr));
+}
+
+pub fn poll(self: *Self) Input {
+    
+    glfw.pollEvents();
+
+    const snapshot = self.input;
+    self.input = Input.new();
+    return snapshot;
 }

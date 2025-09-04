@@ -22,7 +22,7 @@ pub fn init(allocator: Allocator, surface: *Surface, tile_registry: TileRegistry
     };
 }
 
-pub fn renderScene(self: *Self, scene: *const Scene) !void {
+pub fn renderScene(self: *Self, scene: Scene) !void {
     try self.scene_renderer.render(scene);
 }
 

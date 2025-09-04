@@ -2,6 +2,7 @@ const std = @import("std");
 const math = std.math;
 const coordinate = @import("coordinate");
 const fastnoise = @import("fastnoise");
+const log = std.log.scoped(.world);
 
 const Map = std.AutoArrayHashMapUnmanaged;
 const Allocator = std.mem.Allocator;
@@ -49,6 +50,31 @@ pub fn deinit(self: *Self) void {
     self.chunks.clearAndFree(self.allocator);
 }
 
+pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
+
+    var i: u64 = 0;
+
+    const limit: usize = distance * 2 - 1;
+    const half: i64 = distance / 2;
+
+    for(0..limit) |south_east| {
+        for(0..limit) |north| {
+            for(0..limit) |height| {
+            
+                const position = Chunk.Position {
+                    .north = @intCast(center.north - half + @as(i64, @intCast(north))),
+                    .south_east = @intCast(center.south_east - half + @as(i64, @intCast(south_east))),
+                    .height = @intCast(center.height - half + @as(i64, @intCast(height)))
+                };
+
+                _ = try self.loadChunk(position);
+                i += 1;
+            }
+        }
+    }
+    log.debug("loaded {} chunks", .{ i });
+}
+
 pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
     if(self.chunks.get(position)) |chunk| {
@@ -64,7 +90,7 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
     
     const start_north: f32 = @floatFromInt(position.north * Chunk.layout.width);
     const start_south_east: f32 = @floatFromInt(position.south_east * Chunk.layout.width);
-    const chunk_height_factor: f32 = @floatFromInt(Chunk.layout.height / 2);
+    const chunk_height_factor: f32 = @floatFromInt(Chunk.layout.height);
 
     for(0..Chunk.layout.width) |south_east| {
         for(0..Chunk.layout.width) |north| {
@@ -72,14 +98,23 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
             const world_north = start_north + @as(f32, @floatFromInt(north));
             const world_south_east = start_south_east + @as(f32, @floatFromInt(south_east));
             const normal_height = self.noise.genNoise2D(world_north, world_south_east);
-            const height: u16 = @intFromFloat((normal_height + 1.0) * chunk_height_factor);
+            const world_height: i64 = @intFromFloat(normal_height * chunk_height_factor);
+            const tile_height = world_height - position.height * Chunk.layout.height;
 
-            const offset = Chunk.TileOffset {
-                .south_east = @intCast(south_east),
-                .north = @intCast(north),
-                .height = height
-            };
-            chunk.setTile(offset, .{ .index = 1 });
+            if(tile_height >= 0) {
+                chunk.visible = true;
+                const height_limit = @min(tile_height, Chunk.layout.height);
+
+                for(0..@intCast(height_limit)) |height| {
+
+                    const offset = Chunk.TileOffset {
+                        .south_east = @intCast(south_east),
+                        .north = @intCast(north),
+                        .height = @intCast(height)
+                    };
+                    chunk.setTile(offset, .{ .index = 1 });
+                }
+            }
         }
     }
 

@@ -1,17 +1,17 @@
 const color = @import("color");
 
-const Simulation = @import("simulation").Simulation;
+const Game = @import("game").Game;
 const Connector = @import("Connector.zig");
 
 const Message = @import("protocol").server.Message;
 
 const Self = @This();
 
-simulation: *Simulation,
+simulation: *Game,
 connector: *Connector,
 running: bool,
 
-pub fn init(simulation: *Simulation, connector: *Connector) Self {
+pub fn init(simulation: *Game, connector: *Connector) Self {
     return .{
         .simulation = simulation,
         .connector = connector,

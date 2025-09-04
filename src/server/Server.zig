@@ -4,7 +4,7 @@ const net = std.net;
 const log = std.log.scoped(.server);
 
 const Thread = std.Thread;
-const Simulation = @import("simulation").Simulation;
+const Game = @import("game").Game;
 const ModuleLoader = @import("module").Loader;
 const Connector = @import("Connector.zig");
 const Loop = @import("Loop.zig");
@@ -22,7 +22,7 @@ allocator: Allocator,
 connector: *Connector,
 directory: fs.Dir,
 module_loader: *ModuleLoader,
-simulation: *Simulation,
+game: *Game,
 loop: Loop,
 
 pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
@@ -36,17 +36,17 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     // const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
     // module_loader.* = try ModuleLoader.init(allocator, module_directory);
     
-    const simulation = try allocator.create(Simulation);
-    simulation.* = try Simulation.init(allocator);
+    const game = try allocator.create(Game);
+    game.* = try Game.init(allocator);
 
-    const loop = Loop.init(simulation, connector);
+    const loop = Loop.init(game, connector);
 
     return .{
         .allocator = allocator,
         .connector = connector,
         .directory = directory,
         .module_loader = module_loader,
-        .simulation = simulation,
+        .game = game,
         .loop = loop
     };
 }
@@ -58,8 +58,8 @@ pub fn deinit(self: Self) void {
 
     self.allocator.destroy(self.module_loader);
     
-    self.simulation.deinit();
-    self.allocator.destroy(self.simulation);
+    self.game.deinit();
+    self.allocator.destroy(self.game);
 }
 
 pub fn launch(self: *Self) !void {
