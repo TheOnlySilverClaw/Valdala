@@ -33,9 +33,33 @@ Currently, the tech stack looks like this:
 
 Valdala is a passion project and I'm willing to spend countless hours trying to make it work on my own.
 
-However, if anyone is willing to help out and learn a thing or two on the way, I'd appreaciate that.
+However, if anyone is willing to help out and learn a thing or two on the way, be my guest on this journey.
 
 Find us [on Discord](https://discord.gg/9rcr2EVSTA).
+
+### Engine Developers
+
+There's a lot of engine to make and I'd appreciate some extra hands.
+
+If you know Zig and have already worked on a game engine, that would be perfect!
+
+If you a similar programming language and are willing to learn, we can work with that.
+
+If you have a background in graphics or network programming or game related math concepts, feel free to reach out either way.
+
+### Texture Artists
+
+If you like making very small but pretty textures, you can paint the world.
+
+### Concept Artis
+
+I only have a vague idea how people, animals, monsters and other things in the game could look like.
+
+If you can make drawings or 3d models of a sheep made of hexagons, let's talk.
+
+### Game Designer
+
+While I have a lot of general ideas about how the game should work, I would love to have someone to bounce dieas off and help with specific design decisions.
 
 
 ## Contribution Guildelines
