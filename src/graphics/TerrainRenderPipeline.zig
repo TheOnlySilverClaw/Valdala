@@ -1,26 +1,23 @@
 const webgpu = @import("webgpu");
+const asset = @import("asset");
 
 const Surface = @import("Surface.zig");
 const Shader = @import("Shader.zig");
 
 const Self = @This();
 
-
 handle: *webgpu.RenderPipeline,
-bind_group_layout: *webgpu.BindGroupLayout,
+bindgroup_layout: *webgpu.BindGroupLayout,
 
 pub fn init(surface: *const Surface) !Self {
-
-    const shader = Shader.load("textured", surface.device);
+    const shader_source = asset.shader.terrain[0..];
+    const shader = Shader.load(shader_source, surface.device, "terrain");
     defer shader.release();
 
-    const bind_group_layout = createBindGroupLayout(surface.device);
-    const handle = createRenderPipeline(surface, bind_group_layout, shader);
-    
-    return .{
-        .handle = handle,
-        .bind_group_layout = bind_group_layout
-    };
+    const bindgroup_layout = createBindGroupLayout(surface.device);
+    const handle = createRenderPipeline(surface, bindgroup_layout, shader);
+
+    return .{ .handle = handle, .bindgroup_layout = bindgroup_layout };
 }
 
 pub fn deinit(self: Self) void {

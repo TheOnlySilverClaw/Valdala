@@ -1,8 +1,6 @@
 const webgpu = @import("webgpu");
 
-pub fn load(comptime name: []const u8, device: *webgpu.Device) *webgpu.ShaderModule {
-
-    const source = @embedFile(name ++ ".wgsl");
+pub fn load(comptime source: []const u8, device: *webgpu.Device, name: []const u8) *webgpu.ShaderModule {
 
     const source_descriptor = webgpu.ShaderSourceWGSL {
         .chain = .{ .type = .shader_source_wgsl },

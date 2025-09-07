@@ -1,1 +1,2 @@
-pub const AssetLoader = @import("AsssetLoader.zig");
+pub const font = @import("font/embed.zig");
+pub const shader = @import("shader/embed.zig");

@@ -46,7 +46,7 @@ pub fn deinit(self: *Self) void {
     
     var chunk_iterator = self.chunks.valueIterator();
     while(chunk_iterator.next()) |chunk| {
-        chunk.deinit();
+        chunk.destroy();
     }
     self.chunks.clearAndFree(self.allocator);
 }

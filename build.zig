@@ -58,7 +58,6 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     const yaml = b.dependency("yaml", .{}).module("yaml");
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
-    _ = TrueType;
 
     // TODO move to separate repository?
     const glfw_webgpu = b.addModule("glfw-webgpu", .{
@@ -171,6 +170,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     graphics.addImport("coordinate", coordinate);
     graphics.addImport("algebra", algebra);
     graphics.addImport("module", module);
+    graphics.addImport("TrueType", TrueType);
+    graphics.addImport("gui", gui);
 
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
@@ -208,6 +209,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("module", module);
     client.addImport("world", world);
     client.addImport("game", game);
+    client.addImport("TrueType", TrueType);
 
     server.addImport("module", module);
     server.addImport("color", color);

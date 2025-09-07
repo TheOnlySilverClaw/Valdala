@@ -14,7 +14,6 @@ const TextureArray = @import("TextureArray.zig");
 
 const Self = @This();
 
-allocator: Allocator,
 surface: *const Surface,
 pipeline: Pipeline,
 projection_buffer: *webgpu.Buffer,
@@ -23,7 +22,7 @@ tile_texture_view: *webgpu.TextureView,
 bindgroup: *webgpu.BindGroup,
 
 
-pub fn init(allocator: Allocator, surface: *const Surface, tile_textures: TextureArray) !Self {
+pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const device = surface.device;
 
@@ -85,7 +84,6 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_textures: Textur
     const bindgroup = surface.device.createBindGroup(&descriptor);
 
     return .{
-        .allocator = allocator,
         .surface = surface,
         .pipeline = pipeline,
         .bindgroup = bindgroup,

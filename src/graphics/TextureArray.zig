@@ -31,7 +31,7 @@ handle: *webgpu.Texture,
 queue: *webgpu.Queue,
 
 
-pub fn create(self: *Self, width: u32, height: u32, layers: u32, device: *webgpu.Device, options: Options) void {
+pub fn create(width: u32, height: u32, layers: u32, device: *webgpu.Device, options: Options) Self {
 
     const descriptor = webgpu.TextureDescriptor {
         .label = options.label,
@@ -50,8 +50,13 @@ pub fn create(self: *Self, width: u32, height: u32, layers: u32, device: *webgpu
         .sample_count = options.samples
     };
 
-    self.handle = device.createTexture(&descriptor);
-    self.queue = device.getQueue();
+    const handle = device.createTexture(&descriptor);
+    const queue = device.getQueue();
+    
+    return .{
+        .handle = handle,
+        .queue = queue
+    };
 }
 
 pub fn write(self: Self, layer: u32, content: []const u8) !void {

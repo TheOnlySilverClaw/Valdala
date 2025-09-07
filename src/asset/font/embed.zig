@@ -1,0 +1,1 @@
+pub const fira_code_regular = @embedFile("FiraCode-Regular.ttf");
