@@ -7,16 +7,19 @@ const Self = @This();
 
 
 handle: *webgpu.RenderPipeline,
+bind_group_layout: *webgpu.BindGroupLayout,
 
 pub fn init(surface: *const Surface) !Self {
 
     const shader = Shader.load("textured", surface.device);
     defer shader.release();
 
-    const handle = createRenderPipeline(surface, shader);
+    const bind_group_layout = createBindGroupLayout(surface.device);
+    const handle = createRenderPipeline(surface, bind_group_layout, shader);
     
     return .{
-        .handle = handle
+        .handle = handle,
+        .bind_group_layout = bind_group_layout
     };
 }
 
@@ -24,18 +27,16 @@ pub fn deinit(self: Self) void {
     self.handle.release();
 }
 
-fn createRenderPipeline(surface: *const Surface, shader: *webgpu.ShaderModule) *webgpu.RenderPipeline {
+fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.BindGroupLayout, shader: *webgpu.ShaderModule) *webgpu.RenderPipeline {
 
     const device = surface.device;
 
-    const bindgroup_layout = createBindGroupLayout(device);
-
-    const bindgroup_layouts = [_]*webgpu.BindGroupLayout { bindgroup_layout };
+    const bind_group_layouts = [_]*webgpu.BindGroupLayout { bindgroup_layout };
 
     const pipeline_layout_descriptor = webgpu.PipelineLayoutDescriptor {
         .label = .empty,
-        .bind_group_layouts = &bindgroup_layouts,
-        .bind_group_layout_count = bindgroup_layouts.len
+        .bind_group_layouts = &bind_group_layouts,
+        .bind_group_layout_count = bind_group_layouts.len
     };
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);

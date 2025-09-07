@@ -6,7 +6,20 @@ pub const Options = struct {
     label: webgpu.StringView,
     mip_levels: u32 = 1,
     samples: u32 = 1,
-    view_formaats: []webgpu.TextureFormat = &.{}
+    view_formaats: []webgpu.TextureFormat = &.{},
+    usage: webgpu.TextureUsage = .{
+        .texture_binding = true,
+        .copy_dst = true
+    },
+};
+
+pub const ViewOptions = struct {
+    label: webgpu.StringView,
+    aspect: webgpu.TextureAspect = .all,
+    base_array_layer: u32 = 0,
+    base_mip_level: u32 = 0,
+    dimension: webgpu.TextureViewDimension = .@"2d_array",
+    usage: webgpu.TextureUsage = .{ .texture_binding = true, .copy_dst = true }
 };
 
 const Self = @This();
@@ -31,10 +44,7 @@ pub fn create(self: *Self, width: u32, height: u32, layers: u32, device: *webgpu
             .height = height,
             .depth_or_array_layers = layers
         },
-        .usage = .{
-            .texture_binding = true,
-            .copy_dst = true
-        },
+        .usage = options.usage,
         .view_format_count = options.view_formaats.len,
         .view_formats = options.view_formaats.ptr,
         .sample_count = options.samples
@@ -76,6 +86,26 @@ pub fn writeArea(self: Self, x: u32, y: u32, width: u32, height: u32, layer: u32
     self.queue.writeTexture(&destination, content.ptr, content.len, &layout, &extent);
 }
 
+pub fn createView(self: Self, options: ViewOptions) *webgpu.TextureView {
+
+    const descriptor = webgpu.TextureViewDescriptor {
+        .array_layer_count = self.getLayers(),
+        .aspect = options.aspect,
+        .base_array_layer = options.base_array_layer,
+        .base_mip_level = options.base_mip_level,
+        .dimension = options.dimension,
+        .format = self.getFormat(),
+        .label = options.label,
+        .usage = options.usage,
+        .mip_level_count = self.getMipLevels()
+    };
+
+    return self.handle.createView(&descriptor);
+}
+
+pub fn getFormat(self: Self) webgpu.TextureFormat {
+    return self.handle.getFormat();
+}
 
 pub fn getWidth(self: Self) u32 {
     return self.handle.getWidth();
@@ -87,6 +117,10 @@ pub fn getHeight(self: Self) u32 {
 
 pub fn getLayers(self: Self) u32 {
     return self.handle.getDepthOrArrayLayers();
+}
+
+pub fn getMipLevels(self: Self) u32 {
+    return self.handle.getMipLevelCount();
 }
 
 pub fn destroy(self: Self) void {

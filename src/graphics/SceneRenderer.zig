@@ -6,7 +6,7 @@ const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const AssetLoader = @import("asset").AssetLoader;
 const TerrainRenderer = @import("TerrainRenderer.zig");
-const TileRegistry = @import("module").TileRegistry;
+const TextureArray = @import("TextureArray.zig");
 
 const Self = @This();
 
@@ -14,9 +14,9 @@ const Self = @This();
 surface: *const Surface,
 terrain_renderer: TerrainRenderer,
 
-pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRegistry) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, tile_textures: TextureArray) !Self {
 
-    const terrain_renderer = try TerrainRenderer.init(allocator, surface, tile_registry);
+    const terrain_renderer = try TerrainRenderer.init(allocator, surface, tile_textures);
 
     return .{
         .surface = surface,

@@ -10,22 +10,20 @@ const Surface = @import("Surface.zig");
 const Pipeline = @import("TerrainRenderPipeline.zig");
 const AssetLoader = @import("asset").AssetLoader;
 const ChunkMesh = @import("scene").ChunkMesh;
-const TileRegistry = @import("module").TileRegistry;
+const TextureArray = @import("TextureArray.zig");
 
 const Self = @This();
 
 allocator: Allocator,
 surface: *const Surface,
 pipeline: Pipeline,
-tile_registry: TileRegistry,
 projection_buffer: *webgpu.Buffer,
 sampler: *webgpu.Sampler,
-terrain_texture: *webgpu.Texture,
-terrain_texture_view: *webgpu.TextureView,
+tile_texture_view: *webgpu.TextureView,
 bindgroup: *webgpu.BindGroup,
 
 
-pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRegistry) !Self {
+pub fn init(allocator: Allocator, surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const device = surface.device;
 
@@ -63,7 +61,9 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRe
     };
 
     // omitting the descriptor only works if the texture array has more than 1 element!
-    const tile_texture_view = tile_registry.texture_array.handle.createView(null);
+    const tile_texture_view = tile_textures.createView(.{
+        .label = webgpu.StringView.sized("terrain")
+    });
 
     const terrain_texture_entry = webgpu.BindGroupEntry {
         .binding = 2,
@@ -90,10 +90,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, tile_registry: TileRe
         .pipeline = pipeline,
         .bindgroup = bindgroup,
         .projection_buffer = projection_buffer,
-        .terrain_texture = tile_registry.texture_array.handle,
-        .terrain_texture_view = tile_texture_view,
-        .sampler = sampler,
-        .tile_registry = tile_registry
+        .tile_texture_view = tile_texture_view,
+        .sampler = sampler
     };
 }
 
@@ -130,4 +128,5 @@ pub fn renderChunk(mesh: *const ChunkMesh, render_pass: *webgpu.RenderPassEncode
 
 pub fn deinit(self: Self) void {
     self.pipeline.deinit();
+    self.tile_texture_view.release();
 }

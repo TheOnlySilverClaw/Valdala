@@ -82,9 +82,12 @@ pub fn launch(self: *Self) !void {
     
     var game = try Game.init(self.allocator);
     defer game.deinit();
+    
     var scene = try Scene.init(self.allocator, 1, self.window.surface.aspect);
     defer scene.deinit();
-    var renderer = try graphics.GameRenderer.init(self.allocator, self.window.surface, self.module_loader.tile_registry);
+    
+    const tile_textures = self.module_loader.tile_registry.texture_array;
+    var renderer = try graphics.GameRenderer.init(self.allocator, self.window.surface, tile_textures);
 
     var chunk_mesher = @import("scene").ChunkMesher {
         .device = self.window.surface.device,
