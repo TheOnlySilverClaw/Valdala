@@ -29,13 +29,13 @@ pub fn render(self: *Self, canvas: Canvas, command_encoder: *webgpu.CommandEncod
     const clear_color = webgpu.Color {
         .r = 0.0,
         .g = 0.0,
-        .b = 0.5,
+        .b = 0.0,
         .a = 1.0
     };
 
     const color_attachment = webgpu.RenderPassColorAttachment {
         .clear_value = clear_color,
-        .load_op = .clear,
+        .load_op = .load,
         .store_op = .store,
         .view = color_texture
     };

@@ -35,6 +35,5 @@ fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
     if(strength == 0.0) { discard; }
 
-    // return vec4<f32>(strength, strength, strength, 1.0) * fragment.color;
-    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
+    return vec4<f32>(strength, strength, strength, 1.0) * fragment.color;
 }

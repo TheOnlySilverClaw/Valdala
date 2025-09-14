@@ -85,7 +85,7 @@ fn generateVertices(allocator: Allocator, text: *Text, surface_width: u32, surfa
 fn generateGlyphVertices(glyph: Font.Glyph, position: Vector(f32), color_rgba: graphics.color.RGBA, surface_width: f32, surface_height: f32) ![glyph_vertex_count]Vertex {
 
     const start_x: f32 = position.x + glyph.offset_x;
-    const start_y: f32 = position.y + glyph.offset_y / surface_height;
+    const start_y: f32 = position.y + glyph.offset_y;
     const end_x: f32 = start_x + glyph.width;
     const end_y: f32 = start_y + glyph.height;
 

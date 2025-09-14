@@ -134,7 +134,7 @@ pub fn launch(self: *Self) !void {
         .font = &self.fonts[0],
         .size = self.fonts[0].height,
         .position = .of(10, 10),
-        .color = .of(1, 0, 0, 1),
+        .color = .of(0, 0, 0, 1),
         .value = "Blah"
     };
     
