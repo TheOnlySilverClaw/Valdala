@@ -101,7 +101,7 @@ pub fn create(device: *webgpu.Device, texture_format: webgpu.TextureFormat, shad
     };
 
     const primitive = webgpu.PrimitiveState {
-        .cull_mode = .none,
+        .cull_mode = .back,
         .front_face = .counter_clockwise,
         .topology = .triangle_list
     };
