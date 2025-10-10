@@ -17,19 +17,19 @@
             .hash = "TrueType-0.0.0-Ne-mWHIGAQBwHsiS9z_vbr1SkVZCkG01Vpzrs079dzIO"
         },
         .webgpu = .{
-            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/develop.zip",
-            .hash = "wgpu_native-2.1.1-dKjiOGozAQCPookc6hZ5MqUwL0n0GgAIPLIehMpvjhWc"
+            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/0c32d4af306467e9ad06d2d2e85c4ffacd121e8e.zip",
+            .hash = "wgpu_native-2.2.0-dKjiONszAQAdyWSQFg_sd-hX66tHTuR7pLb9tgpm1aWp"
         },
         .glfw = .{
-            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/develop.zip",
-            .hash = "glfw-1.0.2-P2aihV6AAAAifkrAggsA1L_HjK9rJKo0H_ggTeqvQUC9"
+            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/b8a49f022c7ed61668432888a11ad5c567901a4e.zip",
+            .hash = "glfw-1.1.0-P2aihc-AAACw7qGLUpcNoSbiau77lGnXtY1HCqo-RmPU"
         },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/a6c2cd8760bf45c49b17a3f6259c4dfe3ded528e.zip",
             .hash = "zig_yaml-0.2.0-C1161pmrAgDnipDTh_4v4RQD27XN5GNaVlzzvlXf1jfW"
         },
         .FastNoiseLite = .{
-            .url = "https://github.com/Auburn/FastNoiseLite/archive/refs/heads/master.zip",
+            .url = "https://github.com/Auburn/FastNoiseLite/archive/582f7cf21065a48ee1c3cf62048831bbaa4581c5.zip",
             .hash = "N-V-__8AABY_GwCAGzp0XrNxRLe9u6EZRjtpGXexbZoNmTtg"
         },
 
