@@ -46,8 +46,8 @@ pub const Index = u16;
 const Self = @This();
 
 
-vertex_buffer: *webgpu.Buffer,
-index_buffer: *webgpu.Buffer,
+vertex_buffer: *webgpu.buffer.Buffer,
+index_buffer: *webgpu.buffer.Buffer,
 vertex_count: u32,
 
 

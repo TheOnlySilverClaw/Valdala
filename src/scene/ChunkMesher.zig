@@ -34,7 +34,7 @@ const indices_per_chunk_max = indices_per_tile * Chunk.layout.volume;
 
 vertex_count: u64 = 0,
 grid: coordinate.hexagon.Grid(i64, f32),
-device: *webgpu.Device,
+device: *webgpu.device.Device,
 tile_registry: TileRegistry,
 
 
@@ -182,12 +182,12 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
     }
 
     // TODO find smallest valid sizes (with some extra space for remeshing)?
-    const vertex_buffer_descriptor = webgpu.BufferDescriptor {
+    const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = vertices_per_chunk_max * @sizeOf(Vertex),
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
-    const index_buffer_descriptor = webgpu.BufferDescriptor {
+    const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = indices_per_chunk_max * @sizeOf(Index),
         .usage = .{ .index = true, .copy_dst = true }
     };

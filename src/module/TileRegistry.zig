@@ -7,7 +7,7 @@ const webgpu = @import("webgpu");
 const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
-const Image = zigimg.ImageUnmanaged;
+const Image = zigimg.Image;
 const List = std.ArrayListUnmanaged;
 const Tile = @import("Tile.zig");
 
@@ -48,10 +48,12 @@ pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Ma
     tile.id = id;
 
     const name = descriptor.get("name") orelse return error.MissingName;
-    tile.name = try self.allocator.dupe(u8, try name.asString());
+    // TODO error handling!
+    tile.name = try self.allocator.dupe(u8, name.asScalar().?);
     
     const textures = descriptor.get("textures") orelse return error.MissingTextures;
-    tile.textures = try self.loadTextures(directory, try textures.asMap());
+    // TODO error handling!
+    tile.textures = try self.loadTextures(directory, textures.asMap().?);
 
     try self.tiles.append(self.allocator, tile);
 
@@ -61,7 +63,8 @@ fn loadTextures(self: *Self, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
 
 
     if(map.get("all")) |value| {
-        const index = try self.loadTexture(directory, try value.asString());
+        // TODO error handling!
+        const index = try self.loadTexture(directory, value.asScalar().?);
         return .{
             .top = index,
             .bottom = index,
@@ -70,10 +73,10 @@ fn loadTextures(self: *Self, directory: fs.Dir, map: Yaml.Map) !Tile.Textures {
     }
 
     if(map.contains("top") and map.contains("bottom") and map.contains("side")) {
-        
-        const top_index = try self.loadTexture(directory, try map.get("top").?.asString());
-        const bottom_index = try self.loadTexture(directory, try map.get("bottom").?.asString());
-        const side_index = try self.loadTexture(directory, try map.get("side").?.asString());
+        // TODO error handling!
+        const top_index = try self.loadTexture(directory, map.get("top").?.asScalar().?);
+        const bottom_index = try self.loadTexture(directory, map.get("bottom").?.asScalar().?);
+        const side_index = try self.loadTexture(directory, map.get("side").?.asScalar().?);
 
         return .{
             .top = top_index,
@@ -90,7 +93,8 @@ fn loadTexture(self: *Self, directory: fs.Dir, path: []const u8) !u32 {
     var file = try directory.openFile(path, .{});
     defer file.close();
 
-    var image = try Image.fromFile(self.allocator, &file);
+    var read_buffer: [1024 * 10]u8 = undefined;
+    var image = try Image.fromFile(self.allocator, file, &read_buffer);
     try image.convert(self.allocator, .rgba32);
     defer image.deinit(self.allocator);
 

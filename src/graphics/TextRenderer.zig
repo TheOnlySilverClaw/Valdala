@@ -19,7 +19,7 @@ const Self = @This();
 
 pipeline: Pipeline,
 surface: *const Surface,
-sampler_bindgroup: *webgpu.BindGroup,
+sampler_bindgroup: *webgpu.bindgroup.BindGroup,
 fonts: []const Font,
 
 pub fn init(surface: *const Surface, fonts: []const Font) !Self {
@@ -31,7 +31,7 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
 
     const pipeline = Pipeline.create(device, surface.getColorTextureFormat(), shader);
 
-    const sampler_descriptor = webgpu.SamplerDescriptor {
+    const sampler_descriptor = webgpu.sampler.SamplerDescriptor {
         .address_mode_u = .clamp_to_edge,
         .address_mode_v = .clamp_to_edge,
         .address_mode_w = .undefined,
@@ -43,12 +43,12 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
     const sampler = device.createSampler(&sampler_descriptor);
     defer sampler.release();
 
-    const sampler_entry = webgpu.BindGroupEntry {
+    const sampler_entry = webgpu.bindgroup.BindGroupEntry {
         .binding = 0,
         .sampler = sampler
     };
 
-    const sampler_bindgroup_descriptor = webgpu.BindGroupDescriptor {
+    const sampler_bindgroup_descriptor = webgpu.bindgroup.BindGroupDescriptor {
         .entries = &.{ sampler_entry },
         .entry_count = 1,
         .layout = pipeline.handle.getBindGroupLayout(0)
@@ -65,7 +65,7 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
 }
 
 
-pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.RenderPassEncoder) !void {
+pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
 
     const device = self.surface.device;
     const pipeline = self.pipeline.handle;
@@ -75,16 +75,16 @@ pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.RenderPassEnc
 
     for(self.fonts) |font| {
 
-        const texture_entry = webgpu.BindGroupEntry {
+        const texture_entry = webgpu.bindgroup.BindGroupEntry {
             .binding = 0,
             .texture_view = font.texture.createView(.{})
         };
 
-        const variable_entries = [_] webgpu.BindGroupEntry {
+        const variable_entries = [_] webgpu.bindgroup.BindGroupEntry {
             texture_entry,
         };
 
-        const variableGroupDescriptor = webgpu.BindGroupDescriptor {
+        const variableGroupDescriptor = webgpu.bindgroup.BindGroupDescriptor {
             .entries = variable_entries[0..],
             .entry_count = variable_entries.len,
             .layout = pipeline.getBindGroupLayout(1)

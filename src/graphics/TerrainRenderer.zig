@@ -16,10 +16,10 @@ const Self = @This();
 
 surface: *const Surface,
 pipeline: Pipeline,
-projection_buffer: *webgpu.Buffer,
-sampler: *webgpu.Sampler,
-tile_texture_view: *webgpu.TextureView,
-bindgroup: *webgpu.BindGroup,
+projection_buffer: *webgpu.buffer.Buffer,
+sampler: *webgpu.sampler.Sampler,
+tile_texture_view: *webgpu.texture_view.TextureView,
+bindgroup: *webgpu.bindgroup.BindGroup,
 
 
 pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
@@ -29,7 +29,7 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
     const pipeline = try Pipeline.init(surface);
     const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
 
-    const projection_buffer_descriptor = webgpu.BufferDescriptor {
+    const projection_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .label = .sized("projection"),
         .size = 4 * 4 * @sizeOf(f32),
         .usage = .{ .vertex = true, .uniform = true, .copy_dst = true }
@@ -37,13 +37,13 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const projection_buffer = device.createBuffer(&projection_buffer_descriptor);
 
-    const projection_buffer_entry = webgpu.BindGroupEntry {
+    const projection_buffer_entry = webgpu.bindgroup.BindGroupEntry {
         .binding = 0,
         .buffer = projection_buffer,
         .size = projection_buffer.size()
     };
 
-    const sampler_descriptor = webgpu.SamplerDescriptor {
+    const sampler_descriptor = webgpu.sampler.SamplerDescriptor {
         .address_mode_u = .repeat,
         .address_mode_v = .repeat,
         .address_mode_w = .undefined,
@@ -54,28 +54,28 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const sampler = device.createSampler(&sampler_descriptor);
 
-    const sampler_entry = webgpu.BindGroupEntry {
+    const sampler_entry = webgpu.bindgroup.BindGroupEntry {
         .binding = 1,
         .sampler = sampler
     };
 
     // omitting the descriptor only works if the texture array has more than 1 element!
     const tile_texture_view = tile_textures.createView(.{
-        .label = webgpu.StringView.sized("terrain")
+        .label = webgpu.shared.StringView.sized("terrain")
     });
 
-    const terrain_texture_entry = webgpu.BindGroupEntry {
+    const terrain_texture_entry = webgpu.bindgroup.BindGroupEntry {
         .binding = 2,
         .texture_view = tile_texture_view
     };
 
-    const entries = [_] webgpu.BindGroupEntry {
+    const entries = [_] webgpu.bindgroup.BindGroupEntry {
         projection_buffer_entry,
         sampler_entry,
         terrain_texture_entry
     };
 
-    const descriptor = webgpu.BindGroupDescriptor {
+    const descriptor = webgpu.bindgroup.BindGroupDescriptor {
         .entries = &entries,
         .entry_count = entries.len,
         .layout = bindgroup_layout
@@ -93,7 +93,7 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
     };
 }
 
-pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.RenderPassEncoder) !void {
+pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
      
      const surface = self.surface;
      const queue = surface.getQueue();
@@ -117,7 +117,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.RenderPassEncoder)
     }
 }
 
-pub fn renderChunk(mesh: *const ChunkMesh, render_pass: *webgpu.RenderPassEncoder) !void {
+pub fn renderChunk(mesh: *const ChunkMesh, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
 
     render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
     render_pass.setIndexBuffer(mesh.index_buffer, .uint32, 0, mesh.index_buffer.size());

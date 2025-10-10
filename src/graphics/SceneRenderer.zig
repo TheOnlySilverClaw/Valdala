@@ -22,23 +22,23 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
     };
 }
 
-pub fn render(self: *Self, scene: Scene, command_encoder: *webgpu.CommandEncoder, color_texture: *webgpu.TextureView, depth_texture: *webgpu.TextureView) !void {
+pub fn render(self: *Self, scene: Scene, command_encoder: *webgpu.command_encoder.CommandEncoder, color_texture: *webgpu.texture_view.TextureView, depth_texture: *webgpu.texture_view.TextureView) !void {
 
-    const clear_color = webgpu.Color {
+    const clear_color = webgpu.shared.Color {
         .r = scene.sky_color.red,
         .g = scene.sky_color.green,
         .b = scene.sky_color.blue,
         .a = 1.0
     };
 
-    const color_attachment = webgpu.RenderPassColorAttachment {
+    const color_attachment = webgpu.render_pass_encoder.RenderPassColorAttachment {
         .clear_value = clear_color,
         .load_op = .clear,
         .store_op = .store,
         .view = color_texture
     };
 
-    const depth_stencil_attachment = webgpu.RenderPassDepthStencilAttachment {
+    const depth_stencil_attachment = webgpu.render_pass_encoder.RenderPassDepthStencilAttachment {
         .depth_load_op = .clear,
         .depth_store_op = .store,
         .depth_clear_value = 1.0,
@@ -46,7 +46,7 @@ pub fn render(self: *Self, scene: Scene, command_encoder: *webgpu.CommandEncoder
         .stencil_read_only = 0
     };
 
-    const render_pass_descriptor = webgpu.RenderPassDescriptor {
+    const render_pass_descriptor = webgpu.render_pass_encoder.RenderPassDescriptor {
         .color_attachment_count = 1,
         .color_attachments = &.{ color_attachment },
         .depth_stencil_attachment = &depth_stencil_attachment

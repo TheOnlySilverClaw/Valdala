@@ -37,7 +37,7 @@ pub fn registerWindowListeners(self: *Self, window: *Window) !void {
     });
 }
 
-pub fn onKey(ptr: *anyopaque, key: glfw.Key, action: glfw.Action, modifiers: glfw.Modifiers) void {
+pub fn onKey(ptr: *anyopaque, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.keyboard.Modifiers) void {
     
     var self: *Self = castSelfPointer(ptr);
     const input = &self.input;
@@ -93,7 +93,7 @@ fn castSelfPointer(ptr: *anyopaque) *Self {
 
 pub fn poll(self: *Self) Input {
     
-    glfw.pollEvents();
+    glfw.system.pollEvents();
 
     const snapshot = self.input;
     self.input = Input.new();

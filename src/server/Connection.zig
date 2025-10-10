@@ -11,16 +11,24 @@ const Self = @This();
 
 allocator: Allocator,
 handle: net.Server.Connection,
+read_buffer: []u8,
+write_buffer: []u8,
 reader: net.Stream.Reader,
 writer: net.Stream.Writer,
 open: bool,
 
 pub fn init(allocator: Allocator, handle: net.Server.Connection) !Self {
+
+    const read_buffer = try allocator.alloc(u8, 1024);
+    const write_buffer = try allocator.alloc(u8, 1024);
+
     return .{
         .allocator = allocator,
         .handle = handle,
-        .reader = handle.stream.reader(),
-        .writer = handle.stream.writer(),
+        .read_buffer = read_buffer,
+        .reader = handle.stream.reader(read_buffer),
+        .write_buffer = write_buffer,
+        .writer = handle.stream.writer(write_buffer),
         .open = false
     };
 }
@@ -37,10 +45,10 @@ pub fn close(self: *Self) !void {
 
 pub fn writeMessage(self: *Self, T: anytype, message: protocol.server.Message(T)) !void {
     
-    const writer = self.writer;
+    var writer = self.writer.interface;
     
     try writer.writeByte(@intCast(@intFromEnum(message.header)));   
-    try writer.writeStructEndian(message.body.*, .big);
+    try writer.writeStruct(message.body.*, .big);
 }
 
 fn receive(self: *Self) !void {
@@ -64,5 +72,6 @@ fn validate(self: *Self) !void {
 }
 
 fn readHeader(self: *Self) !ClientHeader {
-    return try self.reader.readEnum(ClientHeader, .big);
+    var reader = self.reader.interface();
+    return try reader.takeEnum(ClientHeader, .big);
 }

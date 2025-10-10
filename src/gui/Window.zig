@@ -14,8 +14,8 @@ const Self = @This();
 
 
 allocator: Allocator,
-handle: *glfw.Window,
-monitor: ?*glfw.Monitor,
+handle: *glfw.window.Window,
+monitor: ?*glfw.monitor.Monitor,
 key_listener: ?*listeners.KeyListener,
 resize_listener: ?*listeners.ResizeListener,
 close_listener: ?*listeners.CloseListener,
@@ -52,17 +52,17 @@ pub fn deinit(self: Self) void {
 
 pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void {
 
-    glfw.Window.hint(.ClientApi, glfw.no_api);
+    glfw.window.Window.hint(.ClientApi, glfw.window.no_api);
 
-    self.monitor = glfw.Monitor.getPrimary();
+    self.monitor = glfw.monitor.Monitor.getPrimary();
 
-    if(glfw.Window.create(@intCast(width), @intCast(height), title, null, null)) |handle| {
+    if(glfw.window.Window.create(@intCast(width), @intCast(height), title, null, null)) |handle| {
         self.handle = handle;
     } else {
         return Error.Create;
     }
 
-    const instance = webgpu.Instance.create(null);
+    const instance = webgpu.instance.Instance.create(null);
     self.surface = try self.allocator.create(graphics.Surface);
     try self.surface.create(self.handle, instance);
     instance.release();
@@ -99,7 +99,7 @@ pub fn createKeyListener(self: *Self, listener: listeners.KeyListener) !void {
     self.key_listener = pointer;
 }
 
-fn onKey(handle: *glfw.Window, key: glfw.Key, scancode: glfw.ScanCode, action: glfw.Action, modifiers: glfw.Modifiers) callconv(.C) void {
+fn onKey(handle: *glfw.window.Window, key: glfw.keyboard.Key, scancode: glfw.keyboard.ScanCode, action: glfw.input.Action, modifiers: glfw.keyboard.Modifiers) callconv(.c) void {
     
     _ = scancode;
 
@@ -116,7 +116,7 @@ pub fn createResizeListener(self: *Self, listener: listeners.ResizeListener) !vo
     self.resize_listener = pointer;
 }
 
-fn onResize(handle: *glfw.Window, width: i32, height: i32) callconv(.C) void {
+fn onResize(handle: *glfw.window.Window, width: i32, height: i32) callconv(.c) void {
     
     const window = getSelfPointer(handle);
     
@@ -137,7 +137,7 @@ pub fn createCloseListener(self: *Self, listener: listeners.CloseListener) !void
     self.close_listener = pointer;
 }
 
-fn onClose(handle: *glfw.Window) callconv(.C) void {
+fn onClose(handle: *glfw.window.Window) callconv(.c) void {
     
     const window = getSelfPointer(handle);
     if(window.close_listener) |listener| {
@@ -145,7 +145,7 @@ fn onClose(handle: *glfw.Window) callconv(.C) void {
     }
 }
 
-fn getSelfPointer(handle: *glfw.Window) *Self {
+fn getSelfPointer(handle: *glfw.window.Window) *Self {
     return @ptrCast(@alignCast(handle.getUserPoiner()));
 }
 

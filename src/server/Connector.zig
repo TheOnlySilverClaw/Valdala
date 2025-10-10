@@ -65,7 +65,7 @@ pub fn receive(self: *Self) !void {
 fn accept(self: *Self) !void {
 
     const connection_handle = try self.server.accept();
-    log.debug("Received connection from {}", .{ connection_handle.address });
+    log.debug("Received connection from {f}", .{ connection_handle.address });
 
     const connection = try self.allocator.create(Connection);
     connection.* = try Connection.init(self.allocator, connection_handle);
@@ -87,8 +87,10 @@ pub fn close(self: *Self) !void {
     const self_connection = try net.tcpConnectToAddress(self.server.listen_address);
     // currently required because I know of no other way to unblock an accepting server socket
     const ClientHeader = @import("protocol").client.Header;
-    try self_connection.writer().writeByte(@intFromEnum(ClientHeader.connect));
-    try self_connection.writer().writeByte(@intFromEnum(ClientHeader.disconnect));
+    var write_buffer: [64]u8 = undefined;
+    var writer = self_connection.writer(&write_buffer).interface;
+    try writer.writeByte(@intFromEnum(ClientHeader.connect));
+    try writer.writeByte(@intFromEnum(ClientHeader.disconnect));
     self_connection.close();
 
     // TODO figure out how to close the connection while reading if the client does not

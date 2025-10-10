@@ -5,7 +5,7 @@ const Self = @This();
 
 pub const Vertex = extern struct {
 
-    pub const format = [_]webgpu.VertexFormat{
+    pub const format = [_]webgpu.render_pipeline.VertexFormat{
         .float32x3,
         .float32x2,
         .uint32
@@ -34,8 +34,8 @@ pub const Vertex = extern struct {
 pub const Index = u32;
 
 
-vertex_buffer: *webgpu.Buffer,
-index_buffer: *webgpu.Buffer,
+vertex_buffer: *webgpu.buffer.Buffer,
+index_buffer: *webgpu.buffer.Buffer,
 
 pub fn destroy(self: Self) void {
     

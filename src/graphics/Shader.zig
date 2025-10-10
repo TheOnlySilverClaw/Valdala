@@ -1,15 +1,15 @@
 const webgpu = @import("webgpu");
 
-pub fn load(comptime source: []const u8, device: *webgpu.Device, name: []const u8) *webgpu.ShaderModule {
+pub fn load(comptime source: []const u8, device: *webgpu.device.Device, name: []const u8) *webgpu.shader.ShaderModule {
 
-    const source_descriptor = webgpu.ShaderSourceWGSL {
+    const source_descriptor = webgpu.shader.ShaderSourceWGSL {
         .chain = .{ .type = .shader_source_wgsl },
-        .code = webgpu.StringView.sized(source)
+        .code = webgpu.shared.StringView.sized(source)
     };
 
-    const descriptor = webgpu.ShaderModuleDescriptor {
+    const descriptor = webgpu.shader.ShaderModuleDescriptor {
         .next = &source_descriptor.chain,
-        .label = webgpu.StringView.sized(name)
+        .label = webgpu.shared.StringView.sized(name)
     };
 
     return device.createShaderModule(&descriptor);

@@ -3,8 +3,8 @@ const webgpu = @import("webgpu");
 
 const target_os = @import("builtin").target.os.tag;
 
-const ChainedStruct = webgpu.ChainedStruct;
-const SurfaceDescriptor = webgpu.SurfaceDescriptor;
+const ChainedStruct = webgpu.shared.ChainedStruct;
+const SurfaceDescriptor = webgpu.surface.SurfaceDescriptor;
 
 const SurfaceError = error {
     PlatformUnsupported,
@@ -35,11 +35,11 @@ pub const SurfaceDescriptorFromXlibWindow = extern struct {
 };
 
 
-pub fn createSurface(window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
+pub fn createSurface(window: *glfw.window.Window, instance: *webgpu.instance.Instance) SurfaceError!*webgpu.surface.Surface {
 
     switch (target_os) {
         .linux => {
-            return switch (glfw.getPlatform()) {
+            return switch (glfw.platform.getPlatform()) {
                 .x11 => createX11Surface(window, instance),
                 .wayland => createWaylandSurface(window, instance),
                 else => return SurfaceError.PlatformUnsupported
@@ -52,7 +52,7 @@ pub fn createSurface(window: *glfw.Window, instance: *webgpu.Instance) SurfaceEr
 }
 
 
-fn createX11Surface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
+fn createX11Surface(glfw_window: *glfw.window.Window, instance: *webgpu.instance.Instance) SurfaceError!*webgpu.surface.Surface {
 
     const x11_display = glfw.native.getX11Display() orelse return SurfaceError.BackendUnavailable;
     const x11_window = glfw.native.getX11Window(glfw_window);
@@ -72,7 +72,7 @@ fn createX11Surface(glfw_window: *glfw.Window, instance: *webgpu.Instance) Surfa
     return instance.createSurface(&surface_descriptor);
 }
 
-fn createWaylandSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
+fn createWaylandSurface(glfw_window: *glfw.window.Window, instance: *webgpu.instance.Instance) SurfaceError!*webgpu.surface.Surface {
 
     const wayland_display = glfw.native.getWaylandDisplay() orelse return SurfaceError.BackendUnavailable;
     const wayland_window = glfw.native.getWaylandWindow(glfw_window) orelse return SurfaceError.BackendUnavailable;
@@ -94,7 +94,7 @@ fn createWaylandSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) S
 
 extern fn setupMetalLayer(ns_window: *anyopaque) ?*anyopaque;
 
-fn createMetalSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
+fn createMetalSurface(glfw_window: *glfw.window.Window, instance: *webgpu.instance.Instance) SurfaceError!*webgpu.surface.Surface {
 
     const ns_window = glfw.native.getCocoaWindow(glfw_window) orelse return SurfaceError.BackendUnavailable;
     const metal_layer = setupMetalLayer(ns_window) orelse return SurfaceError.BackendUnavailable;
@@ -118,7 +118,7 @@ const LPCSTR = ?[*:0]const u8;
 const HMODULE = *opaque {};
 extern fn GetModuleHandleA(lpModuleName: LPCSTR) ?HMODULE;
 
-fn createWindowsSurface(glfw_window: *glfw.Window, instance: *webgpu.Instance) SurfaceError!*webgpu.Surface {
+fn createWindowsSurface(glfw_window: *glfw.window.Window, instance: *webgpu.instance.Instance) SurfaceError!*webgpu.surface.Surface {
 
     const hwnd = glfw.native.getWin32Window(glfw_window) orelse return SurfaceError.BackendUnavailable;
     const hinstance = GetModuleHandleA(null) orelse return SurfaceError.BackendUnavailable;

@@ -65,14 +65,17 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     const module_descriptor = try loadYamlMap(parser_allocator, module_file);
     module_file.close();
 
-    const module_name = if(module_descriptor.get("name")) |value| try value.asString() else return Error.MissingName;
+    // TODO error handling!
+    const module_name = module_descriptor.get("name").?.asScalar().?;
+
     const module_name_copy = try self.allocator.dupe(u8, module_name);
 
     const module = try self.allocator.create(Module);
     module.* = Module.init(id, module_name_copy);
     
     if(module_descriptor.get("tiles")) |tiles| {
-        const tile_map = try tiles.asMap();
+        // TODO error handling!
+        const tile_map = tiles.asMap().?;
         try self.loadTiles(parser_allocator, directory, tile_map);
     }
 
@@ -94,7 +97,8 @@ fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !v
     var iterator = map.iterator();
     while(iterator.next()) |entry| {
         
-        const file_name = try entry.value_ptr.asString();
+        // TODO error handling!
+        const file_name = entry.value_ptr.asScalar().?;
         var file = try directory.openFile(file_name, .{});
         defer file.close();
 
@@ -120,5 +124,5 @@ fn loadYamlMap(allocator: Allocator, file: fs.File) !Yaml.Map {
     
     const items = try loadYamlItems(allocator, file);
     if(items.len == 0) return Error.Empty;
-    return try items[0].asMap();
+    return items[0].asMap() orelse Error.Empty;
 }

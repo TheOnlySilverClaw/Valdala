@@ -50,5 +50,5 @@ fn update(self: *Self, delta: u64) !void {
     try self.time.update(delta);
 
     // just to keep the CPU from burning until we actually do things
-    std.time.sleep(std.time.ns_per_ms * 16);
+    std.Thread.sleep(std.time.ns_per_ms * 16);
 }

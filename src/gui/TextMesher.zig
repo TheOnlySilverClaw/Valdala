@@ -27,14 +27,14 @@ pub fn generate(allocator: Allocator, surface: *const graphics.Surface, text: *T
     const glyph_count = try unicode.utf8CountCodepoints(text.value);
     const vertex_count: u32 = @intCast(glyph_count * glyph_vertex_count);
 
-    const vertex_buffer_descriptor = webgpu.BufferDescriptor {
+    const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = vertex_count * @sizeOf(TextMesh.Vertex),
         .usage = .{ .vertex = true, .copy_dst = true }
     };
 
     const vertex_buffer = surface.device.createBuffer(&vertex_buffer_descriptor);
 
-    const index_buffer_descriptor = webgpu.BufferDescriptor {
+    const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = vertex_count * @sizeOf(TextMesh.Index),
         .usage = .{ .index = true, .copy_dst = true }
     };

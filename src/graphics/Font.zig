@@ -41,7 +41,7 @@ const Self = @This();
 const glyph_texture_padding = 1;
 const texture_width_max = 255;
 // bitmap saved in red channel
-const texture_format = webgpu.TextureFormat.r8_unorm;
+const texture_format = webgpu.texture.TextureFormat.r8_unorm;
 
 allocator: Allocator,
 trueType: TrueType,
@@ -51,7 +51,7 @@ texture: ImageTexture,
 glyphs: Map(CodePoint, Glyph),
 texture_position: Vector(u32),
 
-pub fn init(allocator: Allocator, device: *webgpu.Device, source: []const u8, height: Size, expected_glyphs: u32) !Self {
+pub fn init(allocator: Allocator, device: *webgpu.device.Device, source: []const u8, height: Size, expected_glyphs: u32) !Self {
 
     if(height + glyph_texture_padding * 2 > texture_width_max) return Error.TextureSize;
 
@@ -66,7 +66,7 @@ pub fn init(allocator: Allocator, device: *webgpu.Device, source: []const u8, he
     const texture_height: f32 = @ceil(required_area / texture_width) * height;
 
     const texture = ImageTexture.create(device, @intFromFloat(texture_width), @intFromFloat(texture_height), .{
-        .label = webgpu.StringView.sized("font"),
+        .label = webgpu.shared.StringView.sized("font"),
         .format = texture_format,
     });
 

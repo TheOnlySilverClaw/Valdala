@@ -26,7 +26,7 @@ fonts: []Font,
 
 pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
-    try glfw.initialize();
+    try glfw.system.initialize();
 
     const window = try allocator.create(gui.Window);
     window.* = gui.Window.init(allocator);
@@ -35,7 +35,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     controller.* = gui.Controller.new();
     try controller.registerWindowListeners(window);
 
-    const monitor = glfw.Monitor.getPrimary() orelse {
+    const monitor = glfw.monitor.Monitor.getPrimary() orelse {
         log.err("Could not find primary monitor", .{});
         return error.MonitorUnavailable;
     };
@@ -90,7 +90,7 @@ pub fn deinit(self: *Self) void {
     }
     self.allocator.free(self.fonts);
 
-    glfw.terminate();
+    glfw.system.terminate();
 }
 
 pub fn launch(self: *Self) !void {
