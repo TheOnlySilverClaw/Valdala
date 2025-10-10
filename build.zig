@@ -26,9 +26,7 @@ pub fn build(b: *Build) void {
 
     const exe = b.addExecutable(.{
         .name = "Valdala",
-        .root_module = main_module,
-        .target = target,
-        .optimize = optimize,
+        .root_module = main_module
     });
 
     linkLibraries(b, exe, target, optimize);
@@ -45,9 +43,7 @@ pub fn build(b: *Build) void {
     run_step.dependOn(&run_cmd.step);
 
     const exe_unit_tests = b.addTest(.{
-        .root_module = test_module,
-        .target = target,
-        .optimize = optimize,
+        .root_module = test_module
     });
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
