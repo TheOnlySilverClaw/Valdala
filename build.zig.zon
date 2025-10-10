@@ -2,7 +2,7 @@
     .name = .Valdala,
     .version = "0.0.2",
     .fingerprint = 0x4caff166888c6c5b,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.1",
     .paths = .{
         // TODO
         "source"
