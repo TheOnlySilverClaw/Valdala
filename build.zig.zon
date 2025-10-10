@@ -1,6 +1,12 @@
 .{
     .name = .Valdala,
     .version = "0.0.2",
+    .fingerprint = 0x4caff166888c6c5b,
+    .minimum_zig_version = "0.14.0",
+    .paths = .{
+        // TODO
+        "source"
+    },
     .dependencies = .{
         .zigimg = .{
             .url = "https://github.com/zigimg/zigimg/archive/refs/tags/zigimg_zig_0.14.1.zip",
@@ -62,11 +68,5 @@
 	        .hash = "N-V-__8AAGzToQjdhwDgALHVFeO9nh-DJRQkJHAbkBzYHXBj",
             .lazy = true
         },
-    },
-    .fingerprint = 0x4caff166888c6c5b,
-    .minimum_zig_version = "0.14.0",
-    .paths = .{
-        // TODO
-        "source"
     }
 }
