@@ -4,8 +4,10 @@ const fmt = std.fmt;
 const thread_name_buffer = [std.Thread.max_name_len:0]u8;
 
 var lock = std.Thread.Mutex {};
+
 var buffer: [1024]u8 = undefined;
-var writer = std.fs.File.stdout().writer(&buffer).interface;
+var stream_writer = std.fs.File.stdout().writer(&buffer);
+var writer = &stream_writer.interface;
 
 pub fn pretty(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) void {
 
@@ -38,4 +40,5 @@ fn write(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_li
     try writer.print("{s} {d}  {s:<5}  @{s:<12}", .{ color_code, std.time.milliTimestamp(), level_string, @tagName(scope) });
     try writer.print(format, args);
     try writer.writeAll("\n\x1b[0m");
+    try writer.flush();
 }
