@@ -4,7 +4,7 @@ const webgpu = @import("webgpu");
 
 const GlfwWindow = glfw.window.Window;
 
-const ChainedStruct = webgpu.shared.ChainedStruct;
+const ChainedStruct = webgpu.ChainedStruct;
 const SurfaceDescriptor = webgpu.surface.SurfaceDescriptor;
 
 const SurfaceError = error {

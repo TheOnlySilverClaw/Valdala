@@ -26,7 +26,7 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
 
 pub fn render(self: *Self, canvas: Canvas, command_encoder: *webgpu.command_encoder.CommandEncoder, color_texture: *webgpu.texture_view.TextureView) !void {
 
-    const clear_color = webgpu.shared.Color {
+    const clear_color = webgpu.Color {
         .r = 0.0,
         .g = 0.0,
         .b = 0.0,

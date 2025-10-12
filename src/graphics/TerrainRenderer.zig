@@ -19,7 +19,7 @@ pipeline: Pipeline,
 projection_buffer: *webgpu.buffer.Buffer,
 sampler: *webgpu.sampler.Sampler,
 tile_texture_view: *webgpu.texture_view.TextureView,
-bindgroup: *webgpu.bindgroup.BindGroup,
+bindgroup: *webgpu.bind_group.BindGroup,
 
 
 pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
@@ -30,14 +30,14 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
     const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
 
     const projection_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-        .label = .sized("projection"),
+        .label = .sliced("projection"),
         .size = 4 * 4 * @sizeOf(f32),
         .usage = .{ .vertex = true, .uniform = true, .copy_dst = true }
     };
 
     const projection_buffer = device.createBuffer(&projection_buffer_descriptor);
 
-    const projection_buffer_entry = webgpu.bindgroup.BindGroupEntry {
+    const projection_buffer_entry = webgpu.bind_group.BindGroupEntry {
         .binding = 0,
         .buffer = projection_buffer,
         .size = projection_buffer.size()
@@ -54,28 +54,30 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const sampler = device.createSampler(&sampler_descriptor);
 
-    const sampler_entry = webgpu.bindgroup.BindGroupEntry {
+    const Entry = webgpu.bind_group.BindGroupEntry;
+
+    const sampler_entry = Entry {
         .binding = 1,
         .sampler = sampler
     };
 
     // omitting the descriptor only works if the texture array has more than 1 element!
     const tile_texture_view = tile_textures.createView(.{
-        .label = webgpu.shared.StringView.sized("terrain")
+        .label = webgpu.StringView.sliced("terrain")
     });
 
-    const terrain_texture_entry = webgpu.bindgroup.BindGroupEntry {
+    const terrain_texture_entry = Entry {
         .binding = 2,
         .texture_view = tile_texture_view
     };
 
-    const entries = [_] webgpu.bindgroup.BindGroupEntry {
+    const entries = [_] Entry {
         projection_buffer_entry,
         sampler_entry,
         terrain_texture_entry
     };
 
-    const descriptor = webgpu.bindgroup.BindGroupDescriptor {
+    const descriptor = webgpu.bind_group.BindGroupDescriptor {
         .entries = &entries,
         .entry_count = entries.len,
         .layout = bindgroup_layout

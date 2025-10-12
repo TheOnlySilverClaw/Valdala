@@ -17,8 +17,8 @@
             .hash = "TrueType-0.0.0-Ne-mWHIGAQBwHsiS9z_vbr1SkVZCkG01Vpzrs079dzIO"
         },
         .webgpu = .{
-            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/0c32d4af306467e9ad06d2d2e85c4ffacd121e8e.zip",
-            .hash = "wgpu_native-2.2.0-dKjiONszAQAdyWSQFg_sd-hX66tHTuR7pLb9tgpm1aWp"
+            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/e42663c65ca2b748e527cd56a496a5d8a46b21ac.zip",
+            .hash = "wgpu_native-2.2.0-dKjiOOs1AQBHq3wuA3-ui2_Lov_ts0imI6VyXDn6bCOL"
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/6d2af52b6b15d9b194e76c94ac8eeb472593539b.zip",

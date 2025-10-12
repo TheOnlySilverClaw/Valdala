@@ -66,7 +66,7 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, source: []const
     const texture_height: f32 = @ceil(required_area / texture_width) * height;
 
     const texture = ImageTexture.create(device, @intFromFloat(texture_width), @intFromFloat(texture_height), .{
-        .label = webgpu.shared.StringView.sized("font"),
+        .label = webgpu.StringView.sliced("font"),
         .format = texture_format,
     });
 

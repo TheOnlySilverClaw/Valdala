@@ -19,7 +19,7 @@ const Self = @This();
 
 pipeline: Pipeline,
 surface: *const Surface,
-sampler_bindgroup: *webgpu.bindgroup.BindGroup,
+sampler_bindgroup: *webgpu.bind_group.BindGroup,
 fonts: []const Font,
 
 pub fn init(surface: *const Surface, fonts: []const Font) !Self {
@@ -43,12 +43,12 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
     const sampler = device.createSampler(&sampler_descriptor);
     defer sampler.release();
 
-    const sampler_entry = webgpu.bindgroup.BindGroupEntry {
+    const sampler_entry = webgpu.bind_group.BindGroupEntry {
         .binding = 0,
         .sampler = sampler
     };
 
-    const sampler_bindgroup_descriptor = webgpu.bindgroup.BindGroupDescriptor {
+    const sampler_bindgroup_descriptor = webgpu.bind_group.BindGroupDescriptor {
         .entries = &.{ sampler_entry },
         .entry_count = 1,
         .layout = pipeline.handle.getBindGroupLayout(0)
@@ -75,16 +75,16 @@ pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.render_pass_e
 
     for(self.fonts) |font| {
 
-        const texture_entry = webgpu.bindgroup.BindGroupEntry {
+        const texture_entry = webgpu.bind_group.BindGroupEntry {
             .binding = 0,
             .texture_view = font.texture.createView(.{})
         };
 
-        const variable_entries = [_] webgpu.bindgroup.BindGroupEntry {
+        const variable_entries = [_] webgpu.bind_group.BindGroupEntry {
             texture_entry,
         };
 
-        const variableGroupDescriptor = webgpu.bindgroup.BindGroupDescriptor {
+        const variableGroupDescriptor = webgpu.bind_group.BindGroupDescriptor {
             .entries = variable_entries[0..],
             .entry_count = variable_entries.len,
             .layout = pipeline.getBindGroupLayout(1)

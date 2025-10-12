@@ -51,7 +51,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     try window.create(window_width, window_height,"Valdala");
     window.center();
 
-    const tile_textures = graphics.TextureArray.create(8, 8, 64, window.surface.device, .{ .label = .sized("tiles")});
+    const tile_textures = graphics.TextureArray.create(8, 8, 64, window.surface.device, .{ .label = .sliced("tiles")});
 
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
     var module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures);

@@ -3,7 +3,7 @@ const webgpu = @import("webgpu");
 pub const Error = error {};
 
 pub const Options = struct {
-    label: webgpu.shared.StringView,
+    label: webgpu.StringView,
     mip_levels: u32 = 1,
     samples: u32 = 1,
     view_formaats: []webgpu.texture.TextureFormat = &.{},
@@ -14,7 +14,7 @@ pub const Options = struct {
 };
 
 pub const ViewOptions = struct {
-    label: webgpu.shared.StringView,
+    label: webgpu.StringView,
     aspect: webgpu.texture.TextureAspect = .all,
     base_array_layer: u32 = 0,
     base_mip_level: u32 = 0,
@@ -82,7 +82,7 @@ pub fn writeArea(self: Self, x: u32, y: u32, width: u32, height: u32, layer: u32
         .rows_per_image = height
     };
 
-    const extent = webgpu.shared.Extent3D {
+    const extent = webgpu.Extent3D {
         .width = width,
         .height = height,
         .depth_or_array_layers = 1

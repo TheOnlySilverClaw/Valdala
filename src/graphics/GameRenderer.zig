@@ -41,7 +41,7 @@ pub fn render(self: *Self, scene: Scene, canvas: Canvas) !void {
 
     const depth_texture = surface.getDepthTexture() orelse return;
     const depth_texture_view_descriptor = webgpu.texture_view.TextureViewDescriptor {
-        .label = webgpu.shared.StringView.sized("depth"),
+        .label = webgpu.StringView.sliced("depth"),
         .aspect = .depth_only,
         .dimension = .@"2d",
         .format = surface.getDepthTextureFormat(),

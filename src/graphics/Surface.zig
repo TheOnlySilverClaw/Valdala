@@ -89,7 +89,7 @@ pub fn configure(self: *Self) void {
 fn createDepthTexture(self: *Self) void {
 
     const descriptor = webgpu.texture.TextureDescriptor {
-        .label = webgpu.shared.StringView.sized("depth"),
+        .label = webgpu.StringView.sliced("depth"),
         .dimension = .@"2d",
         .format = self.getDepthTextureFormat(),
         .size = .{

@@ -2,12 +2,11 @@ const std = @import("std");
 const fs = std.fs;
 const webgpu = @import("webgpu");
 const Allocator = std.mem.Allocator;
-const Extent3D = webgpu.shared.Extent3D;
 const Device = webgpu.device.Device;
 const Queue = webgpu.queue.Queue;
 
 pub const Options = struct {
-    label: webgpu.shared.StringView = .empty,
+    label: webgpu.StringView = .empty,
     dimension: webgpu.texture.TextureDimension = .@"2d",
     format: webgpu.texture.TextureFormat,
     view_formats: []const webgpu.texture.TextureFormat = &.{},
@@ -20,7 +19,7 @@ pub const Options = struct {
 };
 
 pub const ViewOptions = struct {
-    label: webgpu.shared.StringView = .empty,
+    label: webgpu.StringView = .empty,
 };
 
 const Self = @This();
@@ -62,7 +61,7 @@ pub fn destroy(self: Self) void {
 
 pub fn write(self: Self, pixels: []const u8) !void {
 
-    const destination = webgpu.ImageCopyTexture {
+    const destination = webgpu.texel.TexelCopyTextureInfo {
         .aspect = .all,
         .mip_level = 0,
         .origin = .{
@@ -73,14 +72,14 @@ pub fn write(self: Self, pixels: []const u8) !void {
         .texture = self.handle
     };
 
-    const layout = webgpu.TexelCopyTextureInfo {
+    const layout = webgpu.texel.TexelCopyBufferLayout {
         .offset = 0,
         // TODO map from texture format
         .bytes_per_row = 4,
         .rows_per_image = self.height
     };
 
-    const extent = Extent3D {
+    const extent = webgpu.Extent3D {
         .width = self.width,
         .height = self.height,
         .depth = 1
@@ -109,7 +108,7 @@ pub fn writeRectangle(self: Self, pixels: []const u8, x: u32, y: u32, width: u32
         .rows_per_image = height
     };
 
-    const extent = Extent3D {
+    const extent = webgpu.Extent3D {
         .width = width,
         .height = height,
         .depth_or_array_layers = 1

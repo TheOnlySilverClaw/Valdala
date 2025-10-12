@@ -24,7 +24,7 @@ pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
 pub fn render(self: *Self, scene: Scene, command_encoder: *webgpu.command_encoder.CommandEncoder, color_texture: *webgpu.texture_view.TextureView, depth_texture: *webgpu.texture_view.TextureView) !void {
 
-    const clear_color = webgpu.shared.Color {
+    const clear_color = webgpu.Color {
         .r = scene.sky_color.red,
         .g = scene.sky_color.green,
         .b = scene.sky_color.blue,

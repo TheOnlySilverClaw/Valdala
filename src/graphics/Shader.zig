@@ -4,12 +4,12 @@ pub fn load(comptime source: []const u8, device: *webgpu.device.Device, name: []
 
     const source_descriptor = webgpu.shader.ShaderSourceWGSL {
         .chain = .{ .type = .shader_source_wgsl },
-        .code = webgpu.shared.StringView.sized(source)
+        .code = webgpu.StringView.sliced(source)
     };
 
     const descriptor = webgpu.shader.ShaderModuleDescriptor {
         .next = &source_descriptor.chain,
-        .label = webgpu.shared.StringView.sized(name)
+        .label = webgpu.StringView.sliced(name)
     };
 
     return device.createShaderModule(&descriptor);

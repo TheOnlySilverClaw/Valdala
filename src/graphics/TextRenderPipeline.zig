@@ -5,7 +5,9 @@ handle: *webgpu.render_pipeline.RenderPipeline,
 
 pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.TextureFormat, shader: *webgpu.shader.ShaderModule) @This() {
     
-    const sampler_entry = webgpu.bindgroup_layout.BindGroupLayoutEntry {
+    const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
+
+    const sampler_entry = Entry {
         .binding = 0,
         .visibility = .{ .fragment = true },
         .sampler = .{ .type = .filtering }
@@ -16,7 +18,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         .entry_count = 1
     });
 
-    const glyph_texture_entry = webgpu.bindgroup_layout.BindGroupLayoutEntry {
+    const glyph_texture_entry = Entry {
         .binding = 0,
         .visibility = .{ .fragment = true },
         .texture = .{
@@ -26,7 +28,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         }
     };
 
-    const variable_entries = [_] webgpu.bindgroup_layout.BindGroupLayoutEntry {
+    const variable_entries = [_] Entry {
         glyph_texture_entry,
     };
 
@@ -35,7 +37,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         .entry_count = variable_entries.len
     });
 
-    const bindgroup_layouts = [_] *webgpu.bindgroup_layout.BindGroupLayout {
+    const bindgroup_layouts = [_] *webgpu.bind_group_layout.BindGroupLayout {
         sampler_bindgroup,
         variable_bindgroup,
     };
@@ -54,7 +56,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
     const fragment = webgpu.render_pipeline.FragmentState {
         .constant_count = 0,
         .constants = null,
-        .entry_point = webgpu.shared.StringView.sized("fragment"),
+        .entry_point = webgpu.StringView.sliced("fragment"),
         .module = shader,
         .target_count = 1,
         .targets = &.{ color_target }
@@ -94,7 +96,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
     const vertex = webgpu.render_pipeline.VertexState {
         .constant_count = 0,
         .constants = null,
-        .entry_point = webgpu.shared.StringView.sized("vertex"),
+        .entry_point = webgpu.StringView.sliced("vertex"),
         .module = shader,
         .buffer_count = 1,
         .buffers = &.{ vertexBuffer }
@@ -108,7 +110,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
 
 
     const descriptor = webgpu.render_pipeline.RenderPipelineDescriptor {
-        .label = webgpu.shared.StringView.sized("text renderer"),
+        .label = webgpu.StringView.sliced("text renderer"),
         .layout = pipeline_layout,
         .depth_stencil = null,
         .fragment = &fragment,
