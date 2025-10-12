@@ -21,8 +21,8 @@
             .hash = "wgpu_native-2.2.0-dKjiONszAQAdyWSQFg_sd-hX66tHTuR7pLb9tgpm1aWp"
         },
         .glfw = .{
-            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/b8a49f022c7ed61668432888a11ad5c567901a4e.zip",
-            .hash = "glfw-1.1.0-P2aihc-AAACw7qGLUpcNoSbiau77lGnXtY1HCqo-RmPU"
+            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/6d2af52b6b15d9b194e76c94ac8eeb472593539b.zip",
+            .hash = "glfw-1.2.0-P2aiha2BAABEbrDGtBaYGqZ3BoqPTuDqU1bTqSEHDeYb"
         },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/a6c2cd8760bf45c49b17a3f6259c4dfe3ded528e.zip",
