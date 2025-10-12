@@ -45,6 +45,7 @@ pub fn deinit(self: *Self) void {
     self.allocator.destroy(self.server);
 
     for(self.connections.items) |connection| {
+        connection.deinit();
         self.allocator.destroy(connection);
     }
     self.connections.clearAndFree(self.allocator);

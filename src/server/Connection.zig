@@ -33,12 +33,16 @@ pub fn init(allocator: Allocator, handle: net.Server.Connection) !Self {
     };
 }
 
+pub fn deinit(self: Self) void {
+    self.allocator.free(self.read_buffer);
+    self.allocator.free(self.write_buffer);
+}
+
 pub fn start(self: *Self) void {
     self.receive() catch |err| log.err("Connection crashed: {}", .{ err });
 }
 
 pub fn close(self: *Self) !void {
-
     self.open = false;
     self.handle.stream.close();
 }
