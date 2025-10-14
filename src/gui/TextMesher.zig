@@ -20,7 +20,7 @@ const Self = @This();
 const glyph_vertex_count = 6;
 
 
-pub fn generate(allocator: Allocator, surface: *const graphics.Surface, text: *Text) !TextMesh {
+pub fn generate(allocator: Allocator, surface: *const graphics.Surface, text: Text) !TextMesh {
 
     const device = surface.device;
     
@@ -54,7 +54,7 @@ pub fn generate(allocator: Allocator, surface: *const graphics.Surface, text: *T
     };
 }
 
-fn generateVertices(allocator: Allocator, text: *Text, surface_width: u32, surface_height: u32) !ArrayList(Vertex) {
+fn generateVertices(allocator: Allocator, text: Text, surface_width: u32, surface_height: u32) !ArrayList(Vertex) {
 
     const font = text.font;
 

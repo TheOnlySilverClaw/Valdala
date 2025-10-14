@@ -9,13 +9,15 @@ const ArrayList = std.ArrayListUnmanaged;
 const Font = graphics.Font;
 const Vector = algebra.Vector2;
 const Color = graphics.color.RGBA;
-const TextMesh = @import("TextMesh.zig");
+
+const Self = @This();
+
 
 pub const default_size: Font.Size = 16.0;
+pub const default_color = Color.of(0.0, 0.0, 0.0, 1.0);
 
 value: []const u8,
 font: *Font,
 position: Vector(u32),
 size: Font.Size = default_size,
-color: Color = .of(0.0, 0.0, 0.0, 1.0),
-mesh: ?*const TextMesh = null,
+color: Color = default_color

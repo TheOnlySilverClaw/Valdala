@@ -130,28 +130,22 @@ pub fn launch(self: *Self) !void {
         }
     }
 
+    const text_buffer = try self.allocator.alloc(u8, 10);
+    defer self.allocator.free(text_buffer);
+
     var text = gui.Text {
         .font = &self.fonts[0],
         .size = self.fonts[0].height,
         .position = .of(10, 10),
         .color = .of(0, 0, 0, 1),
-        .value = "Blah"
+        .value = undefined
     };
     
-    const text_mesh = try self.allocator.create(gui.TextMesh);
-    text_mesh.* = try gui.TextMesher.generate(self.allocator, surface, &text);
-    text.mesh = text_mesh;
 
-    defer self.allocator.destroy(text_mesh);
-    defer text.mesh.?.destroy();
+    var canvas = try gui.Canvas.init(self.allocator, surface);
+    defer canvas.deinit();
 
-    var texts = try std.ArrayListUnmanaged(gui.Text).initCapacity(self.allocator, 1);
-    texts.appendAssumeCapacity(text);
-    defer texts.clearAndFree(self.allocator);
-
-    const canvas = gui.Canvas {
-        .texts = texts
-    };
+    var i: u32 = 0;
 
     while(true) {
         
@@ -165,6 +159,13 @@ pub fn launch(self: *Self) !void {
         scene.camera.rotatePitch(input.movement.rotation.pitch * 0.1);
         scene.camera.rotateYaw(input.movement.rotation.yaw * 0.1);
         scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
+
+        const end = std.fmt.printInt(text_buffer, i, 10, .lower, .{});
+        i += 1;
+        text.value = text_buffer[0..end];
+        text.position.x = i / 2;
+        text.position.y = i / 3;
+        try canvas.updateText(&text);
 
         try game.tick();
         try renderer.render(scene, canvas);

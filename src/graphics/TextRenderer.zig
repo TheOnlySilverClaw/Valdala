@@ -5,7 +5,7 @@ const gui = @import("gui");
 const log = std.log.scoped(.text_renderer);
 
 const Allocator = std.mem.Allocator;
-const List = std.ArrayListUnmanaged;
+const Map = std.AutoHashMapUnmanaged;
 const Text = gui.Text;
 const TextMesh = gui.TextMesh;
 const Pipeline = @import("TextRenderPipeline.zig");
@@ -65,7 +65,7 @@ pub fn init(surface: *const Surface, fonts: []const Font) !Self {
 }
 
 
-pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
+pub fn render(self: *Self, texts: Map(*Text, *TextMesh), render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
 
     const device = self.surface.device;
     const pipeline = self.pipeline.handle;
@@ -94,12 +94,12 @@ pub fn render(self: *Self, texts: List(Text), render_pass: *webgpu.render_pass_e
         defer variable_bindgroup.release();
         render_pass.setBindGroup(1, variable_bindgroup, null);
         
+        var iterator = texts.iterator();
         // TODO filter by font
-        for (texts.items) |text| {
-            if(text.mesh) |mesh| {
-                render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
-                render_pass.draw(mesh.vertex_count, 1, 0, 0);
-            }
+        while(iterator.next()) |entry| {
+            const mesh = entry.value_ptr.*;
+            render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
+            render_pass.draw(mesh.vertex_count, 1, 0, 0);
         }
     }
 
