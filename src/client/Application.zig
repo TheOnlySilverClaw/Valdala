@@ -137,7 +137,7 @@ pub fn launch(self: *Self) !void {
         .font = &self.fonts[0],
         .size = self.fonts[0].height,
         .position = .of(10, 10),
-        .color = .of(0, 0, 0, 1),
+        .color = .of(1.0, 0, 0, 1),
         .value = undefined
     };
     
@@ -165,6 +165,7 @@ pub fn launch(self: *Self) !void {
         text.value = text_buffer[0..end];
         text.position.x = i / 2;
         text.position.y = i / 3;
+        text.color.red = @as(f32, @floatFromInt(i % 100)) / 100.0;
         try canvas.updateText(&text);
 
         try game.tick();
