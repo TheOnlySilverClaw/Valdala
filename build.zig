@@ -178,6 +178,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     gui.addImport("graphics", graphics);
     gui.addImport("scene", scene);
     gui.addImport("algebra", algebra);
+    gui.addImport("asset", asset);
 
     scene.addImport("algebra", algebra);
     scene.addImport("coordinate", coordinate);

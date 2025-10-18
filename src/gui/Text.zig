@@ -10,8 +10,6 @@ const Font = graphics.Font;
 const Vector = algebra.Vector2;
 const Color = graphics.color.RGBA;
 
-const Self = @This();
-
 
 pub const default_size: Font.Size = 16.0;
 pub const default_color = Color.of(0.0, 0.0, 0.0, 1.0);

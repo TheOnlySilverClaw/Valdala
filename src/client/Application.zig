@@ -115,16 +115,17 @@ pub fn launch(self: *Self) !void {
     };
     _ = &chunk_mesher;
 
-    var canvas = try gui.Canvas.init(self.allocator, surface);
-    defer canvas.deinit();
+    var user_interface = try gui.UserInterface.init(allocator, surface, self.fonts);
+    defer user_interface.deinit();
 
     const target_frame_time = time.ns_per_ms * 16;
 
-    var frame_timer = try time.Timer.start();
+    var timer = try time.Timer.start();
 
     while(true) {
         
-        const frame_time = frame_timer.lap();
+        const delta = timer.lap();
+        log.debug("delta {}:", .{ delta });
 
         const input = self.controller.poll();
         if(input.window.close) break;
@@ -137,10 +138,12 @@ pub fn launch(self: *Self) !void {
         scene.camera.rotateYaw(input.movement.rotation.yaw * 0.1);
         scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
 
-        try game.update(frame_time);
-        try renderer.render(scene, canvas);
+        try game.update(delta);
+        user_interface.frame_time = delta;
+        try user_interface.update();
+        try renderer.render(scene, user_interface.canvas);
 
-        log.debug("frame time: {}", .{ frame_time });
+        const frame_time = timer.read();
 
         if(target_frame_time > frame_time) {
             const sleep_time = target_frame_time - frame_time;

@@ -2,10 +2,16 @@ const std = @import("std");
 const graphics = @import("graphics");
 
 const Allocator = std.mem.Allocator;
-const Map = std.AutoHashMapUnmanaged;
+const List = std.ArrayListUnmanaged;
 const Text = @import("Text.zig");
 const TextMesh = @import("TextMesh.zig");
 const TextMesher = @import("TextMesher.zig");
+const Vector = @import("algebra").Vector2;
+
+pub const TextElement = struct {
+    text: Text,
+    mesh: TextMesh
+};
 
 const Self = @This();
 
@@ -13,7 +19,7 @@ const Self = @This();
 allocator: Allocator,
 surface: *const graphics.Surface,
 // auto-hash does not work for struct with slice
-texts: Map(*Text, *TextMesh) ,
+texts: List(*TextElement) ,
 
 pub fn init(allocator: Allocator, surface: *const graphics.Surface) !Self {
 
@@ -26,21 +32,25 @@ pub fn init(allocator: Allocator, surface: *const graphics.Surface) !Self {
 
 pub fn deinit(self: *Self) void {
 
-    var iterator = self.texts.iterator();
-    while(iterator.next()) |entry| {
-        self.allocator.destroy(entry.value_ptr.*);
+    for(self.texts.items) |text| {
+        self.allocator.destroy(text);
     }
     self.texts.clearAndFree(self.allocator);
 }
 
-pub fn updateText(self: *Self, text: *Text) !void {
+pub fn createText(self: *Self, text: Text) !*TextElement {
     
-    if(self.texts.get(text)) |mesh| {
-        mesh.destroy();
-        mesh.* = try TextMesher.generate(self.allocator, self.surface, text.*);
-    } else {
-        const mesh = try self.allocator.create(TextMesh);
-        mesh.* = try TextMesher.generate(self.allocator, self.surface, text.*);
-        try self.texts.put(self.allocator, text, mesh);
-    }
+    const element = try self.allocator.create(TextElement);
+    const mesh = try TextMesher.generate(self.allocator, self.surface, text);
+    element.* = TextElement {
+        .text = text,
+        .mesh = mesh
+    };
+    try self.texts.append(self.allocator, element);
+    return element;
+}
+
+pub fn updateText(self: *Self, element: *TextElement) !void {
+    element.mesh.destroy();
+    element.mesh = try TextMesher.generate(self.allocator, self.surface, element.text);
 }
