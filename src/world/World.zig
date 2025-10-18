@@ -42,12 +42,7 @@ pub fn init(allocator: Allocator, seed: Seed) !Self {
 }
 
 pub fn deinit(self: *Self) void {
-    
-    for(self.chunks.values()) |chunk| {
-        chunk.deinit(self.allocator);
-    }
-
-    self.chunks.clearAndFree(self.allocator);
+    self.unloadChunks();
 }
 
 pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
@@ -121,6 +116,15 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
     try self.chunks.put(self.allocator, position, chunk);
     
     return chunk;
+}
+
+pub fn unloadChunks(self: *Self) void {
+
+    for(self.chunks.values()) |chunk| {
+        chunk.deinit(self.allocator);
+    }
+
+    self.chunks.clearAndFree(self.allocator);
 }
 
 pub fn getTile(self: Self, position: Tile.Position) Tile {

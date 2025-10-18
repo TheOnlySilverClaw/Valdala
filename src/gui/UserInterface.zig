@@ -4,6 +4,7 @@ const time = std.time;
 const asset = @import("asset");
 const graphics = @import("graphics");
 const algebra = @import("algebra");
+const coordinate = @import("coordinate");
 
 const Allocator = std.mem.Allocator;
 const Surface = graphics.Surface;
@@ -11,6 +12,7 @@ const Font = graphics.Font;
 const Canvas = @import("Canvas.zig");
 const Vector = algebra.Vector3;
 const Quaternion = algebra.Quaternion;
+const HexPosition = coordinate.hexagon.Position;
 
 const Self = @This();
 
@@ -22,6 +24,8 @@ position: Vector(f32),
 position_element: *Canvas.TextElement,
 rotation: Quaternion(f32),
 rotation_element: *Canvas.TextElement,
+hex_position: HexPosition(i64),
+hex_position_element: *Canvas.TextElement,
 
 pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self {
 
@@ -30,7 +34,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
 
     const frame_time_element = try canvas.createText(.{ .value = "", .position = .of(10, 20), .font = font });
     const position_element = try canvas.createText(.{ .value = "", .position = .of(10, 50), .font = font });
-    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 80), .font = font });
+    const hex_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 80), .font = font });
+    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
 
     return .{
         .allocator = allocator,
@@ -39,6 +44,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
         .frame_time_element = frame_time_element,
         .position = undefined,
         .position_element = position_element,
+        .hex_position = undefined,
+        .hex_position_element = hex_position_element,
         .rotation = undefined,
         .rotation_element = rotation_element
     };
@@ -62,6 +69,10 @@ pub fn update(self: *Self) !void {
     const position_value = try fmt.bufPrint(&buffer, "Position:  x {d:>.2} y {d:>.2} z {d:>.2}", .{ self.position.x, self.position.y, self.position.z });
     self.position_element.text.value = position_value;
     try canvas.updateText(self.position_element);
+
+    const hex_position_value = try fmt.bufPrint(&buffer, "Hexagon:  n {d:>.2} se {d:>.2} h {d:>.2}", .{ self.hex_position.north, self.hex_position.south_east, self.hex_position.height });
+    self.hex_position_element.text.value = hex_position_value;
+    try canvas.updateText(self.hex_position_element);
 
     const rotation_value = try fmt.bufPrint(&buffer, "Rotation:  x {d:>.2} y {d:>.2} z {d:>.2} w {d:>.2}", .{ self.rotation.x, self.rotation.y, self.rotation.z, self.rotation.w });
     self.rotation_element.text.value = rotation_value;

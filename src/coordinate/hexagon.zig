@@ -29,9 +29,10 @@ pub fn Hexagon(T: type) type {
 
         pub fn new(width: T, height: T) Self {
 
-            const circumradius = width / 2.0;
+            const side = width / 2.0;
             const inner = width * math.sqrt(3.0) / 2.0;
             const inradius = inner / 2.0;
+            const circumradius = side;
 
             return .{
                 .width = width,
@@ -39,7 +40,7 @@ pub fn Hexagon(T: type) type {
                 .circumradius = circumradius,
                 .inradius = inradius,
                 .height = height,
-                .side = circumradius
+                .side = side
             };
         }
     };
@@ -73,6 +74,17 @@ pub fn Grid(P: type, V: type) type {
             const z = h * hex.height;
 
             return Vector(V).of(x, y, z);
+        }
+
+        pub fn getHexagon(self: Self, vector: Vector(V)) Position(P) {
+
+            const hex = self.hexagon;
+
+            const north: P = @intFromFloat((vector.y / hex.inner) + (vector.x / hex.side) * (1.0 / 3.0));
+            const south_east: P = @intFromFloat((vector.x / hex.side) * (2.0 / 3.0));
+            const height: P = @intFromFloat(vector.z / self.hexagon.height);
+
+            return Position(P).of(north, south_east, height);
         }
     };
 }

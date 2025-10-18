@@ -113,7 +113,6 @@ pub fn launch(self: *Self) !void {
         .tile_registry = self.module_loader.tile_registry,
         .grid = game.world.grid
     };
-    _ = &chunk_mesher;
 
     var user_interface = try gui.UserInterface.init(allocator, surface, self.fonts);
     defer user_interface.deinit();
@@ -121,9 +120,12 @@ pub fn launch(self: *Self) !void {
     const target_frame_time = time.ns_per_ms * 16;
 
     var timer = try time.Timer.start();
+    var count: i32 = 0;
 
     while(true) {
         
+        count += 1;
+
         const delta = timer.lap();
 
         const input = self.controller.poll();
@@ -139,11 +141,38 @@ pub fn launch(self: *Self) !void {
 
         try game.update(delta);
         
+        const hex_position = game.world.grid.getHexagon(scene.camera.position);
+
+        const Chunk = @import("world").Chunk;
+        const chunk_position = Chunk.Position {
+            .north = @divFloor(hex_position.north, Chunk.layout.width),
+            .south_east = @divFloor(hex_position.south_east, Chunk.layout.width),
+            .height = 0
+        };
+
         user_interface.frame_time = delta;
         user_interface.position = scene.camera.position;
+        user_interface.hex_position = hex_position;
         user_interface.rotation = scene.camera.rotation;
-        
+
         try user_interface.update();
+
+        if(count == 50) {
+            count = 0;
+
+            game.world.unloadChunks();
+
+            var chunk_iterator = scene.chunks.valueIterator();
+            while(chunk_iterator.next()) |chunk| {
+                chunk.destroy();
+            }
+            
+            scene.chunks.clearRetainingCapacity();
+            const chunk = try game.world.loadChunk(chunk_position);
+            chunk_mesher.vertex_count = 0;
+            const chunk_mesh = try chunk_mesher.generate(allocator, chunk_position, chunk);
+            try scene.addChunkMesh(chunk_position, chunk_mesh);
+        }
 
         try renderer.render(scene, user_interface.canvas);
 
