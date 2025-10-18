@@ -1,4 +1,5 @@
 const std = @import("std");
+const fmt = std.fmt;
 const math = std.math;
 
 pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type {
@@ -131,31 +132,28 @@ pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type 
             return new;
         }
 
-        pub fn format(self: Self, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        pub fn format(self: Self, writer: *std.Io.Writer) std.Io.Writer.Error!void {
 
-            _ = fmt;
-
-            const ff = std.fmt.format_float;
-
-            const valueOptions = ff.FormatOptions {
+            const options = fmt.float.Options {
                 .mode = .decimal,
-                .precision = options.precision
+                .precision = 4
             };
 
-            var buffer: [ff.min_buffer_size]u8 = undefined;
+            const buffer_size = fmt.float.bufferSize(.decimal, T);
+            var buffer: [buffer_size]u8 = undefined;
 
             inline for(0..R) |row| {
                 _ = try writer.write("( ");
 
                 inline for(0..C-1) |column| {
                     const value = self.get(column, row);
-                    const slice = try std.fmt.formatFloat(&buffer, value, valueOptions);
+                    const slice = fmt.float.render(&buffer, value, options) catch return std.Io.Writer.Error.WriteFailed;
                     _ = try writer.write(slice);
                     _ = try writer.write(", ");
                 }
 
                 const value = self.get(C-1, row);
-                const slice = try std.fmt.formatFloat(&buffer, value, valueOptions);
+                const slice = fmt.float.render(&buffer, value, options) catch return std.Io.Writer.Error.WriteFailed;
                 _ = try writer.write(slice);
                 _ = try writer.write(" )\n");
             }
