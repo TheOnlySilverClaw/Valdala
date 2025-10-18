@@ -1,6 +1,7 @@
 const std = @import("std");
 const net = std.net;
 const fs = std.fs;
+const time = std.time;
 const glfw = @import("glfw");
 const gui = @import("gui");
 const graphics = @import("graphics");
@@ -95,12 +96,13 @@ pub fn deinit(self: *Self) void {
 
 pub fn launch(self: *Self) !void {
     
+    const allocator = self.allocator;
     const surface = self.window.surface;
 
-    var game = try Game.init(self.allocator);
+    var game = try Game.init(allocator);
     defer game.deinit();
     
-    var scene = try Scene.init(self.allocator, 1, surface.aspect);
+    var scene = try Scene.init(allocator, 1, surface.aspect);
     defer scene.deinit();
     
     const tile_textures = self.module_loader.tile_registry.texture_array;
@@ -111,46 +113,39 @@ pub fn launch(self: *Self) !void {
         .tile_registry = self.module_loader.tile_registry,
         .grid = game.world.grid
     };
-
-    const world_center = @import("world").Chunk.Position {
-        .height = 0,
-        .north = 0,
-        .south_east = 0
-    };
-
-    try game.world.loadChunks(world_center, 1);
-
-    var chunks = game.world.chunks.iterator();
-    while(chunks.next()) |entry| {
-        const position = entry.key_ptr.*;
-        const chunk = entry.value_ptr.*;
-        if(chunk.visible) {
-            const mesh = try chunk_mesher.generate(self.allocator, position, chunk);
-            try scene.addChunkMesh(entry.key_ptr.*, mesh);
-        }
-    }
+    _ = &chunk_mesher;
 
     var canvas = try gui.Canvas.init(self.allocator, surface);
     defer canvas.deinit();
 
+    const target_frame_time = time.ns_per_ms * 16;
+
+    var frame_timer = try time.Timer.start();
 
     while(true) {
         
+        const frame_time = frame_timer.lap();
+
         const input = self.controller.poll();
         if(input.window.close) break;
         
         const player_direction = scene.camera.rotation.rotate(input.movement.direction);
-        scene.camera.movePitch(player_direction.x);
-        scene.camera.moveRoll(player_direction.y);
-        scene.camera.moveYaw(player_direction.z);
+        scene.camera.moveX(player_direction.x);
+        scene.camera.moveY(player_direction.y);
+        scene.camera.moveZ(player_direction.z);
         scene.camera.rotatePitch(input.movement.rotation.pitch * 0.1);
         scene.camera.rotateYaw(input.movement.rotation.yaw * 0.1);
         scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
 
-        log.info("matrix: {f}", .{ scene.camera.toMatrix() });
-
-        try game.tick();
+        try game.update(frame_time);
         try renderer.render(scene, canvas);
+
+        log.debug("frame time: {}", .{ frame_time });
+
+        if(target_frame_time > frame_time) {
+            const sleep_time = target_frame_time - frame_time;
+            Thread.sleep(sleep_time);
+        }
     }
 
 }
