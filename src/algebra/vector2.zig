@@ -110,6 +110,10 @@ pub fn Vector2(T: type) type {
                 .z = 0
             };
         }
+
+        pub fn format(self: Self, writer: *std.Io.Writer) std.Io.Writer.Error!void {
+            try writer.print("({d:.4}, {d:.4})", .{ self.x, self.y });
+        }
     };
 }
 

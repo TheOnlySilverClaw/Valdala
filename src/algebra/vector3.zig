@@ -145,6 +145,10 @@ pub fn Vector3(T: type) type {
                 .y = self.y
             };
         }
+
+        pub fn format(self: Self, writer: *std.Io.Writer) std.Io.Writer.Error!void {
+            try writer.print("({d:.4}, {d:.4}, {d:.4})", .{ self.x, self.y, self.z });
+        }
     };
 }
 
