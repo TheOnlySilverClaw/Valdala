@@ -1,8 +1,7 @@
 const std = @import("std");
 const log = std.log.scoped(.main);
 const Thread = std.Thread;
-const Server = @import("server").Server;
-const Client = @import("client").Application;
+const Application = @import("client").Application;
 
 pub const std_options = std.Options {
     .logFn = @import("log.zig").pretty
@@ -17,23 +16,11 @@ pub fn main() !void {
     const directory = std.fs.cwd();
     const allocator = debug_allocator.allocator();
 
-    var server = try allocator.create(Server);
-    server.* = try Server.init(allocator, directory);
-    const server_thread = try Thread.spawn(.{ .allocator = server.allocator }, Server.launch, .{ server });
-
-    // TODO handle waiting for server availability
-    Thread.sleep(std.time.ns_per_s);
-
     // client should be on the main thread because operating system restrictions
-    var client = try Client.init(allocator, directory);
-    try client.launch();
+    var application = try Application.init(allocator, directory);
+    try application.launch();
     
-    try server.shutdown();
-    server_thread.join();
-    
-    server.deinit();
-    allocator.destroy(server);
-    client.deinit();
+    application.deinit();
 
     _ = debug_allocator.deinit();
 

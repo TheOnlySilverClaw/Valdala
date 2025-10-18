@@ -137,20 +137,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
-    const protocol = b.addModule("protocol", .{
-        .root_source_file = b.path("src/protocol/module.zig" ),
-        .target = target,
-        .optimize = optimize
-    });
-
     const client = b.addModule("client", .{
         .root_source_file = b.path("src/client/module.zig" ),
-        .target = target,
-        .optimize = optimize
-    });
-
-    const server = b.addModule("server", .{
-        .root_source_file = b.path("src/server/module.zig" ),
         .target = target,
         .optimize = optimize
     });
@@ -205,32 +193,22 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     game.addImport("module", module);
     game.addImport("world", world);
 
-    protocol.addImport("color", color);
-
     client.addImport("glfw", glfw);
     client.addImport("gui", gui);
     client.addImport("color", color);
     client.addImport("graphics", graphics);
     client.addImport("scene", scene);
-    client.addImport("protocol", protocol);
     client.addImport("asset", asset);
     client.addImport("module", module);
     client.addImport("world", world);
     client.addImport("game", game);
     client.addImport("TrueType", TrueType);
 
-    server.addImport("module", module);
-    server.addImport("color", color);
-    server.addImport("game", game);
-    server.addImport("protocol", protocol);
-
     root.addImport("client", client);
-    root.addImport("server", server);
 
     // TODO do we actually need this?!
     test_root.addImport("algebra", algebra);
     test_root.addImport("coordinate", coordinate);
-    test_root.addImport("server", server);
     test_root.addImport("world", world);
 }
 
