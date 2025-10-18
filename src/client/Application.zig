@@ -61,7 +61,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 
 
     const font_source = asset.font.fira_code_regular[0..];
-    var font = try Font.init(allocator, window.surface.device, font_source, 70, 255);
+    var font = try Font.init(allocator, window.surface.device, font_source, 24, 255);
     try font.loadASCII();
 
     const fonts = try allocator.alloc(Font, 1);
@@ -125,7 +125,6 @@ pub fn launch(self: *Self) !void {
     while(true) {
         
         const delta = timer.lap();
-        log.debug("delta {}:", .{ delta });
 
         const input = self.controller.poll();
         if(input.window.close) break;
@@ -139,8 +138,13 @@ pub fn launch(self: *Self) !void {
         scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
 
         try game.update(delta);
+        
         user_interface.frame_time = delta;
+        user_interface.position = scene.camera.position;
+        user_interface.rotation = scene.camera.rotation;
+        
         try user_interface.update();
+
         try renderer.render(scene, user_interface.canvas);
 
         const frame_time = timer.read();
