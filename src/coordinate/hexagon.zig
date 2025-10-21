@@ -69,7 +69,7 @@ pub fn Grid(P: type, V: type) type {
             const se: V = @floatFromInt(position.south_east);
             const h: V = @floatFromInt(position.height);
 
-            const x = se * hex.side * 3.0 / 2.0;
+            const x = se * hex.side * horizontal;
             const y = n * hex.inner - se * hex.inradius;
             const z = h * hex.height;
 
@@ -80,8 +80,8 @@ pub fn Grid(P: type, V: type) type {
 
             const hex = self.hexagon;
 
-            const north: P = @intFromFloat((math.sqrt(3) * vector.y + vector.x) / (3 * hex.side));
-            const south_east: P = @intFromFloat((vector.x / hex.side) * (2.0 / 3.0));
+            const north: P = @intFromFloat((vector.x + math.sqrt(3) * vector.y) / (3 * hex.side));
+            const south_east: P = @intFromFloat((2 * vector.x) / (3 * hex.side));
             const height: P = @intFromFloat(vector.z / self.hexagon.height);
 
             return Position(P).of(north, south_east, height);
