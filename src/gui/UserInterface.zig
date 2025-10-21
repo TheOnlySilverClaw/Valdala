@@ -26,6 +26,8 @@ rotation: Quaternion(f32),
 rotation_element: *Canvas.TextElement,
 hex_position: HexPosition(i64),
 hex_position_element: *Canvas.TextElement,
+chunk_position: HexPosition(i64),
+chunk_position_element: *Canvas.TextElement,
 
 pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self {
 
@@ -35,7 +37,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
     const frame_time_element = try canvas.createText(.{ .value = "", .position = .of(10, 20), .font = font });
     const position_element = try canvas.createText(.{ .value = "", .position = .of(10, 50), .font = font });
     const hex_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 80), .font = font });
-    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
+    const chunk_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
+    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 140), .font = font });
 
     return .{
         .allocator = allocator,
@@ -46,6 +49,8 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
         .position_element = position_element,
         .hex_position = undefined,
         .hex_position_element = hex_position_element,
+        .chunk_position = undefined,
+        .chunk_position_element = chunk_position_element,
         .rotation = undefined,
         .rotation_element = rotation_element
     };
@@ -74,6 +79,10 @@ pub fn update(self: *Self) !void {
     self.hex_position_element.text.value = hex_position_value;
     try canvas.updateText(self.hex_position_element);
 
+    const chunk_position_value = try fmt.bufPrint(&buffer, "Chunk:  n {d:>.2} se {d:>.2} h {d:>.2}", .{ self.chunk_position.north, self.chunk_position.south_east, self.chunk_position.height });
+    self.chunk_position_element.text.value = chunk_position_value;
+    try canvas.updateText(self.chunk_position_element);
+    
     const rotation_value = try fmt.bufPrint(&buffer, "Rotation:  x {d:>.2} y {d:>.2} z {d:>.2} w {d:>.2}", .{ self.rotation.x, self.rotation.y, self.rotation.z, self.rotation.w });
     self.rotation_element.text.value = rotation_value;
     try canvas.updateText(self.rotation_element);

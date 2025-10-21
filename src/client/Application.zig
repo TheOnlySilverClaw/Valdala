@@ -153,6 +153,7 @@ pub fn launch(self: *Self) !void {
         user_interface.frame_time = delta;
         user_interface.position = scene.camera.position;
         user_interface.hex_position = hex_position;
+        user_interface.chunk_position = chunk_position;
         user_interface.rotation = scene.camera.rotation;
 
         try user_interface.update();

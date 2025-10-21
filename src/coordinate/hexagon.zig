@@ -80,7 +80,7 @@ pub fn Grid(P: type, V: type) type {
 
             const hex = self.hexagon;
 
-            const north: P = @intFromFloat((vector.y / hex.inner) + (vector.x / hex.side) * (1.0 / 3.0));
+            const north: P = @intFromFloat((math.sqrt(3) * vector.y + vector.x) / (3 * hex.side));
             const south_east: P = @intFromFloat((vector.x / hex.side) * (2.0 / 3.0));
             const height: P = @intFromFloat(vector.z / self.hexagon.height);
 
