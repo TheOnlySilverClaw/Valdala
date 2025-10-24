@@ -78,6 +78,8 @@ pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
 pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
 
+    log.debug("generate chunk {}", .{ position });
+    
     var chunk = try Chunk.init(self.allocator);
     
     const start_north: f32 = @floatFromInt(position.north * Chunk.layout.width);
@@ -126,22 +128,15 @@ pub fn unloadChunks(self: *Self) void {
 
 pub fn getTile(self: Self, position: Tile.Position) Tile {
     
-    const offset = Chunk.TileOffset {
-        .north = @intCast(@mod(position.north, Chunk.Layout.width)),
-        .south_east = @intCast(@mod(position.south_east, Chunk.Layout.width)),
-        .height = @intCast(@mod(position.height, Chunk.Layout.height))
-    };
-
-    const center = self.grid.getCenter(position);
-
-    const chunk_position = Chunk.Position {
-        .x = @intFromFloat(center.x / @as(f32, @floatFromInt(Chunk.Layout.width))),
-        .y = @intFromFloat(center.y / @as(f32, @floatFromInt(Chunk.Layout.width))),
-        .z = @intFromFloat(center.z / @as(f32, @floatFromInt(Chunk.Layout.height))),
-    };
-
+    const chunk_position = Chunk.tileToChunkPosition(position);
     const chunk = self.chunks.get(chunk_position);
+    
     if(chunk) |c| {
+        const offset = Chunk.TileOffset {
+            .north = @intCast(@mod(position.north, Chunk.Layout.width)),
+            .south_east = @intCast(@mod(position.south_east, Chunk.Layout.width)),
+            .height = @intCast(@mod(position.height, Chunk.Layout.height))
+        };
         return c.getTile(offset);
     }
 

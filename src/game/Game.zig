@@ -34,4 +34,5 @@ pub fn deinit(self: Self) void {
 pub fn update(self: *Self, delta: u64) !void {
     
     try self.time.update(delta);
+    try self.world.updateTerrain();
 }

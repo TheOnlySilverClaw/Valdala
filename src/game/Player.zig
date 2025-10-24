@@ -1,5 +1,5 @@
 const algebra = @import("algebra");
 
-const Vector = algebra.Vector3;
+const Transform = algebra.Transform;
 
-position: Vector(f32),
+transform: Transform(f32)

@@ -3,7 +3,7 @@ const webgpu = @import("webgpu");
 const coordinate = @import("coordinate");
 const algebra = @import("algebra");
 const module = @import("module");
-const world = @import("world");
+const terrain = @import("terrain");
 const log = std.log.scoped(.mesher);
 
 const Allocator = std.mem.Allocator;
@@ -11,7 +11,7 @@ const Tile = @import("Tile.zig");
 const TilePosition = coordinate.hexagon.Position(i64);
 const Vector = algebra.Vector3(f32);
 const TileRegistry = module.TileRegistry;
-const Chunk = world.Chunk;
+const Chunk = terrain.Chunk;
 const Mesh = @import("ChunkMesh.zig");
 const Vertex = Mesh.Vertex;
 const Index = Mesh.Index;
@@ -38,7 +38,7 @@ device: *webgpu.device.Device,
 tile_registry: TileRegistry,
 
 
-pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chunk: world.Chunk) !Mesh {
+pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chunk: terrain.Chunk) !Mesh {
 
     const device = self.device;
     const queue = device.getQueue();

@@ -2,28 +2,30 @@ const std = @import("std");
 const math = std.math;
 const color = @import("color");
 const algebra = @import("algebra");
-const terrain = @import("terrain");
 const log = std.log.scoped(.scene);
 
 const Map = std.AutoHashMapUnmanaged;
 const Allocator = std.mem.Allocator;
 const Camera = @import("Camera.zig");
 const ChunkMesh = @import("ChunkMesh.zig");
+const ChunkMesher = @import("ChunkMesher.zig");
 const Tile = @import("Tile.zig");
 const Vector = algebra.Vector3;
+const Terrain = @import("terrain").Terrain;
+const Chunk = @import("terrain").Chunk;
 
 const Self = @This();
 
 
 allocator: Allocator,
 camera: Camera,
-chunks: Map(terrain.Chunk.Position, ChunkMesh),
+chunks: Map(Chunk.Position, ChunkMesh),
 chunk_distance: u32,
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
-    const chunks = Map(terrain.Chunk.Position, ChunkMesh).empty;
+    const chunks = Map(Chunk.Position, ChunkMesh).empty;
 
     var camera = Camera.init(math.degreesToRadians(70), aspect, 0.001, 1000);
     // move up
@@ -47,6 +49,24 @@ pub fn deinit(self: *Self) void {
     self.chunks.clearAndFree(self.allocator);
 }
 
-pub fn addChunkMesh(self: *Self, position: terrain.Chunk.Position, mesh: ChunkMesh) Allocator.Error!void {
+pub fn addChunkMesh(self: *Self, position: Chunk.Position, mesh: ChunkMesh) Allocator.Error!void {
     try self.chunks.put(self.allocator, position, mesh);
+}
+
+pub fn updateTerrain(self: *Self, terrain: Terrain, mesher: *ChunkMesher) !void {
+
+    var iterator = terrain.chunks.iterator();
+    while(iterator.next()) |entry| {
+        const position = entry.key_ptr.*;
+        if(!self.chunks.contains(position)) {
+            const chunk = entry.value_ptr.*;
+            if(chunk.visible) {
+                log.debug("mesh chunk {}", .{ position });
+                const mesh = try mesher.generate(self.allocator, position, chunk);
+                try self.chunks.put(self.allocator, position, mesh);
+                // stupid way to only load one chunk per update for now
+                break;
+            }
+        }
+    }
 }

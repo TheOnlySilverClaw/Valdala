@@ -2,7 +2,7 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 const algebra = @import("algebra");
 const module = @import("module");
-const log = std.log.scoped(.terrain);
+const log = std.log.scoped(.terrain_renderer);
 
 const Allocator = std.mem.Allocator;
 const Scene = @import("scene").Scene;

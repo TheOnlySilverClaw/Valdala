@@ -114,6 +114,17 @@ pub fn launch(self: *Self) !void {
     const target_frame_time = time.ns_per_ms * 16;
 
     var timer = try time.Timer.start();
+    var player = try game.world.createPlayer(.{
+        .transform = .origin
+    });
+    player.transform.position.z = 15;
+
+    var chunk_mesher = @import("scene").ChunkMesher {
+        .device = surface.device,
+        .grid = game.world.terrain.grid,
+        .tile_registry = self.module_loader.tile_registry,
+        .vertex_count = 0
+    };
 
     while(true) {
 
@@ -122,30 +133,27 @@ pub fn launch(self: *Self) !void {
         const input = self.controller.poll();
         if(input.window.close) break;
         
-        const player_direction = scene.camera.transform.rotation.rotate(input.movement.direction);
-        scene.camera.transform.moveX(player_direction.x);
-        scene.camera.transform.moveY(player_direction.y);
-        scene.camera.transform.moveZ(player_direction.z);
-        scene.camera.transform.rotatePitch(input.movement.rotation.pitch * 0.1);
-        scene.camera.transform.rotateYaw(input.movement.rotation.yaw * 0.1);
-        scene.camera.transform.rotateRoll(input.movement.rotation.roll * 0.1);
+        const player_direction = player.transform.rotation.rotate(input.movement.direction);
+        player.transform.moveX(player_direction.x);
+        player.transform.moveY(player_direction.y);
+        player.transform.moveZ(player_direction.z);
+        player.transform.rotatePitch(input.movement.rotation.pitch * 0.1);
+        player.transform.rotateYaw(input.movement.rotation.yaw * 0.1);
+        player.transform.rotateRoll(input.movement.rotation.roll * 0.1);
 
         try game.update(delta);
-        
-        const hex_position = game.world.terrain.grid.getHexagon(scene.camera.transform.position);
 
-        const Chunk = @import("terrain").Chunk;
-        const chunk_position = Chunk.Position {
-            .north = @divFloor(hex_position.north, Chunk.layout.width),
-            .south_east = @divFloor(hex_position.south_east, Chunk.layout.width),
-            .height = 0
-        };
+        scene.camera.transform = player.transform;
+        try scene.updateTerrain(game.world.terrain, &chunk_mesher);
+        
+        const tile_position = game.world.terrain.grid.getHexagon(player.transform.position);
+        const chunk_position = @import("terrain").Chunk.tileToChunkPosition(tile_position);
 
         user_interface.frame_time = delta;
-        user_interface.position = scene.camera.transform.position;
-        user_interface.hex_position = hex_position;
+        user_interface.position = player.transform.position;
+        user_interface.tile_position = tile_position;
         user_interface.chunk_position = chunk_position;
-        user_interface.rotation = scene.camera.transform.rotation;
+        user_interface.rotation = player.transform.rotation;
 
         try user_interface.update();
 

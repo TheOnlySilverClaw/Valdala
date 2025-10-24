@@ -48,3 +48,12 @@ pub fn setTile(self: *Self, offset: TileOffset, tile: Tile) void {
 fn indexOf(offset: TileOffset) usize {
     return @as(usize, offset.height) * layout.area + offset.south_east * layout.width + offset.north;
 }
+
+// TODO  should this stay here?
+pub fn tileToChunkPosition(position: Position) Position {
+    return .{
+        .north = @divFloor(position.north, layout.width),
+        .south_east = @divFloor(position.south_east, layout.width),
+        .height = @divFloor(position.height, layout.height)
+    };
+}
