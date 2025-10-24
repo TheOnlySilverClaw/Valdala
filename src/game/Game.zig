@@ -2,7 +2,7 @@ const std = @import("std");
 const color = @import("color");
 
 const Allocator = std.mem.Allocator;
-const World = @import("world").World;
+const World = @import("World.zig");
 const Time = @import("Time.zig");
 
 const Self = @This();

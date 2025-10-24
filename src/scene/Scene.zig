@@ -2,6 +2,7 @@ const std = @import("std");
 const math = std.math;
 const color = @import("color");
 const algebra = @import("algebra");
+const terrain = @import("terrain");
 const log = std.log.scoped(.scene);
 
 const Map = std.AutoHashMapUnmanaged;
@@ -10,28 +11,23 @@ const Camera = @import("Camera.zig");
 const ChunkMesh = @import("ChunkMesh.zig");
 const Tile = @import("Tile.zig");
 const Vector = algebra.Vector3;
-const World = @import("world").World;
-const ChunkModel = @import("world").Chunk;
-const ChunkPosition = @import("world").Chunk.Position;
 
 const Self = @This();
 
 
 allocator: Allocator,
 camera: Camera,
-chunks: Map(ChunkPosition, ChunkMesh),
+chunks: Map(terrain.Chunk.Position, ChunkMesh),
 chunk_distance: u32,
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
-    const chunks = Map(ChunkPosition, ChunkMesh).empty;
+    const chunks = Map(terrain.Chunk.Position, ChunkMesh).empty;
 
-    var camera = Camera.init(math.degreesToRadians(70), aspect);
+    var camera = Camera.init(math.degreesToRadians(70), aspect, 0.001, 1000);
     // move up
-    camera.moveZ(20.0);
-    // look down
-    // camera.rotatePitch(math.degreesToRadians(90));
+    camera.transform.moveZ(20.0);
 
     return .{
         .allocator = allocator,
@@ -51,6 +47,6 @@ pub fn deinit(self: *Self) void {
     self.chunks.clearAndFree(self.allocator);
 }
 
-pub fn addChunkMesh(self: *Self, position: ChunkPosition, mesh: ChunkMesh) Allocator.Error!void {
+pub fn addChunkMesh(self: *Self, position: terrain.Chunk.Position, mesh: ChunkMesh) Allocator.Error!void {
     try self.chunks.put(self.allocator, position, mesh);
 }

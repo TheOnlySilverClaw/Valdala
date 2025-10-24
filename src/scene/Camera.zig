@@ -1,128 +1,60 @@
 const algebra = @import("algebra");
 const log = @import("std").log.scoped(.camera);
 
-const Vector = algebra.Vector3(f32);
-const Quaternion = algebra.Quaternion(f32);
-const Matrix = algebra.Matrix(f32, 4, 4);
+const Vector = algebra.Vector3;
+const Quaternion = algebra.Quaternion;
+const Transform = algebra.Transform;
+const Matrix = algebra.Matrix;
 
 const Self = @This();
 
 
-position: Vector,
-rotation: Quaternion,
-zoom: f32,
-fov: f32,
-aspect: f32,
+transform: Transform(f32),
 near: f32,
 far: f32,
+fov: f32,
+aspect: f32,
 
-pub fn init(fov: f32, aspect: f32) Self {
+pub fn init(fov: f32, aspect: f32, near: f32, far: f32) Self {
     return .{
-        .position = .zero,
-        .rotation = .identity,
-        .zoom = 1,
+        .transform = .origin,
+        .near = near,
+        .far = far,
         .fov = fov,
-        .aspect = aspect,
-        .near = 0.1,
-        .far = 1000.0
+        .aspect = aspect
     };
 }
 
-pub fn zoomIn(self: *Self, amount: f32) void {
-    self.zoom -= amount;
-}
-
-pub fn zoomOut(self: *Self, amount: f32) void {
-    self.zoom += amount;
-}
-
-pub fn moveX(self: *Self, amount: f32) void {
-    self.position.x += amount;
-}
-
-pub fn moveY(self: *Self, amount: f32) void {
-    self.position.y += amount;
-}
-
-pub fn moveZ(self: *Self, amount: f32) void {
-    self.position.z += amount;
-}
-
-pub fn movePitch(self: *Self, distance: f32) void {
-    self.moveAlongBaseAxis(Vector.Axis.x, distance);
-}
-
-pub fn moveRoll(self: *Self, distance: f32) void {
-    self.moveAlongBaseAxis(Vector.Axis.y, distance);
-}
-
-pub fn moveYaw(self: *Self, distance: f32) void {
-    self.moveAlongBaseAxis(Vector.Axis.z, distance);
-}
-
-pub fn moveAlong(self: *Self, axis: Vector, distance: f32) void {
-    const direction = axis.times(distance);
-    self.position = self.position.add(direction);
-}
-
-fn moveAlongBaseAxis(self: *Self, base: Vector, distance: f32) void {
-    const axis = self.rotation.rotate(base);
-    self.moveAlong(axis, distance);
-}
-
-pub fn rotateRoll(self: *Self, angle: f32) void {
-    self.rotateAroundBaseAxis(Vector.Axis.y, angle);
-}
-
-pub fn rotatePitch(self: *Self, angle: f32) void {
-    self.rotateAroundBaseAxis(Vector.Axis.x, angle);
-}
-
-pub fn rotateYaw(self: *Self, angle: f32) void {
-    self.rotateAroundBaseAxis(Vector.Axis.z, angle);
-}
-
-pub fn rotateAround(self: *Self, axis: Vector, angle: f32) void {
-    const rotation = Quaternion.aroundAxis(axis, angle);
-    self.rotation = self.rotation.multiply(rotation);
-}
-
-fn rotateAroundBaseAxis(self: *Self, base: Vector, angle: f32) void {
-    // if the vector is too small to normalize, the rotation can probably be ignored
-    const axis = self.rotation.rotate(base).normalize() catch return;
-    self.rotateAround(axis, angle);
-}
-
-pub fn toMatrix(self: Self) Matrix {
+pub fn toMatrix(self: Self) Matrix(f32, 4, 4) {
     
     const view = self.viewMatrix();
     const projection = self.projectionMatrix();
     return projection.multiply(view);
 }
 
-fn viewMatrix(self: Self) Matrix {
+fn viewMatrix(self: Self) Matrix(f32, 4, 4) {
 
-    const scale = 1 / self.zoom;
-    const scale_matrix = Matrix.diagonal(.{ scale, scale, scale, 1 });
+    const scale = Vector(f32).one.divide(self.transform.scale);
+    const scale_matrix = Matrix(f32, 4, 4).diagonal(.{ scale.x, scale.y, scale.z, 1 });
 
-    const translation = self.position.inverse();
-    var translation_matrix = Matrix.identity;
+    const translation = self.transform.position.inverse();
+    var translation_matrix = Matrix(f32, 4, 4).identity;
     translation_matrix.setColumn(3, .{ translation.x, translation.y, translation.z, 1 });
 
-    const rotation_matrix = self.rotation.inverse().toMatrix();
+    const rotation_matrix = self.transform.rotation.inverse().toMatrix();
     const matrix = scale_matrix.multiply(rotation_matrix).multiply(translation_matrix);
     
     return matrix;
 }
 
-fn projectionMatrix(self: Self) Matrix {
+fn projectionMatrix(self: Self) Matrix(f32, 4, 4) {
 
     const tan_half = @tan(self.fov / 2);
     const aspect = self.aspect;
     const far = self.far;
     const near = self.near;
 
-    var matrix = Matrix.zero;
+    var matrix = Matrix(f32, 4, 4).zero;
     matrix.set(0, 0, 1 / (aspect * tan_half));
     matrix.set(1, 1, 1 / tan_half);
     matrix.set(2, 2, far / (near - far));

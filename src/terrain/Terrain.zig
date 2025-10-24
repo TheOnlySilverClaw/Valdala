@@ -2,7 +2,7 @@ const std = @import("std");
 const math = std.math;
 const coordinate = @import("coordinate");
 const fastnoise = @import("fastnoise");
-const log = std.log.scoped(.world);
+const log = std.log.scoped(.terrain);
 
 const Map = std.AutoArrayHashMapUnmanaged;
 const Allocator = std.mem.Allocator;
@@ -10,8 +10,9 @@ const Color = @import("color").RGB;
 const Tile = @import("Tile.zig");
 const Chunk = @import("Chunk.zig");
 const Grid = coordinate.hexagon.Grid;
-const Seed = i32;
 const Noise = fastnoise.Noise(f32);
+
+pub const Seed = i32;
 
 const Self = @This();
 
@@ -47,8 +48,6 @@ pub fn deinit(self: *Self) void {
 
 pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
 
-    var i: u64 = 0;
-
     const limit: usize = distance * 2 - 1;
     const half: i64 = distance / 2;
 
@@ -57,17 +56,15 @@ pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
             for(0..limit) |height| {
             
                 const position = Chunk.Position {
-                    .north = @intCast(center.north - half + @as(i64, @intCast(north))),
-                    .south_east = @intCast(center.south_east - half + @as(i64, @intCast(south_east))),
-                    .height = @intCast(center.height - half + @as(i64, @intCast(height)))
+                    .north = @intCast(center.north + @as(i64, @intCast(north)) - half),
+                    .south_east = @intCast(center.south_east + @as(i64, @intCast(south_east)) - half),
+                    .height = @intCast(center.height + @as(i64, @intCast(height)) - half)
                 };
 
                 _ = try self.loadChunk(position);
-                i += 1;
             }
         }
     }
-    log.debug("loaded {} chunks", .{ i });
 }
 
 pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {

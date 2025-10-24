@@ -11,7 +11,7 @@ const log = std.log.scoped(.client);
 const Allocator = std.mem.Allocator;
 const Thread = std.Thread;
 const ModuleLoader = @import("module").Loader;
-const World = @import("world").World;
+const Terrain = @import("terrain").Terrain;
 const Scene = @import("scene").Scene;
 const Game = @import("game").Game;
 const TrueType = @import("TrueType");
@@ -108,42 +108,33 @@ pub fn launch(self: *Self) !void {
     const tile_textures = self.module_loader.tile_registry.texture_array;
     var renderer = try graphics.GameRenderer.init(surface, tile_textures, self.fonts);
 
-    var chunk_mesher = @import("scene").ChunkMesher {
-        .device = surface.device,
-        .tile_registry = self.module_loader.tile_registry,
-        .grid = game.world.grid
-    };
-
     var user_interface = try gui.UserInterface.init(allocator, surface, self.fonts);
     defer user_interface.deinit();
 
     const target_frame_time = time.ns_per_ms * 16;
 
     var timer = try time.Timer.start();
-    var count: i32 = 0;
 
     while(true) {
-        
-        count += 1;
 
         const delta = timer.lap();
 
         const input = self.controller.poll();
         if(input.window.close) break;
         
-        const player_direction = scene.camera.rotation.rotate(input.movement.direction);
-        scene.camera.moveX(player_direction.x);
-        scene.camera.moveY(player_direction.y);
-        scene.camera.moveZ(player_direction.z);
-        scene.camera.rotatePitch(input.movement.rotation.pitch * 0.1);
-        scene.camera.rotateYaw(input.movement.rotation.yaw * 0.1);
-        scene.camera.rotateRoll(input.movement.rotation.roll * 0.1);
+        const player_direction = scene.camera.transform.rotation.rotate(input.movement.direction);
+        scene.camera.transform.moveX(player_direction.x);
+        scene.camera.transform.moveY(player_direction.y);
+        scene.camera.transform.moveZ(player_direction.z);
+        scene.camera.transform.rotatePitch(input.movement.rotation.pitch * 0.1);
+        scene.camera.transform.rotateYaw(input.movement.rotation.yaw * 0.1);
+        scene.camera.transform.rotateRoll(input.movement.rotation.roll * 0.1);
 
         try game.update(delta);
         
-        const hex_position = game.world.grid.getHexagon(scene.camera.position);
+        const hex_position = game.world.terrain.grid.getHexagon(scene.camera.transform.position);
 
-        const Chunk = @import("world").Chunk;
+        const Chunk = @import("terrain").Chunk;
         const chunk_position = Chunk.Position {
             .north = @divFloor(hex_position.north, Chunk.layout.width),
             .south_east = @divFloor(hex_position.south_east, Chunk.layout.width),
@@ -151,29 +142,12 @@ pub fn launch(self: *Self) !void {
         };
 
         user_interface.frame_time = delta;
-        user_interface.position = scene.camera.position;
+        user_interface.position = scene.camera.transform.position;
         user_interface.hex_position = hex_position;
         user_interface.chunk_position = chunk_position;
-        user_interface.rotation = scene.camera.rotation;
+        user_interface.rotation = scene.camera.transform.rotation;
 
         try user_interface.update();
-
-        if(count == 50) {
-            count = 0;
-
-            game.world.unloadChunks();
-
-            var chunk_iterator = scene.chunks.valueIterator();
-            while(chunk_iterator.next()) |chunk| {
-                chunk.destroy();
-            }
-            
-            scene.chunks.clearRetainingCapacity();
-            const chunk = try game.world.loadChunk(chunk_position);
-            chunk_mesher.vertex_count = 0;
-            const chunk_mesh = try chunk_mesher.generate(allocator, chunk_position, chunk);
-            try scene.addChunkMesh(chunk_position, chunk_mesh);
-        }
 
         try renderer.render(scene, user_interface.canvas);
 

@@ -95,8 +95,8 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
         .optimize = optimize
     });
 
-    const world = b.addModule("world", .{
-        .root_source_file = b.path("src/world/module.zig" ),
+    const terrain = b.addModule("terrain", .{
+        .root_source_file = b.path("src/terrain/module.zig" ),
         .target = target,
         .optimize = optimize
     });
@@ -145,10 +145,10 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
 
     coordinate.addImport("algebra", algebra);
 
-    world.addImport("algebra", algebra);
-    world.addImport("coordinate", coordinate);
-    world.addImport("color", color);
-    world.addImport("fastnoise", fastnoise);
+    terrain.addImport("algebra", algebra);
+    terrain.addImport("coordinate", coordinate);
+    terrain.addImport("color", color);
+    terrain.addImport("fastnoise", fastnoise);
 
     asset.addImport("zigimg", zigimg);
     asset.addImport("yaml", yaml);
@@ -186,14 +186,14 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     scene.addImport("color", color);
     scene.addImport("graphics", graphics);
     scene.addImport("webgpu", webgpu);
-    scene.addImport("world", world);
+    scene.addImport("terrain", terrain);
     scene.addImport("module", module);
 
     game.addImport("algebra", algebra);
     game.addImport("color", color);
     game.addImport("coordinate", coordinate);
     game.addImport("module", module);
-    game.addImport("world", world);
+    game.addImport("terrain", terrain);
 
     client.addImport("glfw", glfw);
     client.addImport("gui", gui);
@@ -202,7 +202,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     client.addImport("scene", scene);
     client.addImport("asset", asset);
     client.addImport("module", module);
-    client.addImport("world", world);
+    client.addImport("terrain", terrain);
     client.addImport("game", game);
     client.addImport("TrueType", TrueType);
 
@@ -211,7 +211,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     // TODO do we actually need this?!
     test_root.addImport("algebra", algebra);
     test_root.addImport("coordinate", coordinate);
-    test_root.addImport("world", world);
+    test_root.addImport("terrain", terrain);
 }
 
 fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
