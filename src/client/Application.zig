@@ -79,7 +79,6 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
 pub fn deinit(self: *Self) void {
 
     self.window.destroy();
-    self.window.deinit();
     self.allocator.destroy(self.window);
     
     self.allocator.destroy(self.controller);
@@ -97,7 +96,7 @@ pub fn deinit(self: *Self) void {
 pub fn launch(self: *Self) !void {
     
     const allocator = self.allocator;
-    const surface = self.window.surface;
+    const surface = &self.window.surface;
 
     var game = try Game.init(allocator);
     defer game.deinit();

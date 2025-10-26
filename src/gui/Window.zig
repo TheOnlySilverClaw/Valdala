@@ -21,7 +21,7 @@ monitor: ?*glfw.monitor.Monitor,
 key_listener: listeners.KeyListener,
 resize_listener: listeners.ResizeListener,
 close_listener: listeners.CloseListener,
-surface: *graphics.Surface,
+surface: graphics.Surface,
 
 pub fn init(allocator: Allocator) Self {
     return .{
@@ -33,10 +33,6 @@ pub fn init(allocator: Allocator) Self {
         .handle = undefined,
         .surface = undefined
     };
-}
-
-pub fn deinit(self: Self) void {
-    self.allocator.destroy(self.surface);
 }
 
 pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void {
@@ -52,9 +48,9 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
     }
 
     const instance = webgpu.instance.Instance.create(null);
-    self.surface = try self.allocator.create(graphics.Surface);
+    defer instance.release();
+    
     try self.surface.create(self.handle, instance);
-    instance.release();
     self.surface.resize(width, height);
 
     self.handle.setUserPoiner(self);
