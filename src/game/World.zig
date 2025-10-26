@@ -3,7 +3,7 @@ const log = std.log.scoped(.world);
 
 const Allocator = std.mem.Allocator;
 const List = std.ArrayListUnmanaged;
-const Map = std.AutoArrayHashMapUnmanaged;
+const Map = std.AutoHashMapUnmanaged;
 const Terrain = @import("terrain").Terrain;
 const Chunk = @import("terrain").Chunk;
 const Player = @import("Player.zig");
@@ -13,6 +13,7 @@ const Self = @This();
 
 allocator: Allocator,
 players: List(*Player),
+chunk_distance: u32,
 terrain: Terrain,
 
 pub fn init(allocator: Allocator, seed: Terrain.Seed) !Self {
@@ -22,6 +23,7 @@ pub fn init(allocator: Allocator, seed: Terrain.Seed) !Self {
     return .{
         .allocator = allocator,
         .players = .empty,
+        .chunk_distance = 2,
         .terrain = terrain
     };
 }
@@ -44,27 +46,54 @@ pub fn createPlayer(self: *Self, player: Player) !*Player {
 }
 
 pub fn updateTerrain(self: *Self) !void {
-
+    
+    const allocator = self.allocator;
     var terrain = &self.terrain;
     const grid = terrain.grid;
 
+    var visible_positions = Map(Chunk.Position, void).empty;
+    try visible_positions.ensureTotalCapacity(allocator, @intCast(terrain.chunks.count()));
+    defer visible_positions.clearAndFree(allocator);
+
+    const distance = self.chunk_distance;
+    const limit: usize = distance * 2 - 1;
+    const half: i64 = distance / 2;
+
     for(self.players.items) |player| {
-        const tile_position = grid.getHexagon(player.transform.position);
-        const chunk_position = Chunk.tileToChunkPosition(tile_position);
-        try terrain.loadChunks(chunk_position, 2);
+        
+        const tile = grid.getHexagon(player.transform.position);
+        const center = Chunk.tileToChunkPosition(tile);
+
+        for(0..limit) |south_east| {
+            for(0..limit) |north| {
+                for(0..limit) |height| {
+                
+                    const position = Chunk.Position {
+                        .north = @intCast(center.north + @as(i64, @intCast(north)) - half),
+                        .south_east = @intCast(center.south_east + @as(i64, @intCast(south_east)) - half),
+                        .height = @intCast(center.height + @as(i64, @intCast(height)) - half)
+                    };
+
+                    try visible_positions.put(allocator, position, {});
+                }
+            }
+        }
     }
 
-    // var load_positions = Map(Chunk.Position, void).empty;
-    // defer load_positions.clearAndFree(self.allocator);
-    // for(self.players.items) |player| {
-    //     const chunk_position = Chunk.tileToChunkPosition(tile_position);
-    //     if(!terrain.chunks.contains(chunk_position)) {
-    //         try load_positions.put(self.allocator, chunk_position, {});
-    //     }
-    // }
+    const loaded_positions = try allocator.alloc(Chunk.Position, terrain.chunks.count());
+    defer allocator.free(loaded_positions);
+    // copy, because unloading chunks could invalidate the position keys
+    std.mem.copyForwards(Chunk.Position, loaded_positions, terrain.chunks.keys());
 
-    // log.debug("chunk positions to load: {any}", .{ load_positions.keys() });
-    // for(load_positions.keys()) |position| {
-    //     _ = try terrain.loadChunk(position);
-    // }
+    for(loaded_positions) |position| {
+        if(!visible_positions.remove(position)) {
+            terrain.unloadChunk(position);
+        }
+    }
+
+    var unload_iterator = visible_positions.keyIterator();
+    while(unload_iterator.next()) |position| {
+        _ = try terrain.loadChunk(position.*);
+    }
+
 }

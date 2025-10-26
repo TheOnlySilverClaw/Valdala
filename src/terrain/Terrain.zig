@@ -69,6 +69,8 @@ pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
 
 pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
+    log.debug("load chunk {}", .{ position });
+    
     if(self.chunks.get(position)) |chunk| {
         return chunk;
     }
@@ -115,6 +117,14 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
     try self.chunks.put(self.allocator, position, chunk);
     
     return chunk;
+}
+
+pub fn unloadChunk(self: *Self, position: Chunk.Position) void {
+
+    if(self.chunks.fetchSwapRemove(position)) |entry| {
+        log.debug("unload chunk {}", .{ position });
+        entry.value.deinit(self.allocator);
+    }
 }
 
 pub fn unloadChunks(self: *Self) void {
