@@ -18,38 +18,25 @@ const Self = @This();
 allocator: Allocator,
 handle: *Handle,
 monitor: ?*glfw.monitor.Monitor,
-key_listener: ?*listeners.KeyListener,
-resize_listener: ?*listeners.ResizeListener,
-close_listener: ?*listeners.CloseListener,
+key_listener: listeners.KeyListener,
+resize_listener: listeners.ResizeListener,
+close_listener: listeners.CloseListener,
 surface: *graphics.Surface,
 
 pub fn init(allocator: Allocator) Self {
     return .{
         .allocator = allocator,
         .monitor = null,
-        .key_listener = null,
-        .resize_listener = null,
-        .close_listener = null,
+        .key_listener = .none,
+        .resize_listener = .none,
+        .close_listener = .none,
         .handle = undefined,
         .surface = undefined
     };
 }
 
 pub fn deinit(self: Self) void {
-
     self.allocator.destroy(self.surface);
-
-    if(self.key_listener) |listener| {
-        self.allocator.destroy(listener);
-    }
-    
-    if(self.resize_listener) |listener| {
-        self.allocator.destroy(listener);
-    }
-
-    if(self.close_listener) |listener| {
-        self.allocator.destroy(listener);
-    }
 }
 
 pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void {
@@ -94,28 +81,12 @@ pub fn update(self: Self) void {
     _ = self;
 }
 
-pub fn createKeyListener(self: *Self, listener: listeners.KeyListener) !void {
-
-    const pointer = try self.allocator.create(listeners.KeyListener);
-    pointer.* = listener;
-    self.key_listener = pointer;
-}
-
 fn onKey(handle: *Handle, key: glfw.keyboard.Key, scancode: glfw.keyboard.ScanCode, action: glfw.input.Action, modifiers: glfw.input.Modifiers) callconv(.c) void {
     
     _ = scancode;
 
     const window = getSelfPointer(handle);
-    if(window.key_listener) |listener| {
-        listener.onKey(key, action, modifiers);
-    }
-}
-
-pub fn createResizeListener(self: *Self, listener: listeners.ResizeListener) !void {
-
-    const pointer = try self.allocator.create(listeners.ResizeListener);
-    pointer.* = listener;
-    self.resize_listener = pointer;
+    window.key_listener.onKey(key, action, modifiers);
 }
 
 fn onResize(handle: *Handle, width: i32, height: i32) callconv(.c) void {
@@ -126,25 +97,13 @@ fn onResize(handle: *Handle, width: i32, height: i32) callconv(.c) void {
     const height_unsigned: u32 = @intCast(height);
     
     window.surface.resize(width_unsigned, height_unsigned);
-
-    if(window.resize_listener) |listener| {
-        listener.onResize(width_unsigned, height_unsigned);
-    }
-}
-
-pub fn createCloseListener(self: *Self, listener: listeners.CloseListener) !void {
-
-    const pointer = try self.allocator.create(listeners.CloseListener);
-    pointer.* = listener;
-    self.close_listener = pointer;
+    window.resize_listener.onResize(width_unsigned, height_unsigned);
 }
 
 fn onClose(handle: *Handle) callconv(.c) void {
     
     const window = getSelfPointer(handle);
-    if(window.close_listener) |listener| {
-        listener.onClose();
-    }
+    window.close_listener.onClose();
 }
 
 fn getSelfPointer(handle: *Handle) *Self {

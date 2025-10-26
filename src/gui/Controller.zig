@@ -21,20 +21,20 @@ pub fn new() Self {
 
 pub fn registerWindowListeners(self: *Self, window: *Window) !void {
     
-    try window.createKeyListener(.{
+    window.key_listener = .{
         .ptr = self,
         .call = &Self.onKey
-    });
+    };
 
-    try window.createResizeListener(.{
+    window.resize_listener = .{
         .ptr = self,
         .call = &Self.onResize
-    });
+    };
 
-    try window.createCloseListener(.{
+    window.close_listener = .{
         .ptr = self,
         .call = &Self.onClose
-    });
+    };
 }
 
 pub fn onKey(ptr: *anyopaque, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers) void {
