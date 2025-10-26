@@ -10,7 +10,6 @@ const Text = gui.Text;
 const TextMesh = gui.TextMesh;
 const Canvas = gui.Canvas;
 const TextRenderPipeline = @import("TextRenderPipeline.zig");
-const Color = @import("color.zig").Color(f32);
 const Surface = @import("Surface.zig");
 const Shader = @import("Shader.zig");
 const ImageTexture = @import("ImageTexture.zig");
