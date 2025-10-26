@@ -6,8 +6,6 @@ const thread_name_buffer = [std.Thread.max_name_len:0]u8;
 var lock = std.Thread.Mutex {};
 
 var buffer: [1024]u8 = undefined;
-var stream_writer = std.fs.File.stdout().writer(&buffer);
-var writer = &stream_writer.interface;
 
 pub fn pretty(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) void {
 
@@ -23,6 +21,9 @@ pub fn pretty(comptime message_level: std.log.Level, comptime scope: @TypeOf(.en
 
 fn write(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_literal), comptime format: []const u8, args: anytype) !void {
 
+    var stream_writer = std.fs.File.stdout().writer(&buffer);
+    var writer = &stream_writer.interface;
+    
     const color_code = switch (message_level) {
         .err => "\x1b[1;31m",
         .info => "\x1b[1;32m",
