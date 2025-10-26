@@ -77,10 +77,6 @@ pub fn close(self: Self) void {
     self.handle.setShouldClose(true);
 }
 
-pub fn update(self: Self) void {
-    _ = self;
-}
-
 fn onKey(handle: *Handle, key: glfw.keyboard.Key, scancode: glfw.keyboard.ScanCode, action: glfw.input.Action, modifiers: glfw.input.Modifiers) callconv(.c) void {
     
     _ = scancode;
