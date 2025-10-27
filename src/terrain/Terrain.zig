@@ -9,17 +9,18 @@ const Allocator = std.mem.Allocator;
 const Color = @import("color").RGB;
 const Tile = @import("Tile.zig");
 const Chunk = @import("Chunk.zig");
+const Generator = @import("Generator.zig");
 const Grid = coordinate.hexagon.Grid;
 const Noise = fastnoise.Noise(f32);
 
-pub const Seed = i32;
+pub const Seed = u64;
 
 const Self = @This();
 
 
 allocator: Allocator,
 seed: Seed,
-noise: Noise,
+generator: Generator,
 grid: Grid(i64, f32),
 chunks: Map(Chunk.Position, Chunk),
 sky_color: Color,
@@ -28,15 +29,13 @@ pub fn init(allocator: Allocator, seed: Seed) !Self {
     
     const hexagon = coordinate.hexagon.Hexagon(f32).new(0.5, 0.5);
     const grid = coordinate.hexagon.Grid(i64, f32).of(hexagon);
-    const noise = Noise {
-        .seed = seed
-    };
+    const generator = Generator.init(allocator, seed);
 
     return .{
         .allocator = allocator,
         .seed = seed,
+        .generator = generator,
         .grid = grid,
-        .noise = noise,
         .chunks = .empty,
         .sky_color = Color.of(0.2, 0.2, 1.0)
     };
@@ -82,40 +81,8 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
 
     log.debug("generate chunk {}", .{ position });
     
-    var chunk = try Chunk.init(self.allocator);
-    
-    const start_north: f32 = @floatFromInt(position.north * Chunk.layout.width);
-    const start_south_east: f32 = @floatFromInt(position.south_east * Chunk.layout.width);
-    const chunk_height_factor: f32 = @floatFromInt(Chunk.layout.height);
-
-    for(0..Chunk.layout.width) |south_east| {
-        for(0..Chunk.layout.width) |north| {
-            
-            const world_north = start_north + @as(f32, @floatFromInt(north));
-            const world_south_east = start_south_east + @as(f32, @floatFromInt(south_east));
-            const normal_height = self.noise.genNoise2D(world_north, world_south_east);
-            const world_height: i64 = @intFromFloat(normal_height * chunk_height_factor);
-            const tile_height = world_height - position.height * Chunk.layout.height;
-
-            if(tile_height >= 0) {
-                chunk.visible = true;
-                const height_limit = @min(tile_height, Chunk.layout.height);
-
-                for(0..@intCast(height_limit)) |height| {
-
-                    const offset = Chunk.TileOffset {
-                        .south_east = @intCast(south_east),
-                        .north = @intCast(north),
-                        .height = @intCast(height)
-                    };
-                    chunk.setTile(offset, .{ .index = 1 });
-                }
-            }
-        }
-    }
-
+    const chunk = try self.generator.generateChunk(position);
     try self.chunks.put(self.allocator, position, chunk);
-    
     return chunk;
 }
 
