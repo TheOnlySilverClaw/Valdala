@@ -1,5 +1,7 @@
 name: Valdala
 tiles:
-  grass: tiles/grass/tile.yaml
-  rock: tiles/rock/tile.yaml
+  water: tiles/water/tile.yaml
+  sand: tiles/sand/tile.yaml
+  topsoil: tiles/topsoil/tile.yaml
   soil: tiles/soil/tile.yaml
+  rock: tiles/rock/tile.yaml
