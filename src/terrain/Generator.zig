@@ -14,13 +14,27 @@ const Noise = fastnoise.Noise(f32);
 
 pub const Seed = i32;
 
+const SurfacePosition = packed struct {
+    north: i64,
+    south_east: i64
+};
+
+const TileParameters = struct {
+    /// height from sea level, in tile heights
+    altitude: i64,
+    /// distance from surface, in tile heights
+    depth: i64
+};
+
 const Self = @This();
 
 allocator: Allocator,
 seed: Terrain.Seed,
+grid: Grid(i64, f32),
 noise: Noise,
 
-pub fn init(allocator: Allocator, seed: Terrain.Seed) Self {
+
+pub fn init(allocator: Allocator, seed: Terrain.Seed, grid: Grid(i64, f32)) Self {
     
     const noise_seeds: [2]i32 = @bitCast(seed);
 
@@ -31,6 +45,7 @@ pub fn init(allocator: Allocator, seed: Terrain.Seed) Self {
     return .{
         .allocator = allocator,
         .seed = seed,
+        .grid = grid,
         .noise = noise
     };
 }
@@ -38,36 +53,77 @@ pub fn init(allocator: Allocator, seed: Terrain.Seed) Self {
 pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
 
     var chunk = try Chunk.init(self.allocator);
+    const corner = Chunk.cornerToTilePosition(position);
+    const hex_height = self.grid.hexagon.height;
 
-    const start_north: f32 = @floatFromInt(position.north * Chunk.layout.width);
-    const start_south_east: f32 = @floatFromInt(position.south_east * Chunk.layout.width);
-    const chunk_height_factor: f32 = @floatFromInt(Chunk.layout.height);
-
-    for(0..Chunk.layout.width) |south_east| {
-        for(0..Chunk.layout.width) |north| {
+    for(0..Chunk.layout.width) |south_east_offset| {
+        for(0..Chunk.layout.width) |north_offset| {
             
-            const world_north = start_north + @as(f32, @floatFromInt(north));
-            const world_south_east = start_south_east + @as(f32, @floatFromInt(south_east));
-            const normal_height = @as(f32, @floatFromInt(Hash.hash(self.seed, @as([8]u8, @bitCast([2]f32 { world_north, world_south_east }))))) / @as(f32, @floatFromInt(math.maxInt(u63)));
-            const world_height: i64 = @intFromFloat(normal_height * chunk_height_factor);
-            const tile_height = world_height - position.height * Chunk.layout.height;
+            const surface_position = SurfacePosition {
+                .north = corner.north + @as(i64, @intCast(north_offset)),
+                .south_east = corner.south_east + @as(i64, @intCast(south_east_offset))
+            };
+
+            const noise_height = self.noiseAt(surface_position, 1.0);
+            const random_height = self.randomAt(surface_position);
+            const roughness = self.noiseAt(surface_position, 20);
+
+            const normal_height = (noise_height * noise_height) + (random_height * roughness * 0.5);
+            const altitude: i64 = @intFromFloat(normal_height / hex_height * 10);
+            const tile_height = altitude - corner.height;
 
             if(tile_height >= 0) {
                 chunk.visible = true;
                 const height_limit = @min(tile_height, Chunk.layout.height);
 
-                for(0..@intCast(height_limit)) |height| {
+                for(0..@intCast(height_limit)) |height_offset| {
+
+                    const tile_depth = tile_height - @as(i64, @intCast(height_offset));
 
                     const offset = Chunk.TileOffset {
-                        .south_east = @intCast(south_east),
-                        .north = @intCast(north),
-                        .height = @intCast(height)
+                        .south_east = @intCast(south_east_offset),
+                        .north = @intCast(north_offset),
+                        .height = @intCast(height_offset)
                     };
-                    chunk.setTile(offset, .{ .index = 1 });
+
+                    const parameters = TileParameters {
+                        .altitude = altitude,
+                        .depth = tile_depth
+                    };
+                    const tile = generateTile(parameters);
+                    chunk.setTile(offset, tile);
                 }
             }
         }
     }
 
     return chunk;
+}
+
+fn generateTile(parameters: TileParameters) Tile {
+    
+    if(parameters.altitude < Terrain.sea_level) {
+        return .water;
+    }
+
+    const tile: Tile = switch (parameters.depth) {
+        1 => .topsoil,
+        2...4 => .soil,
+        else => .rock
+    };
+    return tile;
+}
+
+fn randomAt(self: Self, position: SurfacePosition) f32 {
+    
+    const input: [16]u8 = @bitCast(position);
+    const hashed: f32 = @floatFromInt(Hash.hash(self.seed, input));
+    const maximum: f32 = @floatFromInt(math.maxInt(i64));
+    return (hashed / maximum) - 1;
+}
+
+fn noiseAt(self: Self, position: SurfacePosition, scale: f32) f32 {
+    const x: f32 = @floatFromInt(position.north);
+    const y: f32 = @floatFromInt(position.south_east);
+    return self.noise.genNoise2D(x / scale, y / scale);
 }

@@ -61,7 +61,6 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, mesher: *ChunkMesher) !void 
         if(!self.chunks.contains(position)) {
             const chunk = entry.value_ptr.*;
             if(chunk.visible) {
-                log.debug("mesh chunk {}", .{ position });
                 const mesh = try mesher.generate(self.allocator, position, chunk);
                 try self.chunks.put(self.allocator, position, mesh);
                 // stupid way to only load one chunk per update for now

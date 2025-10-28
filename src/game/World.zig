@@ -23,7 +23,7 @@ pub fn init(allocator: Allocator, seed: Terrain.Seed) !Self {
     return .{
         .allocator = allocator,
         .players = .empty,
-        .chunk_distance = 2,
+        .chunk_distance = 3,
         .terrain = terrain
     };
 }

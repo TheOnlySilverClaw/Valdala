@@ -1,21 +1,14 @@
 const coordinate = @import("coordinate");
 
-pub const Position = coordinate.Position(i32, i32);
 
-pub const Index = u16;
+const Self = @This();
 
-
-const State = u12;
-
-/// A slot is what is saved directly in a Chunk grid.
-/// Additional data has to be resolved through the tile registry or from a linked TileEntity
-const Slot = struct {
-    index: Index,
-    orientation: coordinate.Orientation,
-    state: State
-};
-
-
-pub const air: Index = 0;
+// TODO these should be determined by terrain type eventually, not hardcoded
+pub const air = Self { .index = 0 };
+pub const water = Self { .index = 1 };
+pub const sand = Self { .index = 2 };
+pub const topsoil = Self { .index = 3 };
+pub const soil = Self { .index = 4 };
+pub const rock = Self { .index = 5 };
 
 index: u32

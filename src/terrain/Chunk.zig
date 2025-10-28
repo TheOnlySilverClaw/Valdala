@@ -57,3 +57,11 @@ pub fn tileToChunkPosition(position: Position) Position {
         .height = @divFloor(position.height, layout.height)
     };
 }
+
+pub fn cornerToTilePosition(position: Position) Position {
+    return .{
+        .north = position.north * layout.width,
+        .south_east = position.south_east * layout.width,
+        .height = position.height * layout.height
+    };
+}

@@ -101,7 +101,7 @@ pub fn launch(self: *Self) !void {
     var game = try Game.init(allocator);
     defer game.deinit();
     
-    var scene = try Scene.init(allocator, 1, surface.aspect);
+    var scene = try Scene.init(allocator, 3, surface.aspect);
     defer scene.deinit();
     
     const tile_textures = self.module_loader.tile_registry.texture_array;
