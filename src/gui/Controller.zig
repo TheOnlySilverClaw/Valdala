@@ -11,8 +11,14 @@ const Input = @import("Input.zig");
 const listeners = @import("listeners.zig");
 
 const Self = @This();
+// Directions that you can move in. Used to record the active directions
+const Direction = enum { Left, Right, Forwards, Backwards, Up, Down};
+const NumberOfDirections = @typeInfo(Direction).@"enum".fields.len;
 
 input: Input,
+
+// A store of the currently held down keys to avoid using key repeat events.
+directionsActive: [NumberOfDirections]bool = .{false} ** NumberOfDirections,
 
 pub fn new() Self {
     return .{
@@ -38,26 +44,26 @@ fn onEvent(ptr: *anyopaque, event: listeners.WindowingEvent) void {
     }
 }
 
+fn setDirectionActive(self: *Self, direction: Direction, action: glfw.input.Action) void {
+    self.directionsActive[@intFromEnum(direction)] = (action != glfw.input.Action.release);
+}
+
+fn movementFromDirection(self: Self, direction: Direction) f32 {
+    return @floatFromInt(@intFromBool(self.directionsActive[@intFromEnum(direction)])) ;
+}
+
 pub fn onKey(self: *Self, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers) void {
     const input = &self.input;
     var window = &input.window;
-    var direction = &input.movement.direction;
-    var rotation = &input.movement.rotation;
 
     switch (key) {
         .escape => window.close = true,
-        .w => direction.y = 1,
-        .a => direction.x = -1,
-        .s => direction.y = -1,
-        .d => direction.x = 1,
-        .e => direction.z = 1,
-        .q => direction.z = -1,
-        .i => rotation.pitch = 1,
-        .k => rotation.pitch = -1,
-        .o => rotation.yaw = 1,
-        .u => rotation.yaw = -1,
-        .l => rotation.roll = 1,
-        .j => rotation.roll = -1,
+        .w => self.setDirectionActive(Direction.Forwards, action),
+        .a => self.setDirectionActive(Direction.Left, action),
+        .s => self.setDirectionActive(Direction.Backwards, action),
+        .d => self.setDirectionActive(Direction.Right, action),
+        .e => self.setDirectionActive(Direction.Up, action),
+        .q => self.setDirectionActive(Direction.Down, action),
         else => {
             log.debug("unbound key {s} {s} {s} {s}", .{
             @tagName(key),
@@ -88,5 +94,10 @@ pub fn poll(self: *Self) Input {
 
     const snapshot = self.input;
     self.input = Input.new();
+    self.input.movement.direction = .of(
+        self.movementFromDirection(Direction.Right) - self.movementFromDirection(Direction.Left),
+        self.movementFromDirection(Direction.Forwards) - self.movementFromDirection(Direction.Backwards),
+        self.movementFromDirection(Direction.Up) - self.movementFromDirection(Direction.Down),
+    );
     return snapshot;
 }
