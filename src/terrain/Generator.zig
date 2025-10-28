@@ -68,7 +68,7 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
             const random_height = self.randomAt(surface_position);
             const roughness = self.noiseAt(surface_position, 20);
 
-            const normal_height = (noise_height * noise_height) + (random_height * roughness * 0.5);
+            const normal_height = math.pow(f32, noise_height, 3) + (random_height * roughness * 0.5);
             const altitude: i64 = @intFromFloat(normal_height / hex_height * 10);
             const tile_height = altitude - corner.height;
 
