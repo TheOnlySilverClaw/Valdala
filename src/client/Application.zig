@@ -133,7 +133,10 @@ pub fn launch(self: *Self) !void {
         const input = self.controller.poll();
         if(input.window.close) break;
 
-        const movementInWorldSpace = input.movement.rotation.project(input.movement.direction);
+        const cameraSpeed = 10; // in units per second
+        const deltaSeconds = @as(f32, @floatFromInt(delta)) / @as(f32, @floatFromInt(std.time.ns_per_s));
+
+        const movementInWorldSpace = input.movement.rotation.project(input.movement.direction.times(deltaSeconds * cameraSpeed));
         player.transform.position = player.transform.position.add(movementInWorldSpace);
 
         player.transform.rotation = .aroundAxis(.of(-1,0,0), std.math.pi);

@@ -105,6 +105,9 @@ pub fn poll(self: *Self) Input {
         self.movementFromDirection(Direction.Right) - self.movementFromDirection(Direction.Left),
         self.movementFromDirection(Direction.Up) - self.movementFromDirection(Direction.Down),
     );
+    // Stop diagonal movement from being faster
+    self.input.movement.direction = self.input.movement.direction.normalize() catch .zero;
+
     var pitch = std.math.pi * self.mousePosition.y / self.windowSize.y;
     var yaw = std.math.pi * 2 * self.mousePosition.x / self.windowSize.x;
     if (!std.math.isFinite(yaw)) {
