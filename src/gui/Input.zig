@@ -14,7 +14,6 @@ pub fn new() @This() {
             .rotation = .{
                 .pitch = 0,
                 .yaw = 0,
-                .roll = 0
             }
         }
     };
@@ -23,9 +22,21 @@ pub fn new() @This() {
 pub const Movement = struct {
     direction: algebra.Vector3(f32),
     rotation: struct {
-        roll: f32,
         pitch: f32,
-        yaw: f32
+        yaw: f32,
+        // This is just an expanded matrix multiplication because I couldn't figure out how to multiply the matrix by a vector
+        pub fn project(self: @This(), vector: algebra.Vector3(f32)) algebra.Vector3(f32) {
+            const cosPitch = @cos(self.pitch);
+            const sinPitch = @sin(self.pitch);
+            const cosYaw = @cos(self.yaw);
+            const sinYaw = @sin(self.yaw);
+
+            return .of(
+                vector.x * sinYaw * sinPitch + vector.y * cosYaw - vector.z * sinYaw * cosPitch,
+                vector.x * cosYaw * sinPitch - vector.y * sinYaw - vector.z * cosYaw * cosPitch,
+                vector.x * cosPitch + vector.z * sinPitch,
+            );
+        }
     }
 };
 
