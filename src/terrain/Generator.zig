@@ -1,6 +1,7 @@
 const std = @import("std");
 const math = std.math;
 const coordinate = @import("coordinate");
+const algebra = @import("algebra");
 const fastnoise = @import("fastnoise");
 const log = std.log.scoped(.terrain);
 
@@ -9,15 +10,13 @@ const Hash = std.hash.XxHash3;
 const Terrain = @import("Terrain.zig");
 const Chunk = @import("Chunk.zig");
 const Tile = @import("Tile.zig");
+const Vector2 = algebra.Vector2;
+const Vector3 = algebra.Vector3;
 const Grid = coordinate.hexagon.Grid;
 const Noise = fastnoise.Noise(f32);
 
 pub const Seed = i32;
 
-const SurfacePosition = packed struct {
-    north: i64,
-    south_east: i64
-};
 
 const TileParameters = struct {
     /// height from sea level, in tile heights
@@ -59,16 +58,18 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
     for(0..Chunk.layout.width) |south_east_offset| {
         for(0..Chunk.layout.width) |north_offset| {
             
-            const surface_position = SurfacePosition {
+            const tile_position = Chunk.Position {
                 .north = corner.north + @as(i64, @intCast(north_offset)),
-                .south_east = corner.south_east + @as(i64, @intCast(south_east_offset))
+                .south_east = corner.south_east + @as(i64, @intCast(south_east_offset)),
+                .height = corner.height + @as(i64, @intCast(0))
             };
 
-            const noise_height = self.noiseAt(surface_position, 1.0);
-            const random_height = self.randomAt(surface_position);
-            const roughness = self.noiseAt(surface_position, 20);
+            const center = self.grid.getCenter(tile_position);
+            const center_surface = center.toVector2();
 
-            const normal_height = math.pow(f32, noise_height, 3) + (random_height * roughness * 0.5);
+            const noise_height = self.noiseAt(center_surface);
+
+            const normal_height = math.pow(f32, noise_height, 3);
             const altitude: i64 = @intFromFloat(normal_height / hex_height * 10);
             const tile_height = altitude - corner.height;
 
@@ -114,16 +115,14 @@ fn generateTile(parameters: TileParameters) Tile {
     return tile;
 }
 
-fn randomAt(self: Self, position: SurfacePosition) f32 {
+fn randomAt(self: Self, position: Vector2(f32)) f32 {
     
-    const input: [16]u8 = @bitCast(position);
+    const input: [8]u8 = @bitCast([2]f32 { position.x, position.y });
     const hashed: f32 = @floatFromInt(Hash.hash(self.seed, input));
     const maximum: f32 = @floatFromInt(math.maxInt(i64));
     return (hashed / maximum) - 1;
 }
 
-fn noiseAt(self: Self, position: SurfacePosition, scale: f32) f32 {
-    const x: f32 = @floatFromInt(position.north);
-    const y: f32 = @floatFromInt(position.south_east);
-    return self.noise.genNoise2D(x / scale, y / scale);
+fn noiseAt(self: Self, position: Vector2(f32)) f32 {
+    return self.noise.genNoise2D(position.x, position.y);
 }
