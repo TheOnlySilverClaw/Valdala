@@ -18,18 +18,14 @@ const Self = @This();
 allocator: Allocator,
 handle: *Handle,
 monitor: ?*glfw.monitor.Monitor,
-key_listener: listeners.KeyListener,
-resize_listener: listeners.ResizeListener,
-close_listener: listeners.CloseListener,
+event_listener: listeners.WindowingEventListner,
 surface: graphics.Surface,
 
 pub fn init(allocator: Allocator) Self {
     return .{
         .allocator = allocator,
         .monitor = null,
-        .key_listener = .none,
-        .resize_listener = .none,
-        .close_listener = .none,
+        .event_listener = .none,
         .handle = undefined,
         .surface = undefined
     };
@@ -56,6 +52,9 @@ pub fn create(self: *Self, width: u32, height: u32, title: [*:0]const u8) !void 
     self.handle.setUserPoiner(self);
     _ = self.handle.setKeyCallback(Self.onKey);
     _ = self.handle.setSizeCallback(Self.onResize);
+    _ = self.handle.setCursorPositionCallback(Self.onMouseMove);
+    _ = self.handle.setMouseButtonCallback(Self.onMouseButton);
+    _ = self.handle.setScrollCallback(Self.onScroll);
     _ = self.handle.setCloseCallback(Self.onClose);
 }
 
@@ -74,28 +73,45 @@ pub fn close(self: Self) void {
 }
 
 fn onKey(handle: *Handle, key: glfw.keyboard.Key, scancode: glfw.keyboard.ScanCode, action: glfw.input.Action, modifiers: glfw.input.Modifiers) callconv(.c) void {
-    
     _ = scancode;
 
     const window = getSelfPointer(handle);
-    window.key_listener.onKey(key, action, modifiers);
+    const event = listeners.WindowingEvent { .key = .{ .key = key, .action = action, .modifiers = modifiers } };
+    window.event_listener.onEvent(event);
+}
+
+fn onMouseMove(handle: *Handle, x: f64, y: f64) callconv(.c) void {
+    const window = getSelfPointer(handle);
+    const event = listeners.WindowingEvent { .mouseMove = .of(@floatCast(x), @floatCast(y)) };
+    window.event_listener.onEvent(event);
 }
 
 fn onResize(handle: *Handle, width: i32, height: i32) callconv(.c) void {
-    
     const window = getSelfPointer(handle);
     
     const width_unsigned: u32 = @intCast(width);
     const height_unsigned: u32 = @intCast(height);
     
     window.surface.resize(width_unsigned, height_unsigned);
-    window.resize_listener.onResize(width_unsigned, height_unsigned);
+    const event = listeners.WindowingEvent { .resize = .{ .width = width_unsigned, .height = height_unsigned } };
+    window.event_listener.onEvent(event);
+}
+
+fn onMouseButton(handle: *Handle, button: glfw.mouse.Button, action: glfw.input.Action, modifiers: glfw.input.Modifiers) callconv(.c) void {
+    const window = getSelfPointer(handle);
+    const event = listeners.WindowingEvent { .mouseButton = .{ .button = button, .action = action, .modifiers = modifiers } };
+    window.event_listener.onEvent(event);
+}
+
+fn onScroll(handle: *Handle, scrollX: f64, scrollY: f64) callconv(.c) void {
+    const window = getSelfPointer(handle);
+    const event = listeners.WindowingEvent { .scroll = .of(@floatCast(scrollX), @floatCast(scrollY)) };
+    window.event_listener.onEvent(event);
 }
 
 fn onClose(handle: *Handle) callconv(.c) void {
-    
     const window = getSelfPointer(handle);
-    window.close_listener.onClose();
+    window.event_listener.onEvent(listeners.WindowingEvent.close);
 }
 
 fn getSelfPointer(handle: *Handle) *Self {

@@ -1,63 +1,27 @@
 const glfw = @import("glfw");
+const algebra = @import("algebra");
 
-pub const KeyListener = struct {
-
-    pub const none = KeyListener {
-        .ptr = undefined,
-        .call = ignore
-    };
-
-    fn ignore(listener: *anyopaque, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers) void {
-        _ = listener;
-        _ = key;
-        _ = action;
-        _ = modifiers;
-    }
-
-    ptr: *anyopaque,
-    call: *const fn (*anyopaque, glfw.keyboard.Key, glfw.input.Action, glfw.input.Modifiers) void,
-
-    pub fn onKey(listener: KeyListener, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers) void {
-        listener.call(listener.ptr, key, action, modifiers);
-    }
+pub const WindowingEvent = union(enum) {
+    key: struct { key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers },
+    resize: struct { width: u32, height: u32 },
+    mouseMove: algebra.Vector2(f32),
+    mouseButton: struct { button: glfw.mouse.Button, action: glfw.input.Action, modifiers: glfw.input.Modifiers },
+    scroll: algebra.Vector2(f32),
+    close,
 };
 
-pub const ResizeListener = struct {
+pub const WindowingEventListner = struct {
+    pub const none = WindowingEventListner{ .ptr = undefined, .call = ignore };
 
-    pub const none = ResizeListener {
-        .ptr = undefined,
-        .call = ignore
-    };
-
-    fn ignore(listener: *anyopaque, width: u32, height: u32) void {
+    fn ignore(listener: *anyopaque, event: WindowingEvent) void {
         _ = listener;
-        _ = width;
-        _ = height;
+        _ = event;
     }
 
     ptr: *anyopaque,
-    call: *const fn (*anyopaque, width: u32, height: u32) void,
+    call: *const fn (*anyopaque, WindowingEvent) void,
 
-    pub fn onResize(listener: ResizeListener, width: u32, height: u32) void {
-        listener.call(listener.ptr, width, height);
-    }
-};
-
-pub const CloseListener = struct {
-    
-    pub const none = CloseListener {
-        .ptr = undefined,
-        .call = ignore
-    };
-
-    fn ignore(listener: *anyopaque) void {
-        _ = listener;
-    }
-    
-    ptr: *anyopaque,
-    call: *const fn (*anyopaque) void,
-
-    pub fn onClose(listener: CloseListener) void {
-        listener.call(listener.ptr);
+    pub fn onEvent(listener: WindowingEventListner, event: WindowingEvent) void {
+        listener.call(listener.ptr, event);
     }
 };

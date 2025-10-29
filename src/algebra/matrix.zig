@@ -19,6 +19,7 @@ pub fn Matrix(comptime T: type, comptime columns: u32, comptime rows: u32) type 
 
         values: [C * R]T,
 
+        /// Specify in COLUMN MAJOR
         pub fn of(values: [length] T) Self {
             return .{ .values = values };
         }

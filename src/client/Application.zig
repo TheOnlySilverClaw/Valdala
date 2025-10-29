@@ -51,6 +51,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     const window_height: u32 = @intFromFloat(window_percentage * @as(f32, @floatFromInt(video_mode.height)));
     try window.create(window_width, window_height,"Valdala");
     window.center();
+    controller.window_size = .of(@floatFromInt(window_width), @floatFromInt(window_height));
 
     const tile_textures = graphics.TextureArray.create(8, 8, 64, window.surface.device, .{ .label = .sliced("tiles")});
 
@@ -131,14 +132,16 @@ pub fn launch(self: *Self) !void {
 
         const input = self.controller.poll();
         if(input.window.close) break;
-        
-        const player_direction = player.transform.rotation.rotate(input.movement.direction);
-        player.transform.moveX(player_direction.x);
-        player.transform.moveY(player_direction.y);
-        player.transform.moveZ(player_direction.z);
-        player.transform.rotatePitch(input.movement.rotation.pitch * 0.1);
-        player.transform.rotateYaw(input.movement.rotation.yaw * 0.1);
-        player.transform.rotateRoll(input.movement.rotation.roll * 0.1);
+
+        const camera_speed = 10; // in units per second
+        const delta_seconds = @as(f32, @floatFromInt(delta)) / @as(f32, @floatFromInt(std.time.ns_per_s));
+
+        const movementInWorldSpace = input.movement.rotation.project(input.movement.direction.times(delta_seconds * camera_speed));
+        player.transform.position = player.transform.position.add(movementInWorldSpace);
+
+        player.transform.rotation = .aroundAxis(.of(-1,0,0), std.math.pi);
+        player.transform.rotateAround(.of(1,0,0), input.movement.rotation.pitch);
+        player.transform.rotateAround(.of(0,0,1), input.movement.rotation.yaw);
 
         try game.update(delta);
 
