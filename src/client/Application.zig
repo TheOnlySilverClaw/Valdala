@@ -51,7 +51,7 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     const window_height: u32 = @intFromFloat(window_percentage * @as(f32, @floatFromInt(video_mode.height)));
     try window.create(window_width, window_height,"Valdala");
     window.center();
-    controller.windowSize = .of(@floatFromInt(window_width), @floatFromInt(window_height));
+    controller.window_size = .of(@floatFromInt(window_width), @floatFromInt(window_height));
 
     const tile_textures = graphics.TextureArray.create(8, 8, 64, window.surface.device, .{ .label = .sliced("tiles")});
 

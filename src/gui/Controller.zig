@@ -18,14 +18,12 @@ const NumberOfDirections = @typeInfo(Direction).@"enum".fields.len;
 
 input: Input,
 
-// I'm not sure if it is a good idea to store the state here?
-
 // A store of the currently held down keys to avoid using key repeat events.
-directionsActive: [NumberOfDirections]bool = .{false} ** NumberOfDirections,
+directions_active: [NumberOfDirections]bool = .{false} ** NumberOfDirections,
 
-mousePosition: algebra.Vector2(f32) = .zero,
+mouse_position: algebra.Vector2(f32) = .zero,
 
-windowSize: algebra.Vector2(f32) = .zero,
+window_size: algebra.Vector2(f32) = .zero,
 
 pub fn new() Self {
     return .{
@@ -47,17 +45,17 @@ fn onEvent(ptr: *anyopaque, event: listeners.WindowingEvent) void {
         .resize => |size| self.onResize(size.width, size.height),
         .close => self.onClose(),
         .key => |key| self.onKey(key.key ,key.action, key.modifiers),
-        .mouseMove => |position| self.mousePosition = position,
+        .mouseMove => |position| self.mouse_position = position,
         else => {}
     }
 }
 
 fn setDirectionActive(self: *Self, direction: Direction, action: glfw.input.Action) void {
-    self.directionsActive[@intFromEnum(direction)] = (action != glfw.input.Action.release);
+    self.directions_active[@intFromEnum(direction)] = (action != glfw.input.Action.release);
 }
 
 fn movementFromDirection(self: Self, direction: Direction) f32 {
-    return @floatFromInt(@intFromBool(self.directionsActive[@intFromEnum(direction)])) ;
+    return @floatFromInt(@intFromBool(self.directions_active[@intFromEnum(direction)])) ;
 }
 
 pub fn onKey(self: *Self, key: glfw.keyboard.Key, action: glfw.input.Action, modifiers: glfw.input.Modifiers) void {
@@ -90,7 +88,7 @@ pub fn onResize(self: *Self, width: u32, height: u32) void {
             .height = height
         }
     };
-    self.windowSize = .of(@floatFromInt(width), @floatFromInt(height));
+    self.window_size = .of(@floatFromInt(width), @floatFromInt(height));
 }
 
 pub fn onClose(self: *Self) void {
@@ -101,15 +99,15 @@ pub fn poll(self: *Self) Input {
     
     glfw.pollEvents();
     self.input.movement.direction = .of(
-        self.movementFromDirection(Direction.Forwards) - self.movementFromDirection(Direction.Backwards),
         self.movementFromDirection(Direction.Right) - self.movementFromDirection(Direction.Left),
+        self.movementFromDirection(Direction.Forwards) - self.movementFromDirection(Direction.Backwards),
         self.movementFromDirection(Direction.Up) - self.movementFromDirection(Direction.Down),
     );
     // Stop diagonal movement from being faster
     self.input.movement.direction = self.input.movement.direction.normalize() catch .zero;
 
-    var pitch = std.math.pi * self.mousePosition.y / self.windowSize.y;
-    var yaw = std.math.pi * 2 * self.mousePosition.x / self.windowSize.x;
+    var pitch = std.math.pi * self.mouse_position.y / self.window_size.y;
+    var yaw = std.math.pi * 2 * self.mouse_position.x / self.window_size.x;
     if (!std.math.isFinite(yaw)) {
         yaw = 0;
     }
