@@ -30,22 +30,37 @@ const Self = @This();
 allocator: Allocator,
 seed: Terrain.Seed,
 grid: Grid(i64, f32),
-noise: Noise,
+noise_simplex_default: Noise,
+noise_simplex_ridged: Noise,
+noise_cellular: Noise,
 
 
 pub fn init(allocator: Allocator, seed: Terrain.Seed, grid: Grid(i64, f32)) Self {
     
     const noise_seeds: [2]i32 = @bitCast(seed);
 
-    const noise = Noise {
+    // noise settings can be found here: https://auburn.github.io/FastNoiseLite/
+    const noise_simplex_default = Noise {
         .seed = noise_seeds[0]
+    };
+
+    const noise_simplex_ridged = Noise {
+        .seed = noise_seeds[1],
+        .fractal_type = .ridged,
+    };
+
+    const noise_cellular = Noise {
+        .seed = noise_seeds[0],
+        .noise_type = .cellular
     };
 
     return .{
         .allocator = allocator,
         .seed = seed,
         .grid = grid,
-        .noise = noise
+        .noise_simplex_default = noise_simplex_default,
+        .noise_simplex_ridged = noise_simplex_ridged,
+        .noise_cellular = noise_cellular
     };
 }
 
@@ -65,12 +80,14 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
             };
 
             const center = self.grid.getCenter(tile_position);
-            const center_surface = center.toVector2();
 
-            const noise_height = self.noiseAt(center_surface);
+            const height_scale = (
+                self.noise_simplex_default.genNoise2D(center.x, center.y) * 2
+                + self.noise_simplex_ridged.genNoise2D(center.x, center.y)
+                + self.noise_cellular.genNoise2D(center.x, center.y)
+                ) / 4;
 
-            const normal_height = math.pow(f32, noise_height, 3);
-            const altitude: i64 = @intFromFloat(normal_height / hex_height * 10);
+            const altitude: i64 = @intFromFloat(height_scale / hex_height * 40);
             const tile_height = altitude - corner.height;
 
             if(tile_height >= 0) {
@@ -121,8 +138,4 @@ fn randomAt(self: Self, position: Vector2(f32)) f32 {
     const hashed: f32 = @floatFromInt(Hash.hash(self.seed, input));
     const maximum: f32 = @floatFromInt(math.maxInt(i64));
     return (hashed / maximum) - 1;
-}
-
-fn noiseAt(self: Self, position: Vector2(f32)) f32 {
-    return self.noise.genNoise2D(position.x, position.y);
 }

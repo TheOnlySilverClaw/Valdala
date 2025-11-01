@@ -17,6 +17,8 @@ pub const Seed = u64;
 
 const Self = @This();
 
+/// maximum height from sea level in meters
+pub const altitude_max = math.maxInt(i14);
 pub const sea_level = 0;
 
 
