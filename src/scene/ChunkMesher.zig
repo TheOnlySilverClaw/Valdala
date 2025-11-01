@@ -200,7 +200,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
     queue.writeBuffer(index_buffer, Index, index_list.items, 0);
 
     self.vertex_count += vertex_list.items.len;
-    log.debug("meshed chunk at {} with vertex count: {} in {} ms", .{position, vertex_list.items.len, timer.read() / std.time.ns_per_ms });
+    log.debug("meshed chunk at {f} with vertex count: {} in {} ms", .{position, vertex_list.items.len, timer.read() / std.time.ns_per_ms });
 
     return .{
         .vertex_buffer = vertex_buffer,

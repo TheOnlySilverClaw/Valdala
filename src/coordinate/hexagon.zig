@@ -109,6 +109,10 @@ pub fn Position(T: type) type {
                 .height = height
             };
         }
+
+        pub fn format(self: Position(T), writer: *std.Io.Writer) std.Io.Writer.Error!void {
+            try writer.print("(n {}, se {}, h {})", .{ self.north, self.south_east, self.height });
+        }
     };
 }
 

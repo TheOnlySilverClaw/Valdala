@@ -84,7 +84,7 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
     var timer = try std.time.Timer.start();
     const chunk = try self.generator.generateChunk(position);
     try self.chunks.put(self.allocator, position, chunk);
-    log.debug("generated chunk at {} in {} ms", .{ position, timer.read() / std.time.ns_per_ms });
+    log.debug("generated chunk at {f} in {} ms", .{ position, timer.read() / std.time.ns_per_ms });
     
     return chunk;
 }
