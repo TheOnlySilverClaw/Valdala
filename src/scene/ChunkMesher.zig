@@ -40,6 +40,7 @@ tile_registry: TileRegistry,
 
 pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chunk: terrain.Chunk) !Mesh {
 
+    var timer = try std.time.Timer.start();
     const device = self.device;
     const queue = device.getQueue();
     defer queue.release();
@@ -199,7 +200,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
     queue.writeBuffer(index_buffer, Index, index_list.items, 0);
 
     self.vertex_count += vertex_list.items.len;
-    log.debug("vertex count: {}", .{ self.vertex_count });
+    log.debug("meshed chunk at {} with vertex count: {} in {} ms", .{position, vertex_list.items.len, timer.read() / std.time.ns_per_ms });
 
     return .{
         .vertex_buffer = vertex_buffer,

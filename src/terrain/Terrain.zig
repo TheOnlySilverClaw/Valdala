@@ -72,8 +72,6 @@ pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
 
 pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
-    log.debug("load chunk {}", .{ position });
-    
     if(self.chunks.get(position)) |chunk| {
         return chunk;
     }
@@ -83,17 +81,17 @@ pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
 pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
 
-    log.debug("generate chunk {}", .{ position });
-    
+    var timer = try std.time.Timer.start();
     const chunk = try self.generator.generateChunk(position);
     try self.chunks.put(self.allocator, position, chunk);
+    log.debug("generated chunk at {} in {} ms", .{ position, timer.read() / std.time.ns_per_ms });
+    
     return chunk;
 }
 
 pub fn unloadChunk(self: *Self, position: Chunk.Position) void {
 
     if(self.chunks.fetchSwapRemove(position)) |entry| {
-        log.debug("unload chunk {}", .{ position });
         entry.value.deinit(self.allocator);
     }
 }
