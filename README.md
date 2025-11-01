@@ -66,7 +66,7 @@ While I have a lot of general ideas about how the game should work, I would love
 
 ### Zig version
 
-The project currently builds with Zig version 0.15.1.
+The project currently builds with Zig version 0.15.2
 
 I recommend to use the same one locally, as you might have issues with the build system and other breaking changes otherwise.
 
