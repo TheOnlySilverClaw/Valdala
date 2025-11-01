@@ -4,6 +4,7 @@ const color = @import("color");
 const Allocator = std.mem.Allocator;
 const World = @import("World.zig");
 const Time = @import("Time.zig");
+const Update = @import("updates.zig").Game;
 
 const Self = @This();
 
@@ -31,8 +32,13 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.world);
 }
 
-pub fn update(self: *Self, delta: u64) !void {
+pub fn update(self: *Self, delta: u64) !Update {
     
     try self.time.update(delta);
-    try self.world.updateTerrain();
+    const world_updates = try self.world.updateTerrain();
+    
+    return .{
+        .allocator = self.allocator,
+        .world = world_updates
+    };
 }

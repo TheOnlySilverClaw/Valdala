@@ -4,8 +4,9 @@ const color = @import("color");
 const algebra = @import("algebra");
 const log = std.log.scoped(.scene);
 
-const Map = std.AutoHashMapUnmanaged;
 const Allocator = std.mem.Allocator;
+const Map = std.AutoHashMapUnmanaged;
+const List = std.ArrayListUnmanaged;
 const Camera = @import("Camera.zig");
 const ChunkMesh = @import("ChunkMesh.zig");
 const ChunkMesher = @import("ChunkMesher.zig");
@@ -53,19 +54,24 @@ pub fn addChunkMesh(self: *Self, position: Chunk.Position, mesh: ChunkMesh) Allo
     try self.chunks.put(self.allocator, position, mesh);
 }
 
-pub fn updateTerrain(self: *Self, terrain: Terrain, mesher: *ChunkMesher) !void {
+pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.Position), unload_positions: List(Chunk.Position), mesher: *ChunkMesher) !void {
 
-    var iterator = terrain.chunks.iterator();
-    while(iterator.next()) |entry| {
-        const position = entry.key_ptr.*;
+    for(load_positions.items) |position| {
+        // TODO check distance either here or during world update
         if(!self.chunks.contains(position)) {
-            const chunk = entry.value_ptr.*;
-            if(chunk.visible) {
-                const mesh = try mesher.generate(self.allocator, position, chunk);
-                try self.chunks.put(self.allocator, position, mesh);
-                // stupid way to only load one chunk per update for now
-                break;
+            if(terrain.chunks.get(position)) |chunk| {
+                if(chunk.visible) {
+                    const mesh = try mesher.generate(self.allocator, position, chunk);
+                    try self.chunks.put(self.allocator, position, mesh);
+                }
             }
+        }
+    }
+
+    for(unload_positions.items) |position| {
+        if(self.chunks.fetchRemove(position)) |entry| {
+            const mesh = entry.value;
+            mesh.destroy();
         }
     }
 }

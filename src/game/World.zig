@@ -7,6 +7,7 @@ const Map = std.AutoHashMapUnmanaged;
 const Terrain = @import("terrain").Terrain;
 const Chunk = @import("terrain").Chunk;
 const Player = @import("Player.zig");
+const Update = @import("updates.zig").World;
 
 const Self = @This();
 
@@ -45,7 +46,7 @@ pub fn createPlayer(self: *Self, player: Player) !*Player {
     return ptr;
 }
 
-pub fn updateTerrain(self: *Self) !void {
+pub fn updateTerrain(self: *Self) !Update {
     
     const allocator = self.allocator;
     var terrain = &self.terrain;
@@ -85,15 +86,24 @@ pub fn updateTerrain(self: *Self) !void {
     // copy, because unloading chunks could invalidate the position keys
     std.mem.copyForwards(Chunk.Position, loaded_positions, terrain.chunks.keys());
 
+    var load_positions = List(Chunk.Position).empty;
+    var unload_positions = List(Chunk.Position).empty;
+
     for(loaded_positions) |position| {
         if(!visible_positions.remove(position)) {
             terrain.unloadChunk(position);
+            try unload_positions.append(allocator, position);
         }
     }
 
     var unload_iterator = visible_positions.keyIterator();
     while(unload_iterator.next()) |position| {
         _ = try terrain.loadChunk(position.*);
+        try load_positions.append(allocator, position.*);
     }
 
+    return .{
+        .load = load_positions,
+        .unload = unload_positions
+    };
 }

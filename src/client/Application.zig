@@ -143,10 +143,11 @@ pub fn launch(self: *Self) !void {
         player.transform.rotateAround(.of(1,0,0), input.movement.rotation.pitch);
         player.transform.rotateAround(.of(0,0,1), input.movement.rotation.yaw);
 
-        try game.update(delta);
+        var game_updates = try game.update(delta);
+        defer game_updates.deinit();
 
         scene.camera.transform = player.transform;
-        try scene.updateTerrain(game.world.terrain, &chunk_mesher);
+        try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload, &chunk_mesher);
         
         const tile_position = game.world.terrain.grid.getHexagon(player.transform.position);
         const chunk_position = @import("terrain").Chunk.tileToChunkPosition(tile_position);
