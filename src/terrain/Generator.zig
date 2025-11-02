@@ -87,7 +87,8 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
                 + self.noise_cellular.genNoise2D(center.x, center.y)
                 ) / 4;
 
-            const altitude: i64 = @intFromFloat(height_scale / hex_height * 40);
+            const altitude: i64 = @intFromFloat(@max((height_scale / hex_height * 40), Terrain.sea_level));
+            
             const tile_height = altitude - corner.height;
 
             if(tile_height >= 0) {
@@ -120,7 +121,7 @@ pub fn generateChunk(self: *Self, position: Chunk.Position) !Chunk {
 
 fn generateTile(parameters: TileParameters) Tile {
     
-    if(parameters.altitude < Terrain.sea_level) {
+    if(parameters.altitude <= Terrain.sea_level) {
         return .water;
     }
 
