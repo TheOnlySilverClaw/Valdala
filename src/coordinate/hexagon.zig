@@ -110,6 +110,38 @@ pub fn Position(T: type) type {
             };
         }
 
+        pub fn goNorth(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north + steps, self.south_east, self.height);
+        }
+
+        pub fn goNorthEast(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north + steps, self.south_east + steps, self.height);
+        }
+
+        pub fn goSouthEast(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north, self.south_east + steps, self.height);
+        }
+
+        pub fn goSouth(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north - steps, self.south_east, self.height);
+        }
+
+        pub fn goSouthWest(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north - steps, self.south_east - steps, self.height);
+        }
+
+        pub fn goNorthWest(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north, self.south_east - steps, self.height);
+        }
+
+        pub fn goUp(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north, self.south_east, self.height + steps);
+        }
+
+        pub fn goDown(self: Position(T), steps: T) Position(T) {
+            return Position(T).of(self.north, self.south_east, self.height - steps);
+        }
+
         pub fn format(self: Position(T), writer: *std.Io.Writer) std.Io.Writer.Error!void {
             try writer.print("(n {}, se {}, h {})", .{ self.north, self.south_east, self.height });
         }
