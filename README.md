@@ -62,7 +62,7 @@ If you can make drawings or 3d models of a sheep made of hexagons, let's talk.
 While I have a lot of general ideas about how the game should work, I would love to have someone to bounce dieas off and help with specific design decisions.
 
 
-## Contribution Guildelines
+## Contribution Guidelines
 
 ### Zig version
 
