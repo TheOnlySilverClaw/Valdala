@@ -61,7 +61,7 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
         if(!self.chunks.contains(position)) {
             if(terrain.chunks.get(position)) |chunk| {
                 if(chunk.visible) {
-                    const mesh = try mesher.generate(self.allocator, position, chunk);
+                    const mesh = try mesher.generate(position, chunk);
                     try self.chunks.put(self.allocator, position, mesh);
                 }
             }

@@ -7,6 +7,7 @@ const terrain = @import("terrain");
 const log = std.log.scoped(.mesher);
 
 const Allocator = std.mem.Allocator;
+const List = std.ArrayListUnmanaged;
 const Tile = @import("Tile.zig");
 const TilePosition = coordinate.hexagon.Position(i64);
 const Vector = algebra.Vector3(f32);
@@ -15,7 +16,7 @@ const Chunk = terrain.Chunk;
 const Mesh = @import("ChunkMesh.zig");
 const Vertex = Mesh.Vertex;
 const Index = Mesh.Index;
-const List = std.ArrayListUnmanaged;
+const Grid = coordinate.hexagon.Grid(i64, f32);
 
 const Visibility = struct {
     top: bool,
@@ -32,20 +33,44 @@ const indices_per_tile = (3 * 6 * 2) + (2 * 3 * 6);
 const indices_per_chunk_max = indices_per_tile * Chunk.layout.volume;
 
 
-vertex_count: u64 = 0,
+vertex_count: u64,
 grid: coordinate.hexagon.Grid(i64, f32),
 device: *webgpu.device.Device,
 tile_registry: TileRegistry,
+vertex_list: List(Vertex),
+index_list: List(Index),
 
+pub fn init(allocator: Allocator, device: *webgpu.device.Device, grid: Grid, tile_registry: TileRegistry) !Self {
 
-pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chunk: terrain.Chunk) !Mesh {
+    const vertex_list = try List(Vertex).initCapacity(allocator, vertices_per_chunk_max);
+    const index_list = try List(Index).initCapacity(allocator, indices_per_chunk_max);
+
+    return .{
+        .vertex_count = 0,
+        .device = device,
+        .grid = grid,
+        .tile_registry = tile_registry,
+        .vertex_list = vertex_list,
+        .index_list = index_list
+    };
+}
+
+pub fn deinit(self: *Self, allocator: Allocator) void {
+    self.vertex_list.clearAndFree(allocator);
+    self.index_list.clearAndFree(allocator);
+}
+
+pub fn generate(self: *Self, position: Chunk.Position, chunk: terrain.Chunk) !Mesh {
 
     var timer = try std.time.Timer.start();
+
     const device = self.device;
     const queue = device.getQueue();
     defer queue.release();
 
     const grid = self.grid;
+    var vertex_list = self.vertex_list;
+    var index_list = self.index_list;
 
     const world_position = TilePosition {
         .north = position.north * Chunk.layout.width,
@@ -55,16 +80,8 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
 
     const chunk_start = grid.getCenter(world_position);
 
-    // TODO reuse memory?
-    var vertex_list = try List(Vertex).initCapacity(allocator, vertices_per_chunk_max);
-    defer vertex_list.clearAndFree(allocator);
-    var index_list = try List(Index).initCapacity(allocator, indices_per_chunk_max);
-    defer index_list.clearAndFree(allocator);
-
-    const width = Chunk.layout.width;
-
-    for (0..width) |north| {
-        for (0..width) |south_east| {
+    for (0..Chunk.layout.width) |north| {
+        for (0..Chunk.layout.width) |south_east| {
             for(0..Chunk.layout.height) |height| {
                 const tile_offset = Chunk.TileOffset {
                     .north = @intCast(north),
@@ -81,7 +98,7 @@ pub fn generate(self: *Self, allocator: Allocator, position: Chunk.Position, chu
                 // don't render air blocks
                 if(tile.index == 0) continue;
 
-                const tile_textures = self.tile_registry.tiles.items[tile.index - 1].textures;
+                const tile_textures = self.tile_registry.getTile(tile.index).textures;
                 const center = grid.getCenter(tile_position).add(chunk_start);
 
                 if(north > 0 and north < Chunk.layout.width - 1 and south_east > 0 and south_east < Chunk.layout.width - 1 and height > 0 and height < Chunk.layout.height - 1) {

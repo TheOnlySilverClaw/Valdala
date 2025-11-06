@@ -119,12 +119,8 @@ pub fn launch(self: *Self) !void {
     });
     player.transform.position.z = 15;
 
-    var chunk_mesher = @import("scene").ChunkMesher {
-        .device = surface.device,
-        .grid = game.world.terrain.grid,
-        .tile_registry = self.module_loader.tile_registry,
-        .vertex_count = 0
-    };
+    var chunk_mesher = try @import("scene").ChunkMesher.init(allocator, surface.device, game.world.terrain.grid, self.module_loader.tile_registry);
+    defer chunk_mesher.deinit(allocator);
 
     while(true) {
 
