@@ -41,6 +41,10 @@ pub fn deinit(self: *Self) void {
     self.texture_array.destroy();
 }
 
+pub fn getTile(self: Self, index: u32) Tile {
+    return self.tiles.items[index - 1];
+}
+
 pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Map) !void {
 
     var tile: Tile = undefined;
