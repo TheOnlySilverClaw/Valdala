@@ -70,6 +70,10 @@ pub fn loadChunks(self: *Self, center: Chunk.Position, distance: u32) !void {
     }
 }
 
+pub fn getChunk(self: Self, position: Chunk.Position) ?Chunk {
+    return self.chunks.get(position);
+}
+
 pub fn loadChunk(self: *Self, position: Chunk.Position) !Chunk {
 
     if(self.chunks.get(position)) |chunk| {
@@ -105,21 +109,19 @@ pub fn unloadChunks(self: *Self) void {
     self.chunks.clearAndFree(self.allocator);
 }
 
-pub fn getTile(self: Self, position: Tile.Position) Tile {
+pub fn getTile(self: Self, position: Tile.Position) ?Tile {
     
     const chunk_position = Chunk.tileToChunkPosition(position);
-    const chunk = self.chunks.get(chunk_position);
-    
-    if(chunk) |c| {
+    if(self.chunks.get(chunk_position)) |chunk| {
         const offset = Chunk.TileOffset {
-            .north = @intCast(@mod(position.north, Chunk.Layout.width)),
-            .south_east = @intCast(@mod(position.south_east, Chunk.Layout.width)),
-            .height = @intCast(@mod(position.height, Chunk.Layout.height))
+            .north = @intCast(@mod(position.north, Chunk.layout.width)),
+            .south_east = @intCast(@mod(position.south_east, Chunk.layout.width)),
+            .height = @intCast(@mod(position.height, Chunk.layout.height))
         };
-        return c.getTile(offset);
+        return chunk.getTile(offset);
     }
 
-    return Tile.air;
+    return null;
 }
 
 
