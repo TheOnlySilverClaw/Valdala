@@ -1,5 +1,6 @@
 const coordinate = @import("coordinate");
 
+pub const Position = coordinate.hexagon.Position(i64);
 
 const Self = @This();
 
