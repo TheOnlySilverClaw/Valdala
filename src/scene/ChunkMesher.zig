@@ -18,10 +18,15 @@ const Vertex = Mesh.Vertex;
 const Index = Mesh.Index;
 const Grid = coordinate.hexagon.Grid(i64, f32);
 
-const Visibility = struct {
+const Visibility = packed struct {
     top: bool,
     bottom: bool,
-    sides: [6]bool
+    north: bool,
+    north_east: bool,
+    south_east: bool,
+    south: bool,
+    south_west: bool,
+    north_west: bool
 };
 
 const Self = @This();
@@ -119,68 +124,66 @@ pub fn generate(self: *Self, position: Chunk.Position, chunk: terrain.Chunk) !Me
                     
                     const bottom_neighbor_tile = chunk.getTile(bottom_neighbor_offset);
 
-                    const side1_neighbor_offset = Chunk.TileOffset {
+                    const north_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north + 1),
                         .south_east = @intCast(south_east),
                         .height = @intCast(height)
                     };
                     
-                    const side1_neighbor_tile = chunk.getTile(side1_neighbor_offset);
+                    const north_neighbor_tile = chunk.getTile(north_neighbor_offset);
 
 
-                    const side2_neighbor_offset = Chunk.TileOffset {
+                    const north_east_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north + 1),
                         .south_east = @intCast(south_east + 1),
                         .height = @intCast(height)
                     };
                     
-                    const side2_neighbor_tile = chunk.getTile(side2_neighbor_offset);
+                    const north_east_neighbor_tile = chunk.getTile(north_east_neighbor_offset);
 
-                    const side3_neighbor_offset = Chunk.TileOffset {
+                    const south_east_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north),
                         .south_east = @intCast(south_east + 1),
                         .height = @intCast(height)
                     };
                     
-                    const side3_neighbor_tile = chunk.getTile(side3_neighbor_offset);
+                    const south_east_neighbor_tile = chunk.getTile(south_east_neighbor_offset);
 
 
-                    const side4_neighbor_offset = Chunk.TileOffset {
+                    const south_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north - 1),
                         .south_east = @intCast(south_east),
                         .height = @intCast(height)
                     };
                     
-                    const side4_neighbor_tile = chunk.getTile(side4_neighbor_offset);
+                    const south_neighbor_tile = chunk.getTile(south_neighbor_offset);
 
-                    const side5_neighbor_offset = Chunk.TileOffset {
+                    const south_west_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north - 1),
                         .south_east = @intCast(south_east - 1),
                         .height = @intCast(height)
                     };
                     
-                    const side5_neighbor_tile = chunk.getTile(side5_neighbor_offset);
+                    const south_west_neighbor_tile = chunk.getTile(south_west_neighbor_offset);
 
 
-                    const side6_neighbor_offset = Chunk.TileOffset {
+                    const north_west_neighbor_offset = Chunk.TileOffset {
                         .north = @intCast(north),
                         .south_east = @intCast(south_east - 1),
                         .height = @intCast(height)
                     };
                     
-                    const side6_neighbor_tile = chunk.getTile(side6_neighbor_offset);
+                    const north_west_neighbor_tile = chunk.getTile(north_west_neighbor_offset);
 
                     const visibility = Visibility {
                         .top = top_neighbor_tile.index == 0,
                         .bottom = bottom_neighbor_tile.index == 0,
-                        .sides = .{
-                            side1_neighbor_tile.index == 0,
-                            side2_neighbor_tile.index == 0,
-                            side3_neighbor_tile.index == 0,
-                            side4_neighbor_tile.index == 0,
-                            side5_neighbor_tile.index == 0,
-                            side6_neighbor_tile.index == 0
-                        }
+                        .north = north_neighbor_tile.index == 0,
+                        .north_east = north_east_neighbor_tile.index == 0,
+                        .south_east = south_east_neighbor_tile.index == 0,
+                        .south = south_neighbor_tile.index == 0,
+                        .south_west = south_west_neighbor_tile.index == 0,
+                        .north_west = north_west_neighbor_tile.index == 0
                     };
 
                     generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
@@ -190,7 +193,12 @@ pub fn generate(self: *Self, position: Chunk.Position, chunk: terrain.Chunk) !Me
                     const visibility = Visibility {
                         .top = true,
                         .bottom = true,
-                        .sides = .{ true } ** 6
+                        .north = true,
+                        .north_east = true,
+                        .south_east = true,
+                        .south = true,
+                        .south_west = true,
+                        .north_west = true
                     };
 
                     generateTileVertices( grid.hexagon, center, tile_textures, visibility, &vertex_list, &index_list);
@@ -276,35 +284,35 @@ fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, te
     const vert_sw_bottom = Vertex { .position = pos_sw_bottom, .uv = uv_top_left, .texture = texture_bottom };
     const vert_w_bottom = Vertex { .position = pos_w_bottom, .uv = uv_top_right, .texture = texture_bottom };
 
-    const vert_ne_top_side1 = Vertex { .position = pos_ne_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_ne_bottom_side1 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_nw_top_side1 = Vertex { .position = pos_nw_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_nw_bottom_side1 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_ne_top_north = Vertex { .position = pos_ne_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_ne_bottom_north = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_nw_top_north = Vertex { .position = pos_nw_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_nw_bottom_north = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_e_top_side2 = Vertex { .position = pos_e_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_e_bottom_side2 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_ne_top_side2 = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_ne_bottom_side2 = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_e_top_north_east = Vertex { .position = pos_e_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_e_bottom_north_east = Vertex { .position = pos_e_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_ne_top_north_east = Vertex { .position = pos_ne_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_ne_bottom_north_east = Vertex { .position = pos_ne_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_se_top_side3 = Vertex { .position = pos_se_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_se_bottom_side3 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_e_top_side3 = Vertex { .position = pos_e_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_e_bottom_side3 = Vertex { .position = pos_e_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_se_top_south_east = Vertex { .position = pos_se_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_se_bottom_south_east = Vertex { .position = pos_se_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_e_top_south_east = Vertex { .position = pos_e_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_e_bottom_south_east = Vertex { .position = pos_e_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_sw_top_side4 = Vertex { .position = pos_sw_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_sw_bottom_side4 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_se_top_side4 = Vertex { .position = pos_se_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_se_bottom_side4 = Vertex { .position = pos_se_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_sw_top_south = Vertex { .position = pos_sw_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_sw_bottom_south = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_se_top_south = Vertex { .position = pos_se_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_se_bottom_south = Vertex { .position = pos_se_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_w_top_side5 = Vertex { .position = pos_w_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_w_bottom_side5 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_sw_top_side5 = Vertex { .position = pos_sw_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_sw_bottom_side5 = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_w_top_south_west = Vertex { .position = pos_w_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_w_bottom_south_west = Vertex { .position = pos_w_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_sw_top_south_west = Vertex { .position = pos_sw_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_sw_bottom_south_west = Vertex { .position = pos_sw_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
-    const vert_nw_top_side6 = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_side };
-    const vert_nw_bottom_side6 = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_left, .texture = texture_side };
-    const vert_w_top_side6 = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_side };
-    const vert_w_bottom_side6 = Vertex { .position = pos_w_bottom, .uv = uv_bottom_right, .texture = texture_side };
+    const vert_nw_top_north_west = Vertex { .position = pos_nw_top, .uv = uv_top_left, .texture = texture_side };
+    const vert_nw_bottom_north_west = Vertex { .position = pos_nw_bottom, .uv = uv_bottom_left, .texture = texture_side };
+    const vert_w_top_north_west = Vertex { .position = pos_w_top, .uv = uv_top_right, .texture = texture_side };
+    const vert_w_bottom_north_west = Vertex { .position = pos_w_bottom, .uv = uv_bottom_right, .texture = texture_side };
 
     if(visibility.top) {
         const vertices = [_]Vertex {
@@ -334,67 +342,67 @@ fn generateTileVertices(hex: coordinate.hexagon.Hexagon(f32), center: Vector, te
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[0]) {
+    if(visibility.north) {
         const vertices = [_]Vertex {
-            vert_ne_top_side1,
-            vert_ne_bottom_side1,
-            vert_nw_top_side1,
-            vert_nw_bottom_side1,
+            vert_ne_top_north,
+            vert_ne_bottom_north,
+            vert_nw_top_north,
+            vert_nw_bottom_north,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[1]) {
+    if(visibility.north_east) {
         const vertices = [_]Vertex {
-            vert_e_top_side2,
-            vert_e_bottom_side2,
-            vert_ne_top_side2,
-            vert_ne_bottom_side2,
+            vert_e_top_north_east,
+            vert_e_bottom_north_east,
+            vert_ne_top_north_east,
+            vert_ne_bottom_north_east,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[2]) {
+    if(visibility.south_east) {
         const vertices = [_]Vertex {
-            vert_se_top_side3,
-            vert_se_bottom_side3,
-            vert_e_top_side3,
-            vert_e_bottom_side3,
+            vert_se_top_south_east,
+            vert_se_bottom_south_east,
+            vert_e_top_south_east,
+            vert_e_bottom_south_east,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[3]) {
+    if(visibility.south) {
         const vertices = [_]Vertex {
-            vert_sw_top_side4,
-            vert_sw_bottom_side4,
-            vert_se_top_side4,
-            vert_se_bottom_side4,
+            vert_sw_top_south,
+            vert_sw_bottom_south,
+            vert_se_top_south,
+            vert_se_bottom_south,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[4]) {
+    if(visibility.south_west) {
         const vertices = [_]Vertex {
-            vert_w_top_side5,
-            vert_w_bottom_side5,
-            vert_sw_top_side5,
-            vert_sw_bottom_side5,
+            vert_w_top_south_west,
+            vert_w_bottom_south_west,
+            vert_sw_top_south_west,
+            vert_sw_bottom_south_west,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
     }
 
-    if(visibility.sides[5]) {
+    if(visibility.north_west) {
         const vertices = [_]Vertex {
-            vert_nw_top_side6,
-            vert_nw_bottom_side6,
-            vert_w_top_side6,
-            vert_w_bottom_side6,
+            vert_nw_top_north_west,
+            vert_nw_bottom_north_west,
+            vert_w_top_north_west,
+            vert_w_bottom_north_west,
         };
         appendSquareIndices(@intCast(vertex_list.items.len), index_list);
         vertex_list.appendSliceAssumeCapacity(&vertices);
