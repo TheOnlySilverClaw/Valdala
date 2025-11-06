@@ -24,7 +24,7 @@ I want to build Valdala on a foundation of high quality, future-proof technologi
 Currently, the tech stack looks like this:
 
 - [Zig](https://ziglang.org/) as the primary programming language for the engine
-- a fast, modern, type-safe and expressive scripting language ([to be decided](https://codeberg.org/Silverclaw/Valdala/src/branch/development/notes.md#scripting))
+- a fast, modern, type-safe and expressive scripting language ([to be decided](./notes/scripting.md))
 - [WebGPU](https://www.w3.org/TR/webgpu/) via wgpu-native as a cross-platform graphics API
 - [GLFW](https://www.glfw.org/) for cross-platform window management and input handling
 
@@ -51,13 +51,13 @@ If you have a background in graphics or network programming or game related math
 
 If you like making very small but pretty textures, you can paint the world.
 
-### Concept Artis
+### Concept Artists
 
 I only have a vague idea how people, animals, monsters and other things in the game could look like.
 
 If you can make drawings or 3d models of a sheep made of hexagons, let's talk.
 
-### Game Designer
+### Game Designers
 
 While I have a lot of general ideas about how the game should work, I would love to have someone to bounce dieas off and help with specific design decisions.
 
@@ -73,9 +73,11 @@ I recommend to use the same one locally, as you might have issues with the build
 
 ### Formatting
 
-We generally follow the official Zig style guide: https://ziglang.org/documentation/0.14.0/#Style-Guide
+I generally follow the official Zig style guide: https://ziglang.org/documentation/0.15.2.
 
-Additionally, please make use of extra line breaks after function signatures and between bigger blocks of logic.
+However, I do not use `zig fmt` because it's driving me crazy.
+
+Please make use of extra line breaks after function signatures and between bigger blocks of logic.
 
 Try to avoid abbreviations unless the names would get really unwieldy otherwise.
 
@@ -83,16 +85,17 @@ Try to avoid abbreviations unless the names would get really unwieldy otherwise.
 
 This is not too strictly enforced, but I generally try to keep this order per file:
 
-1. import std
-2. imports of other Zig standard libary modules
-3. imports of project dependencies
-4. imports of project modules
-5. imported functions
-6. imported types
-7. simple nested types, like Error
-8. `Self = @This`
-9. constants
-10. functions
+- import std
+- refrences to std namespaces
+- imports of project dependencies
+- imports of project modules
+- std types
+- imported types
+- simple nested types
+- self type reference: `Self = @This`
+- constants
+- fields
+- functions
 
 ### Changes
 
@@ -101,7 +104,7 @@ Small changes like typos and formatting of few lines can be made directly on the
 For bigger changes, please create a separate branch and then a pull request.
 
 Try to keep pull requests focused on a task, preferably linked to an issue.  
-In particular, seprate new features and other impprovements from bigger renaming, reorganizing and reformatting sprees.
+In particular, seprate new features and other improvements from bigger renaming, reorganizing and reformatting sprees.
 
 ### Dependencies
 
