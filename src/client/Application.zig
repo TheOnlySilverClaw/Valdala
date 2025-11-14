@@ -122,6 +122,9 @@ pub fn launch(self: *Self) !void {
     var chunk_mesher = try @import("scene").ChunkMesher.init(allocator, surface.device, game.world.terrain.grid, self.module_loader.tile_registry);
     defer chunk_mesher.deinit(allocator);
 
+    const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
+    chunkMesherThread.detach();
+
     while(true) {
 
         const delta = timer.lap();
@@ -143,7 +146,7 @@ pub fn launch(self: *Self) !void {
         defer game_updates.deinit();
 
         scene.camera.transform = player.transform;
-        try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload, &chunk_mesher);
+        try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload);
         
         const tile_position = game.world.terrain.grid.getHexagon(player.transform.position);
         const chunk_position = @import("terrain").Chunk.tileToChunkPosition(tile_position);
