@@ -66,6 +66,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     const yaml = b.dependency("yaml", .{}).module("yaml");
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
+    const umka = b.dependency("umka", .{}).module("wrapper");
 
     // TODO move to separate repository?
     const glfw_webgpu = b.addModule("glfw-webgpu", .{
@@ -172,6 +173,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
     module.addImport("graphics", graphics);
+    module.addImport("umka", umka);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);

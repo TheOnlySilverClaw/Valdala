@@ -24,6 +24,10 @@
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/6d2af52b6b15d9b194e76c94ac8eeb472593539b.zip",
             .hash = "glfw-1.2.0-P2aiha2BAABEbrDGtBaYGqZ3BoqPTuDqU1bTqSEHDeYb"
         },
+        .umka = .{
+            .url = "https://codeberg.org/Silverclaw/zig-umka/archive/0706a6d409d187ae05427adbaca043e35793f8e8.zip",
+            .hash = "umka_bind-1.0.0-0YFIK5VAAACO1VngvxifOf1LCoqwSA8mirzh64pU9XX1"
+        },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/a6c2cd8760bf45c49b17a3f6259c4dfe3ded528e.zip",
             .hash = "zig_yaml-0.2.0-C1161pmrAgDnipDTh_4v4RQD27XN5GNaVlzzvlXf1jfW"
