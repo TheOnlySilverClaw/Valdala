@@ -70,10 +70,13 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
         if(!self.chunks.contains(position)) {
             if(terrain.getChunk(position)) |chunk| {
                 if(chunk.visible) {
-                    if (self.chunk_in_queue.enqueue(.{ .position = position, .chunk = try chunk.dupe(self.allocator) })) {
+                    const chunkDupe = try chunk.dupe(self.allocator);
+
+                    if (self.chunk_in_queue.enqueue(.{ .position = position, .chunk = chunkDupe })) {
                         log.debug("enqueued chunk at {f}", .{position});
                     } else {
                         log.warn("could not enqueue chunk at {f}", .{position});
+                        chunkDupe.deinit(self.allocator);
                     }
                 }
             }
