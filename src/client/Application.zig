@@ -122,7 +122,7 @@ pub fn launch(self: *Self) !void {
     var chunk_mesher = try @import("scene").ChunkMesher.init(allocator, surface.device, game.world.terrain.grid, self.module_loader.tile_registry);
     defer chunk_mesher.deinit(allocator);
 
-    const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
+    const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ allocator, &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
     chunkMesherThread.detach();
 
     while(true) {

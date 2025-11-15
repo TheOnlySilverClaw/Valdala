@@ -16,7 +16,7 @@ const Terrain = @import("terrain").Terrain;
 const Chunk = @import("terrain").Chunk;
 const SpscQueue = @import("queue.zig").SpscQueue;
 
-const queue_capacity = std.math.log2(16);
+const queue_capacity = std.math.log2(32);
 const InQueue = SpscQueue(struct { position: Chunk.Position, chunk: Chunk }, queue_capacity);
 const OutQueue = SpscQueue(struct { position: Chunk.Position, mesh: ChunkMesh }, queue_capacity);
 
@@ -68,9 +68,9 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
     for(load_positions.items) |position| {
         // TODO check distance either here or during world update
         if(!self.chunks.contains(position)) {
-            if(terrain.chunks.get(position)) |chunk| {
+            if(terrain.getChunk(position)) |chunk| {
                 if(chunk.visible) {
-                    if (self.chunk_in_queue.enqueue(.{ .position = position, .chunk = chunk })) {
+                    if (self.chunk_in_queue.enqueue(.{ .position = position, .chunk = try chunk.dupe(self.allocator) })) {
                         log.debug("enqueued chunk at {f}", .{position});
                     } else {
                         log.warn("could not enqueue chunk at {f}", .{position});
@@ -80,8 +80,14 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
         }
     }
     
-    while (self.chunk_out_queue.dequeue()) |chunk| {
-        try self.chunks.put(self.allocator, chunk.position, chunk.mesh);
+    while (self.chunk_out_queue.dequeue()) |chunkToMesh| {
+        if (terrain.getChunk(chunkToMesh.position)) |chunk| {
+            if (chunk.visible) {
+                try self.chunks.put(self.allocator, chunkToMesh.position, chunkToMesh.mesh);
+            } else {
+                chunkToMesh.mesh.destroy();
+            }
+        }
     }
 
     for(unload_positions.items) |position| {
@@ -92,20 +98,22 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
     }
 }
 
-pub fn launchChunkMesher(mesher: *ChunkMesher, in_queue: *InQueue, out_queue: *OutQueue) void {
+pub fn launchChunkMesher(allocator: Allocator, mesher: *ChunkMesher, in_queue: *InQueue, out_queue: *OutQueue) void {
 
     while (true) {
-        if (in_queue.dequeue()) |chunk| {
-            const mesh = mesher.generate(chunk.position, chunk.chunk) catch |e| {
-                log.err("could not mesh chunk at {f}: {t}", .{chunk.position, e});
+        if (in_queue.dequeue()) |chunkToMesh| {
+            defer chunkToMesh.chunk.deinit(allocator);
+
+            const mesh = mesher.generate(chunkToMesh.position, chunkToMesh.chunk) catch |e| {
+                log.err("could not mesh chunk at {f}: {t}", .{chunkToMesh.position, e});
                 continue;
             };
 
-            while (!out_queue.enqueue(.{ .position = chunk.position, .mesh = mesh })) {
+            while (!out_queue.enqueue(.{ .position = chunkToMesh.position, .mesh = mesh })) {
                 std.atomic.spinLoopHint();
             }
 
-            log.debug("enqueued chunk mesh at {f}", .{chunk.position});
+            log.debug("enqueued chunk mesh at {f}", .{chunkToMesh.position});
         } else {
             std.atomic.spinLoopHint();
         }
