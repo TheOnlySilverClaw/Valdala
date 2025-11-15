@@ -37,6 +37,13 @@ pub fn deinit(self: Self, allocator: Allocator) void {
     allocator.free(self.tiles);
 }
 
+pub fn dupe(self: Self, allocator: Allocator) !Self {
+    return .{
+        .visible = self.visible,
+        .tiles = try allocator.dupe(Tile, self.tiles),
+    };
+}
+
 pub fn getTile(self: Self, offset: TileOffset) Tile {
     return self.tiles[indexOf(offset)];
 }

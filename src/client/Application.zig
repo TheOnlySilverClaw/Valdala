@@ -9,6 +9,7 @@ const asset = @import("asset");
 const log = std.log.scoped(.client);
 
 const Allocator = std.mem.Allocator;
+const Atomic = std.atomic.Value;
 const Thread = std.Thread;
 const ModuleLoader = @import("module").Loader;
 const Terrain = @import("terrain").Terrain;
@@ -122,12 +123,19 @@ pub fn launch(self: *Self) !void {
     var chunk_mesher = try @import("scene").ChunkMesher.init(allocator, surface.device, game.world.terrain.grid, self.module_loader.tile_registry);
     defer chunk_mesher.deinit(allocator);
 
+    var chunkMesherExit: Atomic(bool) = .init(false);
+    const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ allocator, &chunkMesherExit, &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
+
     while(true) {
 
         const delta = timer.lap();
 
         const input = self.controller.poll();
-        if(input.window.close) break;
+        if(input.window.close) {
+            chunkMesherExit.store(true, .release);
+            chunkMesherThread.join();
+            break;
+        }
 
         const camera_speed = 10; // in units per second
         const delta_seconds = @as(f32, @floatFromInt(delta)) / @as(f32, @floatFromInt(std.time.ns_per_s));
@@ -143,7 +151,7 @@ pub fn launch(self: *Self) !void {
         defer game_updates.deinit();
 
         scene.camera.transform = player.transform;
-        try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload, &chunk_mesher);
+        try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload);
         
         const tile_position = game.world.terrain.grid.getHexagon(player.transform.position);
         const chunk_position = @import("terrain").Chunk.tileToChunkPosition(tile_position);
