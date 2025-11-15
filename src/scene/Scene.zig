@@ -5,6 +5,7 @@ const algebra = @import("algebra");
 const log = std.log.scoped(.scene);
 
 const Allocator = std.mem.Allocator;
+const Atomic = std.atomic.Value;
 const Map = std.AutoHashMapUnmanaged;
 const List = std.ArrayListUnmanaged;
 const Camera = @import("Camera.zig");
@@ -119,9 +120,9 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
     }
 }
 
-pub fn launchChunkMesher(allocator: Allocator, mesher: *ChunkMesher, in_queue: *InQueue, out_queue: *OutQueue) void {
+pub fn launchChunkMesher(allocator: Allocator, exit: *Atomic(bool), mesher: *ChunkMesher, in_queue: *InQueue, out_queue: *OutQueue) void {
 
-    while (true) {
+    while (!exit.load(.acquire)) {
         if (in_queue.dequeue()) |chunkToMesh| {
             defer chunkToMesh.chunk.deinit(allocator);
 
@@ -138,5 +139,9 @@ pub fn launchChunkMesher(allocator: Allocator, mesher: *ChunkMesher, in_queue: *
         } else {
             std.atomic.spinLoopHint();
         }
+    }
+    
+    while (in_queue.dequeue()) |chunkToMesh| {
+        chunkToMesh.chunk.deinit(allocator);
     }
 }
