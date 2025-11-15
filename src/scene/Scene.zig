@@ -16,8 +16,10 @@ const Terrain = @import("terrain").Terrain;
 const Chunk = @import("terrain").Chunk;
 const SpscQueue = @import("queue.zig").SpscQueue;
 
+const ChunkToMesh = struct { position: Chunk.Position, chunk: Chunk };
+
 const queue_capacity = std.math.log2(32);
-const InQueue = SpscQueue(struct { position: Chunk.Position, chunk: Chunk }, queue_capacity);
+const InQueue = SpscQueue(ChunkToMesh, queue_capacity);
 const OutQueue = SpscQueue(struct { position: Chunk.Position, mesh: ChunkMesh }, queue_capacity);
 
 const Self = @This();
@@ -28,6 +30,7 @@ camera: Camera,
 chunks: Map(Chunk.Position, ChunkMesh),
 chunk_in_queue: InQueue,
 chunk_out_queue: OutQueue,
+chunks_to_queue: List(ChunkToMesh),
 chunk_distance: u32,
 sky_color: color.RGB,
 
@@ -45,6 +48,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
         .chunks = chunks,
         .chunk_in_queue = .{},
         .chunk_out_queue = .{},
+        .chunks_to_queue = .empty,
         .camera = camera,
         .sky_color = color.RGB.of(0.2, 0.2, 0.8)
     };
@@ -57,6 +61,9 @@ pub fn deinit(self: *Self) void {
         chunk.destroy();
     }
     self.chunks.clearAndFree(self.allocator);
+
+    for (self.chunks_to_queue.items) |chunkToMesh| chunkToMesh.chunk.deinit(self.allocator);
+    self.chunks_to_queue.deinit(self.allocator);
 }
 
 pub fn addChunkMesh(self: *Self, position: Chunk.Position, mesh: ChunkMesh) Allocator.Error!void {
@@ -71,18 +78,29 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
             if(terrain.getChunk(position)) |chunk| {
                 if(chunk.visible) {
                     const chunkDupe = try chunk.dupe(self.allocator);
+                    errdefer chunkDupe.deinit(self.allocator);
 
-                    if (self.chunk_in_queue.enqueue(.{ .position = position, .chunk = chunkDupe })) {
+                    const chunkToMesh = ChunkToMesh{ .position = position, .chunk = chunkDupe };
+
+                    if (self.chunk_in_queue.enqueue(chunkToMesh)) {
                         log.debug("enqueued chunk at {f}", .{position});
                     } else {
-                        log.warn("could not enqueue chunk at {f}", .{position});
-                        chunkDupe.deinit(self.allocator);
+                        try self.chunks_to_queue.append(self.allocator, chunkToMesh);
                     }
                 }
             }
         }
     }
-    
+
+    while (self.chunks_to_queue.pop()) |chunkToMesh| {
+        if (self.chunk_in_queue.enqueue(chunkToMesh)) {
+            log.debug("enqueued chunk at {f}", .{chunkToMesh.position});
+        } else {
+            self.chunks_to_queue.appendAssumeCapacity(chunkToMesh);
+            break;
+        }
+    }
+
     while (self.chunk_out_queue.dequeue()) |chunkToMesh| {
         if (terrain.getChunk(chunkToMesh.position)) |chunk| {
             if (chunk.visible) {
