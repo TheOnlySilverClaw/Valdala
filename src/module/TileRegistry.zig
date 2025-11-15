@@ -23,9 +23,17 @@ texture_counter: u32,
 
 pub fn init(allocator: Allocator, texture_array: graphics.TextureArray) !Self {
 
+    var tiles = try List(Tile).initCapacity(allocator, 64);
+    const air = Tile {
+        .id = try allocator.dupe(u8, "air"),
+        .name = try allocator.dupe(u8, "Air"),
+        .textures = undefined
+    };
+    tiles.appendAssumeCapacity(air);
+
     return .{
         .allocator = allocator,
-        .tiles = .empty,
+        .tiles = tiles,
         .texture_array = texture_array,
         .texture_counter = 0
     };
@@ -42,7 +50,7 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn getTile(self: Self, index: u32) Tile {
-    return self.tiles.items[index - 1];
+    return self.tiles.items[index];
 }
 
 pub fn loadTile(self: *Self, directory: fs.Dir, id: Tile.ID, descriptor: Yaml.Map) !void {

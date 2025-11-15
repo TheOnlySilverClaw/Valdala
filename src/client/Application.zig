@@ -146,6 +146,7 @@ pub fn launch(self: *Self) !void {
         player.transform.rotation = .aroundAxis(.of(-1,0,0), std.math.pi);
         player.transform.rotateAround(.of(1,0,0), input.movement.rotation.pitch);
         player.transform.rotateAround(.of(0,0,1), input.movement.rotation.yaw);
+        
 
         var game_updates = try game.update(delta);
         defer game_updates.deinit();
@@ -161,6 +162,14 @@ pub fn launch(self: *Self) !void {
         user_interface.tile_position = tile_position;
         user_interface.chunk_position = chunk_position;
         user_interface.rotation = player.transform.rotation;
+
+        const player_step_position = player.transform.position.subtract(.of(0, 0, 1.5 ));
+        const player_step_tile_position = game.world.terrain.grid.getHexagon(player_step_position);
+        const player_step_tile = game.world.terrain.getTile(player_step_tile_position);
+        if(player_step_tile) |tile| {
+            const player_step_tile_data = self.module_loader.tile_registry.getTile(tile.index);
+            user_interface.step_tile_name = player_step_tile_data.name;
+        }
 
         try user_interface.update();
 

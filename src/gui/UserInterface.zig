@@ -28,6 +28,9 @@ tile_position: HexPosition(i64),
 tile_position_element: *Canvas.TextElement,
 chunk_position: HexPosition(i64),
 chunk_position_element: *Canvas.TextElement,
+step_tile_name: []const u8,
+step_tile_name_element: *Canvas.TextElement,
+
 
 pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self {
 
@@ -39,6 +42,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
     const tile_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 80), .font = font });
     const chunk_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
     const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 140), .font = font });
+    const step_tile_name_element = try canvas.createText(.{ .value = "", .position = .of(10, 170), .font = font });
 
     return .{
         .allocator = allocator,
@@ -52,7 +56,9 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
         .chunk_position = undefined,
         .chunk_position_element = chunk_position_element,
         .rotation = undefined,
-        .rotation_element = rotation_element
+        .rotation_element = rotation_element,
+        .step_tile_name = "",
+        .step_tile_name_element = step_tile_name_element
     };
 }
 
@@ -85,5 +91,9 @@ pub fn update(self: *Self) !void {
     
     const rotation_value = try fmt.bufPrint(&buffer, "Rotation:  x {d:>.2} y {d:>.2} z {d:>.2} w {d:>.2}", .{ self.rotation.x, self.rotation.y, self.rotation.z, self.rotation.w });
     self.rotation_element.text.value = rotation_value;
+    try canvas.updateText(self.rotation_element);
+
+    const step_tile_value = try fmt.bufPrint(&buffer, "Standing on tile: {s}", .{ self.step_tile_name });
+    self.rotation_element.text.value = step_tile_value;
     try canvas.updateText(self.rotation_element);
 }
