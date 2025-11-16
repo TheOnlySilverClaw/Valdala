@@ -1,5 +1,6 @@
-name: Grass
+name: Topsoil
 textures:
     top: top.png
     side: side.png
     bottom: ../soil/cover.png
+script: script.um
