@@ -225,10 +225,12 @@ fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarg
         .linux => {
             exe.addObjectFile(b.path("lib/linux/libglfw3.a"));
             if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+            if(b.lazyDependency("umka_linux", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka_static_linux.a"));
         },
         .windows => {
             if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));
             if (b.lazyDependency("wgpu_windows", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+            if(b.lazyDependency("umka_linux", .{})) |umka_dep| exe.addObjectFile(umka_dep.path("libumka.a"));
 
             exe.linkLibCpp();
 

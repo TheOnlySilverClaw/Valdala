@@ -72,5 +72,17 @@
 	        .hash = "N-V-__8AAGzToQjdhwDgALHVFeO9nh-DJRQkJHAbkBzYHXBj",
             .lazy = true
         },
+
+        // umka 1.5.4
+        .umka_linux = .{
+            .url = "https://github.com/vtereshkov/umka-lang/releases/download/v1.5.4/umka_1.5.4_linux.zip",
+            .hash = "N-V-__8AAONWHQCsyDaLAeqzheNPdOvpKioknPAEOAnAqzBc",
+            .lazy = true
+        },
+        .umka_windows = .{
+            .url = "https://github.com/vtereshkov/umka-lang/releases/download/v1.5.4/umka_1.5.4_windows_mingw.zip",
+            .hash = "N-V-__8AAHePGwCPxl2eM_HQGRTMQoWhASd2V7P1_6KKHPDJ",
+            .lazy = true
+        }
     }
 }
