@@ -2,8 +2,9 @@ const std = @import("std");
 const fs = std.fs;
 const math = std.math;
 const zigimg = @import("zigimg");
-const log = std.log.scoped(.module_loader);
 const graphics = @import("graphics");
+const umka = @import("umka");
+const log = std.log.scoped(.module_loader);
 
 
 const Allocator = std.mem.Allocator;
@@ -71,12 +72,12 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     const module_name_copy = try self.allocator.dupe(u8, module_name);
 
     const module = try self.allocator.create(Module);
-    module.* = Module.init(id, module_name_copy);
+    module.* = try Module.init(id, module_name_copy);
     
     if(module_descriptor.get("tiles")) |tiles| {
         // TODO error handling!
         const tile_map = tiles.asMap().?;
-        try self.loadTiles(parser_allocator, directory, tile_map);
+        try self.loadTiles(parser_allocator, directory, tile_map, module.umka_instance, module_name);
     }
 
     try self.loaded.append(self.allocator, module);
@@ -92,7 +93,7 @@ pub fn unloadModules(self: *Self) void {
     self.loaded.clearAndFree(self.allocator);
 }
 
-fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !void {
+fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map, umka_instance: umka.Instance, module_name: []const u8) !void {
     
     var iterator = map.iterator();
     while(iterator.next()) |entry| {
@@ -109,6 +110,22 @@ fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !v
 
         const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
         try self.tile_registry.loadTile(parent_directory, id_copy, descriptor);
+
+        if(descriptor.get("script")) |script_path| {
+            const script_source = try loadScript(self.allocator, parent_directory, script_path.scalar);
+            var umka_module_name = try toUmkaModuleName(self.allocator, module_name, "tile", id_copy);
+            defer umka_module_name.clearAndFree(self.allocator);
+            try umka_instance.addModule(@ptrCast(umka_module_name.items), script_source);
+        }
+    }
+
+    try umka_instance.compile();
+    for(self.tile_registry.tiles.items) |*tile| {
+        var umka_module_name = try toUmkaModuleName(self.allocator, module_name, "tile", tile.id);
+        defer umka_module_name.clearAndFree(self.allocator);
+        tile.behavior = .{
+            .step = umka_instance.getFunc(@ptrCast(umka_module_name.items), "step")
+        };
     }
 }
 
@@ -125,4 +142,31 @@ fn loadYamlMap(allocator: Allocator, file: fs.File) !Yaml.Map {
     const items = try loadYamlItems(allocator, file);
     if(items.len == 0) return Error.Empty;
     return items[0].asMap() orelse Error.Empty;
+}
+
+fn loadScript(allocator: Allocator, directory: fs.Dir, path: []const u8) ![*:0]const u8 {
+
+    var file = try directory.openFile(path, .{});
+    defer file.close();
+
+    var read_buffer: [1024 * 10]u8 = undefined;
+    var reader = file.reader(&read_buffer).interface;
+    
+    var bytes = try List(u8).initCapacity(allocator, 1014);
+    try reader.appendRemaining(allocator, &bytes, .limited(1024 * 10));
+    try bytes.append(allocator, 0);
+
+    return @ptrCast(bytes.items);
+}
+
+fn toUmkaModuleName(allocator: Allocator, module_name: []const u8, type_name: []const u8, object_name: []const u8) !List(u8) {
+    
+    var bytes = try List(u8).initCapacity(allocator, module_name.len + type_name.len + object_name.len + 2 + 1);
+    bytes.appendSliceAssumeCapacity(module_name);
+    bytes.appendAssumeCapacity('/');
+    bytes.appendSliceAssumeCapacity(type_name);
+    bytes.appendAssumeCapacity('/');
+    bytes.appendSliceAssumeCapacity(object_name);
+    bytes.appendAssumeCapacity(0);
+    return bytes;
 }

@@ -27,7 +27,8 @@ pub fn init(allocator: Allocator, texture_array: graphics.TextureArray) !Self {
     const air = Tile {
         .id = try allocator.dupe(u8, "air"),
         .name = try allocator.dupe(u8, "Air"),
-        .textures = undefined
+        .textures = undefined,
+        .behavior = undefined
     };
     tiles.appendAssumeCapacity(air);
 
