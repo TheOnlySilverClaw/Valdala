@@ -33,7 +33,8 @@ chunk_position: HexPosition(i64),
 chunk_position_element: *Canvas.TextElement,
 step_tile_name: []const u8,
 step_tile_name_element: *Canvas.TextElement,
-
+frame_memory_usage: usize,
+memory_usage_element: *Canvas.TextElement,
 
 pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self {
 
@@ -47,6 +48,7 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
     const chunk_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 140), .font = font });
     const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 170), .font = font });
     const step_tile_name_element = try canvas.createText(.{ .value = "", .position = .of(10, 200), .font = font });
+    const memory_usage_element = try canvas.createText(.{ .value = "", .position = .of(10, 230), .font = font });
 
     return .{
         .allocator = allocator,
@@ -65,7 +67,9 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
         .rotation = undefined,
         .rotation_element = rotation_element,
         .step_tile_name = "",
-        .step_tile_name_element = step_tile_name_element
+        .step_tile_name_element = step_tile_name_element,
+        .frame_memory_usage = undefined,
+        .memory_usage_element = memory_usage_element,
     };
 }
 
@@ -107,4 +111,8 @@ pub fn update(self: *Self) !void {
     const step_tile_value = try fmt.bufPrint(&buffer, "Standing on tile: {s}", .{ self.step_tile_name });
     self.rotation_element.text.value = step_tile_value;
     try canvas.updateText(self.rotation_element);
+
+    const memory_usage_value = try fmt.bufPrint(&buffer, "Allocations: update {d:>}B", .{ self.frame_memory_usage });
+    self.memory_usage_element.text.value = memory_usage_value;
+    try canvas.updateText(self.memory_usage_element);
 }

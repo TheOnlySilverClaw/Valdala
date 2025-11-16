@@ -46,15 +46,13 @@ pub fn createPlayer(self: *Self, player: Player) !*Player {
     return ptr;
 }
 
-pub fn updateTerrain(self: *Self) !Update {
+pub fn updateTerrain(self: *Self, update_arena: Allocator) !Update {
     
-    const allocator = self.allocator;
     var terrain = &self.terrain;
     const grid = terrain.grid;
 
     var visible_positions = Map(Chunk.Position, void).empty;
-    try visible_positions.ensureTotalCapacity(allocator, @intCast(terrain.chunks.count()));
-    defer visible_positions.clearAndFree(allocator);
+    try visible_positions.ensureTotalCapacity(update_arena, @intCast(terrain.chunks.count()));
 
     const distance = self.chunk_distance;
     const limit: usize = distance * 2 - 1;
@@ -75,14 +73,13 @@ pub fn updateTerrain(self: *Self) !Update {
                         .height = @intCast(center.height + @as(i64, @intCast(height)) - half)
                     };
 
-                    try visible_positions.put(allocator, position, {});
+                    try visible_positions.put(update_arena, position, {});
                 }
             }
         }
     }
 
-    const loaded_positions = try allocator.alloc(Chunk.Position, terrain.chunks.count());
-    defer allocator.free(loaded_positions);
+    const loaded_positions = try update_arena.alloc(Chunk.Position, terrain.chunks.count());
     // copy, because unloading chunks could invalidate the position keys
     std.mem.copyForwards(Chunk.Position, loaded_positions, terrain.chunks.keys());
 
@@ -92,14 +89,14 @@ pub fn updateTerrain(self: *Self) !Update {
     for(loaded_positions) |position| {
         if(!visible_positions.remove(position)) {
             terrain.unloadChunk(position);
-            try unload_positions.append(allocator, position);
+            try unload_positions.append(update_arena, position);
         }
     }
 
     var unload_iterator = visible_positions.keyIterator();
     while(unload_iterator.next()) |position| {
         _ = try terrain.loadChunk(position.*);
-        try load_positions.append(allocator, position.*);
+        try load_positions.append(update_arena, position.*);
     }
 
     return .{
