@@ -161,9 +161,9 @@ pub fn launch(self: *Self) !void {
         user_interface.position = player.transform.position;
         user_interface.tile_position = tile_position;
         user_interface.chunk_position = chunk_position;
-        user_interface.rotation = player.transform.rotation;
         user_interface.chunk_distance = scene.chunk_distance;
         user_interface.chunks_loaded = scene.chunks.size;
+        user_interface.rotation = player.transform.rotation;
 
         const player_step_position = player.transform.position.subtract(.of(0, 0, 1.5 ));
         const player_step_tile_position = game.world.terrain.grid.getHexagon(player_step_position);
