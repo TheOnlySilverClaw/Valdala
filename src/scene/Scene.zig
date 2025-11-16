@@ -19,7 +19,7 @@ const SpscQueue = @import("queue.zig").SpscQueue;
 
 const ChunkToMesh = struct { position: Chunk.Position, chunk: Chunk };
 
-const queue_capacity = std.math.log2(Chunk.layout.volume);
+const queue_capacity = std.math.log2(16);
 const InQueue = SpscQueue(ChunkToMesh, queue_capacity);
 const OutQueue = SpscQueue(struct { position: Chunk.Position, mesh: ChunkMesh }, queue_capacity);
 
