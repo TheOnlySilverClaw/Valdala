@@ -26,6 +26,9 @@ rotation: Quaternion(f32),
 rotation_element: *Canvas.TextElement,
 tile_position: HexPosition(i64),
 tile_position_element: *Canvas.TextElement,
+chunks_loaded: u32,
+chunk_distance: u32,
+chunks_element: *Canvas.TextElement,
 chunk_position: HexPosition(i64),
 chunk_position_element: *Canvas.TextElement,
 step_tile_name: []const u8,
@@ -40,9 +43,10 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
     const frame_time_element = try canvas.createText(.{ .value = "", .position = .of(10, 20), .font = font });
     const position_element = try canvas.createText(.{ .value = "", .position = .of(10, 50), .font = font });
     const tile_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 80), .font = font });
-    const chunk_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
-    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 140), .font = font });
-    const step_tile_name_element = try canvas.createText(.{ .value = "", .position = .of(10, 170), .font = font });
+    const chunks_element = try canvas.createText(.{ .value = "", .position = .of(10, 110), .font = font });
+    const chunk_position_element = try canvas.createText(.{ .value = "", .position = .of(10, 140), .font = font });
+    const rotation_element = try canvas.createText(.{ .value = "", .position = .of(10, 170), .font = font });
+    const step_tile_name_element = try canvas.createText(.{ .value = "", .position = .of(10, 200), .font = font });
 
     return .{
         .allocator = allocator,
@@ -53,6 +57,9 @@ pub fn init(allocator: Allocator, surface: *const Surface, fonts: []Font) !Self 
         .position_element = position_element,
         .tile_position = undefined,
         .tile_position_element = tile_position_element,
+        .chunks_loaded = undefined,
+        .chunk_distance = undefined,
+        .chunks_element = chunks_element,
         .chunk_position = undefined,
         .chunk_position_element = chunk_position_element,
         .rotation = undefined,
@@ -85,10 +92,14 @@ pub fn update(self: *Self) !void {
     self.tile_position_element.text.value = hex_position_value;
     try canvas.updateText(self.tile_position_element);
 
+    const chunks_loaded_value = try fmt.bufPrint(&buffer, "Chunks:  radius {d:>} loaded {d:>}", .{ self.chunk_distance, self.chunks_loaded });
+    self.chunks_element.text.value = chunks_loaded_value;
+    try canvas.updateText(self.chunks_element);
+
     const chunk_position_value = try fmt.bufPrint(&buffer, "Chunk:  n {d:>.2} se {d:>.2} h {d:>.2}", .{ self.chunk_position.north, self.chunk_position.south_east, self.chunk_position.height });
     self.chunk_position_element.text.value = chunk_position_value;
     try canvas.updateText(self.chunk_position_element);
-    
+
     const rotation_value = try fmt.bufPrint(&buffer, "Rotation:  x {d:>.2} y {d:>.2} z {d:>.2} w {d:>.2}", .{ self.rotation.x, self.rotation.y, self.rotation.z, self.rotation.w });
     self.rotation_element.text.value = rotation_value;
     try canvas.updateText(self.rotation_element);
