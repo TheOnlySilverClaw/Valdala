@@ -32,13 +32,12 @@ pub fn deinit(self: Self) void {
     self.allocator.destroy(self.world);
 }
 
-pub fn update(self: *Self, delta: u64) !Update {
+pub fn update(self: *Self, update_arena: Allocator, delta: u64) !Update {
     
     try self.time.update(delta);
-    const world_updates = try self.world.updateTerrain();
+    const world_updates = try self.world.updateTerrain(update_arena);
     
     return .{
-        .allocator = self.allocator,
         .world = world_updates
     };
 }

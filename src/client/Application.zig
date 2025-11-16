@@ -126,7 +126,13 @@ pub fn launch(self: *Self) !void {
     var chunkMesherExit: Atomic(bool) = .init(false);
     const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ allocator, &chunkMesherExit, &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
 
+    var arena: std.heap.ArenaAllocator = .init(allocator);
+    defer arena.deinit();
+
+    const arena_allocator = arena.allocator();
+
     while(true) {
+        defer _ = arena.reset(.retain_capacity);
 
         const delta = timer.lap();
 
@@ -148,8 +154,7 @@ pub fn launch(self: *Self) !void {
         player.transform.rotateAround(.of(0,0,1), input.movement.rotation.yaw);
         
 
-        var game_updates = try game.update(delta);
-        defer game_updates.deinit();
+        const game_updates = try game.update(arena_allocator, delta);
 
         scene.camera.transform = player.transform;
         try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload);
@@ -164,6 +169,7 @@ pub fn launch(self: *Self) !void {
         user_interface.chunk_distance = scene.chunk_distance;
         user_interface.chunks_loaded = scene.chunks.size;
         user_interface.rotation = player.transform.rotation;
+        user_interface.frame_memory_usage = arena.queryCapacity();
 
         const player_step_position = player.transform.position.subtract(.of(0, 0, 1.5 ));
         const player_step_tile_position = game.world.terrain.grid.getHexagon(player_step_position);
