@@ -123,8 +123,8 @@ pub fn launch(self: *Self) !void {
     var chunk_mesher = try @import("scene").ChunkMesher.init(allocator, surface.device, game.world.terrain.grid, self.module_loader.tile_registry);
     defer chunk_mesher.deinit(allocator);
 
-    var chunkMesherExit: Atomic(bool) = .init(false);
-    const chunkMesherThread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ allocator, &chunkMesherExit, &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
+    var chunk_mesher_exit: Atomic(bool) = .init(false);
+    const chunk_mesher_thread = try std.Thread.spawn(.{ .allocator = allocator }, Scene.launchChunkMesher, .{ allocator, &chunk_mesher_exit, &chunk_mesher, &scene.chunk_in_queue, &scene.chunk_out_queue });
 
     var arena: std.heap.ArenaAllocator = .init(allocator);
     defer arena.deinit();
@@ -138,16 +138,16 @@ pub fn launch(self: *Self) !void {
 
         const input = self.controller.poll();
         if(input.window.close) {
-            chunkMesherExit.store(true, .release);
-            chunkMesherThread.join();
+            chunk_mesher_exit.store(true, .release);
+            chunk_mesher_thread.join();
             break;
         }
 
         const camera_speed = 10; // in units per second
         const delta_seconds = @as(f32, @floatFromInt(delta)) / @as(f32, @floatFromInt(std.time.ns_per_s));
 
-        const movementInWorldSpace = input.movement.rotation.project(input.movement.direction.times(delta_seconds * camera_speed));
-        player.transform.position = player.transform.position.add(movementInWorldSpace);
+        const movement_in_world_space = input.movement.rotation.project(input.movement.direction.times(delta_seconds * camera_speed));
+        player.transform.position = player.transform.position.add(movement_in_world_space);
 
         player.transform.rotation = .aroundAxis(.of(-1,0,0), std.math.pi);
         player.transform.rotateAround(.of(1,0,0), input.movement.rotation.pitch);

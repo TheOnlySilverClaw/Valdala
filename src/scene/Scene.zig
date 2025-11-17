@@ -63,7 +63,7 @@ pub fn deinit(self: *Self) void {
     }
     self.chunks.clearAndFree(self.allocator);
 
-    for (self.chunks_to_queue.items) |chunkToMesh| chunkToMesh.chunk.deinit(self.allocator);
+    for (self.chunks_to_queue.items) |chunk_to_mesh| chunk_to_mesh.chunk.deinit(self.allocator);
     self.chunks_to_queue.deinit(self.allocator);
 }
 
@@ -81,33 +81,33 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
                     const chunkDupe = try chunk.dupe(self.allocator);
                     errdefer chunkDupe.deinit(self.allocator);
 
-                    const chunkToMesh = ChunkToMesh{ .position = position, .chunk = chunkDupe };
+                    const chunk_to_mesh = ChunkToMesh{ .position = position, .chunk = chunkDupe };
 
-                    if (self.chunk_in_queue.enqueue(chunkToMesh)) {
+                    if (self.chunk_in_queue.enqueue(chunk_to_mesh)) {
                         log.debug("enqueued chunk at {f}", .{position});
                     } else {
-                        try self.chunks_to_queue.append(self.allocator, chunkToMesh);
+                        try self.chunks_to_queue.append(self.allocator, chunk_to_mesh);
                     }
                 }
             }
         }
     }
 
-    while (self.chunks_to_queue.pop()) |chunkToMesh| {
-        if (self.chunk_in_queue.enqueue(chunkToMesh)) {
-            log.debug("enqueued chunk at {f}", .{chunkToMesh.position});
+    while (self.chunks_to_queue.pop()) |chunk_to_mesh| {
+        if (self.chunk_in_queue.enqueue(chunk_to_mesh)) {
+            log.debug("enqueued chunk at {f}", .{chunk_to_mesh.position});
         } else {
-            self.chunks_to_queue.appendAssumeCapacity(chunkToMesh);
+            self.chunks_to_queue.appendAssumeCapacity(chunk_to_mesh);
             break;
         }
     }
 
-    while (self.chunk_out_queue.dequeue()) |chunkToMesh| {
-        if (terrain.getChunk(chunkToMesh.position)) |chunk| {
+    while (self.chunk_out_queue.dequeue()) |chunk_to_mesh| {
+        if (terrain.getChunk(chunk_to_mesh.position)) |chunk| {
             if (chunk.visible) {
-                try self.chunks.put(self.allocator, chunkToMesh.position, chunkToMesh.mesh);
+                try self.chunks.put(self.allocator, chunk_to_mesh.position, chunk_to_mesh.mesh);
             } else {
-                chunkToMesh.mesh.destroy();
+                chunk_to_mesh.mesh.destroy();
             }
         }
     }
@@ -123,25 +123,25 @@ pub fn updateTerrain(self: *Self, terrain: Terrain, load_positions: List(Chunk.P
 pub fn launchChunkMesher(allocator: Allocator, exit: *Atomic(bool), mesher: *ChunkMesher, in_queue: *InQueue, out_queue: *OutQueue) void {
 
     while (!exit.load(.acquire)) {
-        if (in_queue.dequeue()) |chunkToMesh| {
-            defer chunkToMesh.chunk.deinit(allocator);
+        if (in_queue.dequeue()) |chunk_to_mesh| {
+            defer chunk_to_mesh.chunk.deinit(allocator);
 
-            const mesh = mesher.generate(chunkToMesh.position, chunkToMesh.chunk) catch |e| {
-                log.err("could not mesh chunk at {f}: {t}", .{chunkToMesh.position, e});
+            const mesh = mesher.generate(chunk_to_mesh.position, chunk_to_mesh.chunk) catch |e| {
+                log.err("could not mesh chunk at {f}: {t}", .{chunk_to_mesh.position, e});
                 continue;
             };
 
-            while (!out_queue.enqueue(.{ .position = chunkToMesh.position, .mesh = mesh })) {
+            while (!out_queue.enqueue(.{ .position = chunk_to_mesh.position, .mesh = mesh })) {
                 std.atomic.spinLoopHint();
             }
 
-            log.debug("enqueued chunk mesh at {f}", .{chunkToMesh.position});
+            log.debug("enqueued chunk mesh at {f}", .{chunk_to_mesh.position});
         } else {
             std.atomic.spinLoopHint();
         }
     }
     
-    while (in_queue.dequeue()) |chunkToMesh| {
-        chunkToMesh.chunk.deinit(allocator);
+    while (in_queue.dequeue()) |chunk_to_mesh| {
+        chunk_to_mesh.chunk.deinit(allocator);
     }
 }
