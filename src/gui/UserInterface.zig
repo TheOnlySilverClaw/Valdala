@@ -109,8 +109,8 @@ pub fn update(self: *Self) !void {
     try canvas.updateText(self.rotation_element);
 
     const step_tile_value = try fmt.bufPrint(&buffer, "Standing on tile: {s}", .{ self.step_tile_name });
-    self.rotation_element.text.value = step_tile_value;
-    try canvas.updateText(self.rotation_element);
+    self.step_tile_name_element.text.value = step_tile_value;
+    try canvas.updateText(self.step_tile_name_element);
 
     const memory_usage_value = try fmt.bufPrint(&buffer, "Allocations: update {d:>}B", .{ self.frame_memory_usage });
     self.memory_usage_element.text.value = memory_usage_value;
