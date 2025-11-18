@@ -18,6 +18,7 @@ umka_instance: umka.Instance,
 pub fn init(id: ID, name: Name) !Self {
 
     const umka_instance = try umka.Instance.alloc();
+    try umka_instance.init(null, "import \"valdala/tile/topsoil\"\n", .{ .file_system_enabled = false });
 
     return .{
         .id = id,

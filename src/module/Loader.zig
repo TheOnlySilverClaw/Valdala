@@ -77,7 +77,7 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     if(module_descriptor.get("tiles")) |tiles| {
         // TODO error handling!
         const tile_map = tiles.asMap().?;
-        try self.loadTiles(parser_allocator, directory, tile_map, module.umka_instance, module_name);
+        try self.loadTiles(parser_allocator, directory, tile_map, module.umka_instance, id);
     }
 
     try self.loaded.append(self.allocator, module);
@@ -93,8 +93,12 @@ pub fn unloadModules(self: *Self) void {
     self.loaded.clearAndFree(self.allocator);
 }
 
-fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map, umka_instance: umka.Instance, module_name: []const u8) !void {
+fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map, umka_instance: umka.Instance, module_id: []const u8) !void {
     
+    var umka_module_arena = ArenaAllocator.init(self.allocator);
+    defer umka_module_arena.deinit();
+    const umka_module_allocator = umka_module_arena.allocator();
+
     var iterator = map.iterator();
     while(iterator.next()) |entry| {
         
@@ -112,19 +116,30 @@ fn loadTiles(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map, um
         try self.tile_registry.loadTile(parent_directory, id_copy, descriptor);
 
         if(descriptor.get("script")) |script_path| {
-            const script_source = try loadScript(self.allocator, parent_directory, script_path.scalar);
-            var umka_module_name = try toUmkaModuleName(self.allocator, module_name, "tile", id_copy);
-            defer umka_module_name.clearAndFree(self.allocator);
-            try umka_instance.addModule(@ptrCast(umka_module_name.items), script_source);
+            const script_source = try loadScript(umka_module_allocator, parent_directory, script_path.asScalar().?);
+            const script_source_c = @as([*:0]const u8, @ptrCast(script_source.ptr));
+            log.debug("script source:\n{s}", .{ script_source_c });
+            const umka_module_name = try toUmkaModuleName(umka_module_allocator, module_id, "tile", id_copy);
+            log.debug("script module name: {s}", .{ umka_module_name.items });
+            try umka_instance.addModule(@ptrCast(umka_module_name.items.ptr), @ptrCast(script_source_c));
         }
     }
 
-    try umka_instance.compile();
+
+    umka_instance.compile() catch {
+        const err = umka_instance.getError();
+        log.err("Failed to compile file {s} function {s} line {d} position {d}: {s}", .{ err.file_name, err.fn_name, err.line, err.pos, err.msg });
+        return;
+    };
+
+    log.debug("asm:\n{s}", .{ umka_instance.assembly() });
+
     for(self.tile_registry.tiles.items) |*tile| {
-        var umka_module_name = try toUmkaModuleName(self.allocator, module_name, "tile", tile.id);
-        defer umka_module_name.clearAndFree(self.allocator);
+        const umka_module_name = try toUmkaModuleName(umka_module_allocator, module_id, "tile", tile.id);
+        const step_func = umka_instance.getFunc(@ptrCast(umka_module_name.items.ptr), "step");
+        log.debug("module name: {s} found: {}", .{ umka_module_name.items, step_func != null});
         tile.behavior = .{
-            .step = umka_instance.getFunc(@ptrCast(umka_module_name.items), "step")
+            .step = step_func
         };
     }
 }
@@ -144,19 +159,16 @@ fn loadYamlMap(allocator: Allocator, file: fs.File) !Yaml.Map {
     return items[0].asMap() orelse Error.Empty;
 }
 
-fn loadScript(allocator: Allocator, directory: fs.Dir, path: []const u8) ![*:0]const u8 {
+fn loadScript(allocator: Allocator, directory: fs.Dir, path: []const u8) ![]const u8 {
 
     var file = try directory.openFile(path, .{});
     defer file.close();
 
-    var read_buffer: [1024 * 10]u8 = undefined;
-    var reader = file.reader(&read_buffer).interface;
-    
-    var bytes = try List(u8).initCapacity(allocator, 1014);
-    try reader.appendRemaining(allocator, &bytes, .limited(1024 * 10));
-    try bytes.append(allocator, 0);
-
-    return @ptrCast(bytes.items);
+    const file_size = try file.getEndPos();
+    const source_buffer = try allocator.alloc(u8, file_size + 1);
+    _ = try file.readAll(source_buffer);
+    source_buffer[file_size] = 0;
+    return source_buffer;
 }
 
 fn toUmkaModuleName(allocator: Allocator, module_name: []const u8, type_name: []const u8, object_name: []const u8) !List(u8) {

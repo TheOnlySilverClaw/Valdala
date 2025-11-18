@@ -177,6 +177,10 @@ pub fn launch(self: *Self) !void {
         if(player_step_tile) |tile| {
             const player_step_tile_data = self.module_loader.tile_registry.getTile(tile.index);
             user_interface.step_tile_name = player_step_tile_data.name;
+            var step_handler = player_step_tile_data.behavior.step;
+            if(step_handler) |*handler| {
+                try handler.call();
+            }
         }
 
         try user_interface.update();

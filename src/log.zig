@@ -38,7 +38,7 @@ fn write(comptime message_level: std.log.Level, comptime scope: @TypeOf(.enum_li
         .err => "ERROR"
     };
 
-    try writer.print("{s} {d}  {s:<5}  @{s:<12}", .{ color_code, std.time.milliTimestamp(), level_string, @tagName(scope) });
+    try writer.print("{s} {d}  {s:<5}  @{s:<20}", .{ color_code, std.time.milliTimestamp(), level_string, @tagName(scope) });
     try writer.print(format, args);
     try writer.writeAll("\n\x1b[0m");
     try writer.flush();

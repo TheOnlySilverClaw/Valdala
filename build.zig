@@ -26,7 +26,8 @@ pub fn build(b: *Build) void {
 
     const exe = b.addExecutable(.{
         .name = "Valdala",
-        .root_module = main_module
+        .root_module = main_module,
+        .use_llvm = true
     });
 
     linkLibraries(b, exe, target, optimize);
