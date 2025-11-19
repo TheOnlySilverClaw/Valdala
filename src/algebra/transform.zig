@@ -31,20 +31,27 @@ pub fn Transform(T: type) type {
         }
 
         pub fn movePitch(self: *Self, distance: T) void {
-            self.moveLocal(Vector.axis.x, distance);
+            self.moveAlong(self.pitchAxis(), distance);
         }
 
         pub fn moveRoll(self: *Self, distance: T) void {
-            self.moveLocal(Vector.axis.y, distance);
+            self.moveAlong(self.rollAxis(), distance);
         }
 
         pub fn moveYaw(self: *Self, distance: T) void {
-            self.moveLocal(Vector.axis.z, distance);
+            self.moveAlong(self.yawAxis(), distance);
         }
 
-        fn moveLocal(self: *Self, base: Vector, distance: T) void {
-            const axis = self.rotation.rotate(base);
-            self.moveAlong(axis, distance);
+        pub fn pitchAxis(self: Self) Vector {
+            return self.rotation.rotate(Vector.axis.x).normalize() catch Vector.axis.x;
+        }
+
+        pub fn rollAxis(self: Self) Vector {
+            return self.rotation.rotate(Vector.axis.y).normalize() catch Vector.axis.y;
+        }
+
+        pub fn yawAxis(self: Self) Vector {
+            return self.rotation.rotate(Vector.axis.z).normalize() catch Vector.axis.z;
         }
 
         pub fn moveAlong(self: *Self, axis: Vector, distance: T) void {
