@@ -9,11 +9,11 @@
     },
     .dependencies = .{
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/362cdd6bce109f7bc674be134cddd378f52da5d4.zip",
-            .hash = "zigimg-0.1.0-8_eo2jNrFQD4mu3EAUkfQRmCkyfprdIXc8JQ6uyxhjSQ"
+            .url = "https://github.com/zigimg/zigimg/archive/b53e228986e127df1223975227969ed6a50126e7.zip",
+            .hash = "zigimg-0.1.0-8_eo2rwbFgCSVcvqipgjAQueoazrTAiIvqk0F2bKYpE1"
         },
         .TrueType = .{
-            .url = "https://codeberg.org/andrewrk/TrueType/archive/main.zip",
+            .url = "https://codeberg.org/andrewrk/TrueType/archive/7543e2dca70267e8f09e37be00fbc0385138581d.zip",
             .hash = "TrueType-0.0.0-Ne-mWHIGAQBwHsiS9z_vbr1SkVZCkG01Vpzrs079dzIO"
         },
         .webgpu = .{
