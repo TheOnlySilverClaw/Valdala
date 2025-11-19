@@ -31,15 +31,15 @@ pub fn Transform(T: type) type {
         }
 
         pub fn movePitch(self: *Self, distance: T) void {
-            self.moveLocal(Vector.Axis.x, distance);
+            self.moveLocal(Vector.axis.x, distance);
         }
 
         pub fn moveRoll(self: *Self, distance: T) void {
-            self.moveLocal(Vector.Axis.y, distance);
+            self.moveLocal(Vector.axis.y, distance);
         }
 
         pub fn moveYaw(self: *Self, distance: T) void {
-            self.moveLocal(Vector.Axis.z, distance);
+            self.moveLocal(Vector.axis.z, distance);
         }
 
         fn moveLocal(self: *Self, base: Vector, distance: T) void {
@@ -53,15 +53,15 @@ pub fn Transform(T: type) type {
         }
 
         pub fn rotateRoll(self: *Self, angle: T) void {
-            self.rotateLocal(Vector.Axis.y, angle);
+            self.rotateLocal(Vector.axis.y, angle);
         }
 
         pub fn rotatePitch(self: *Self, angle: T) void {
-            self.rotateLocal(Vector.Axis.x, angle);
+            self.rotateLocal(Vector.axis.x, angle);
         }
 
         pub fn rotateYaw(self: *Self, angle: T) void {
-            self.rotateLocal(Vector.Axis.z, angle);
+            self.rotateLocal(Vector.axis.z, angle);
         }
 
         pub fn rotateAround(self: *Self, axis: Vector, angle: T) void {

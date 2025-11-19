@@ -22,7 +22,7 @@ pub fn Vector3(T: type) type {
         pub const zero = Self.all(0);
         pub const one = Self.all(1);
 
-        pub const Axis = struct {
+        pub const axis = struct {
             pub const x = Self.of(1, 0, 0);
             pub const y = Self.of(0, 1, 0);
             pub const z = Self.of(0, 0, 1);
