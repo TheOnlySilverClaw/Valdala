@@ -129,6 +129,8 @@ pub fn launch(self: *Self) !void {
     var arena: std.heap.ArenaAllocator = .init(allocator);
     defer arena.deinit();
 
+    var terrain = &game.world.terrain;
+
     const arena_allocator = arena.allocator();
 
     while(true) {
@@ -152,7 +154,6 @@ pub fn launch(self: *Self) !void {
         player.transform.rotation = .aroundAxis(.of(-1,0,0), std.math.pi);
         player.transform.rotateAround(.of(1,0,0), input.movement.rotation.pitch);
         player.transform.rotateAround(.of(0,0,1), input.movement.rotation.yaw);
-        
 
         const game_updates = try game.update(arena_allocator, delta);
 
@@ -172,11 +173,25 @@ pub fn launch(self: *Self) !void {
         user_interface.frame_memory_usage = arena.queryCapacity();
 
         const player_step_position = player.transform.position.subtract(.of(0, 0, 1.5 ));
-        const player_step_tile_position = game.world.terrain.grid.getHexagon(player_step_position);
-        const player_step_tile = game.world.terrain.getTile(player_step_tile_position);
+        const player_step_tile_position = terrain.grid.getHexagon(player_step_position);
+        const player_step_tile = terrain.getTile(player_step_tile_position);
+
+        // TODO mayve check multiple?
+        const player_hand_distance = terrain.grid.hexagon.width;
+        // the rotation axis looks completely wrong
+        const hand_vector = player.transform.rollAxis().times(player_hand_distance);
+        const player_hand_position = player.transform.position.add(hand_vector);
+        const player_hand_tile_position = terrain.grid.getHexagon(player_hand_position);
+        const player_hand_tile = terrain.getTile(player_hand_tile_position);
+        
         if(player_step_tile) |tile| {
             const player_step_tile_data = self.module_loader.tile_registry.getTile(tile.index);
             user_interface.step_tile_name = player_step_tile_data.name;
+        }
+
+        if(player_hand_tile) |tile| {
+            const player_hand_tile_data = self.module_loader.tile_registry.getTile(tile.index);
+            user_interface.hand_tile_name = player_hand_tile_data.name;
         }
 
         try user_interface.update();
