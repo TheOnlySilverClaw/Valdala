@@ -103,15 +103,9 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
      render_pass.setPipeline(self.pipeline.handle);
      render_pass.setBindGroup(0, self.bindgroup, null);
 
-    const aspect_ratio = @as(f32, @floatFromInt(surface.width)) / @as(f32, @floatFromInt(surface.height));
-
-    var projection_matrix = algebra.Matrix(f32, 4, 4).identity;
-    projection_matrix.set(1, 1, aspect_ratio);
-
     const view_matrix = scene.camera.toMatrix();
-    const view_projection_matrix = view_matrix.multiply(projection_matrix);
 
-    queue.writeBuffer(self.projection_buffer, f32, &view_projection_matrix.values, 0);
+    queue.writeBuffer(self.projection_buffer, f32, &view_matrix.values, 0);
 
     var chunk_mesh_iterator = scene.chunks.valueIterator();
     while(chunk_mesh_iterator.next()) |chunk_mesh| {

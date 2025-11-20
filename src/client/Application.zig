@@ -157,6 +157,7 @@ pub fn launch(self: *Self) !void {
 
         const game_updates = try game.update(arena_allocator, delta);
 
+        scene.camera.aspect = self.window.surface.aspect;
         scene.camera.transform = player.transform;
         try scene.updateTerrain(game.world.terrain, game_updates.world.load, game_updates.world.unload);
         
