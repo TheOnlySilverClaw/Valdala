@@ -42,9 +42,9 @@ pub fn Quaternion(comptime T: type) type {
         pub fn add(self: Self, other: Self) Self {
             return .{
                 .x = self.x + other.x,
-                .y = self.x + other.y,
-                .z = self.x + other.z,
-                .w = self.x + other.w,
+                .y = self.y + other.y,
+                .z = self.z + other.z,
+                .w = self.w + other.w,
             };
         }
 
