@@ -2,8 +2,9 @@ const std = @import("std");
 const fs = std.fs;
 const math = std.math;
 const zigimg = @import("zigimg");
-const log = std.log.scoped(.module_loader);
+const zgltf = @import("zgltf");
 const graphics = @import("graphics");
+const log = std.log.scoped(.module_loader);
 
 
 const Allocator = std.mem.Allocator;

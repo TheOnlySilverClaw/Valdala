@@ -5,3 +5,5 @@ tiles:
   topsoil: tiles/topsoil/tile.yaml
   soil: tiles/soil/tile.yaml
   rock: tiles/rock/tile.yaml
+entities:
+  cube: entities/cube/entity.yaml
