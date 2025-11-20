@@ -180,7 +180,7 @@ pub fn launch(self: *Self) !void {
         // TODO mayve check multiple?
         const player_hand_distance = terrain.grid.hexagon.width;
         // the rotation axis looks completely wrong
-        const hand_vector = player.transform.rollAxis().times(player_hand_distance);
+        const hand_vector = player.transform.rollAxis().times(1 + player_hand_distance);
         const player_hand_position = player.transform.position.add(hand_vector);
         const player_hand_tile_position = terrain.grid.getHexagon(player_hand_position);
         const player_hand_tile = terrain.getTile(player_hand_tile_position);
