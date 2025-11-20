@@ -2,7 +2,6 @@ const std = @import("std");
 const fs = std.fs;
 const math = std.math;
 const zigimg = @import("zigimg");
-const zgltf = @import("zgltf");
 const graphics = @import("graphics");
 const log = std.log.scoped(.module_loader);
 
@@ -10,8 +9,9 @@ const log = std.log.scoped(.module_loader);
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 
-const Yaml = @import("yaml").Yaml;
 const List = std.ArrayListUnmanaged;
+const Yaml = @import("yaml").Yaml;
+const Gltf = @import("zgltf").Gltf;
 const Tile = @import("Tile.zig");
 const TileRegistry = @import("TileRegistry.zig");
 const TextureArray = graphics.TextureArray;
@@ -75,9 +75,23 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     module.* = Module.init(id, module_name_copy);
     
     if(module_descriptor.get("tiles")) |tiles| {
-        // TODO error handling!
-        const tile_map = tiles.asMap().?;
-        try self.loadTiles(parser_allocator, directory, tile_map);
+        switch (tiles) {
+            .map => |map| {
+            try self.loadTiles(parser_allocator, directory, map);
+        },
+        // TODO error reporting
+        else => {}
+        }
+    }
+
+    if(module_descriptor.get("entities")) |entities| {
+        switch (entities) {
+            .map => |map| {
+                try self.loadEntities(directory, map);
+            },
+            // TODO error reporting
+            else => {}
+        }
     }
 
     try self.loaded.append(self.allocator, module);
@@ -126,4 +140,46 @@ fn loadYamlMap(allocator: Allocator, file: fs.File) !Yaml.Map {
     const items = try loadYamlItems(allocator, file);
     if(items.len == 0) return Error.Empty;
     return items[0].asMap() orelse Error.Empty;
+}
+
+fn loadEntities(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map) !void {
+    
+    var iterator = map.iterator();
+    while(iterator.next()) |entry| {
+        
+        // TODO error handling!
+        const file_name = entry.value_ptr.asScalar().?;
+        var file = try directory.openFile(file_name, .{});
+        defer file.close();
+
+        const parent_path = fs.path.dirname(file_name) orelse return Error.InvalidDirectory;
+
+        const id_copy = try self.allocator.dupe(u8, entry.key_ptr.*);
+        const descriptor = try loadYamlMap(arena, file);
+
+        const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
+        try loadEntity(parent_directory, id_copy, descriptor);
+    }
+}
+
+fn loadEntity(allocator: Allocator, id:[]const u8, descriptor: Yaml.Map) !void {
+
+    log.debug("load entitiy {}", .{ id });
+    if(descriptor.get("model")) |model| {
+       switch (model) {
+        .map => |map| {
+            const file_path = map.get("file").?.asScalar().?;
+            const mesh_name = map.get("mesh").?.asScalar().?;
+            log.debug("load mesh {} from {}", .{ mesh_name, file_path });
+
+            const parser = Gltf.init(allocator);
+            _ = parser;
+        }
+       } 
+    }
+}
+
+fn loadModel(allocator: Allocator, file: fs.File) !void {
+    _ = allocator;
+    _ = file;
 }
