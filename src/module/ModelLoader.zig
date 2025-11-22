@@ -5,6 +5,7 @@ const Gltf = @import("zgltf").Gltf;
 const log = std.log.scoped(.model_loader);
 
 const Allocator = mem.Allocator;
+const LoadedMesh = @import("LoadedMesh.zig");
 
 const Self = @This();
 
@@ -18,7 +19,7 @@ pub fn init(allocator: Allocator, root: fs.Dir) Self {
     };
 }
 
-pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !void {
+pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !LoadedMesh {
 
     const file = try self.root.openFile(file_path, .{});
     defer file.close();
@@ -42,11 +43,13 @@ pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !void {
     const buffer_data = try self.loadBuffer(mesh_buffer);
     defer self.allocator.free(buffer_data);
 
-    const position_data = try self.loadAttributeData(f32, .position, parser, mesh_descriptor, buffer_data);
-    defer self.allocator.free(position_data);
-
+    const positions = try self.loadAttributeData(f32, .position, parser, mesh_descriptor, buffer_data);
     const indices = try self.loadIndices(u16, parser, mesh_descriptor, buffer_data);
-    defer self.allocator.free(indices);
+    
+    return .{
+        .positions = positions,
+        .indices = indices
+    };
 }
 
 fn loadAttributeData(self: Self, T: type, comptime tag: std.meta.Tag(Gltf.Attribute), parser: Gltf, mesh: Gltf.Mesh, buffer_data: []const u8) ![]const T {
@@ -107,12 +110,18 @@ fn searchAttribute(attributes: []const Gltf.Attribute, comptime tag: std.meta.Ta
 }
 
 const testing = std.testing;
-const expect = testing.expect;
+const expectEqual = testing.expectEqual;
 
 test {
-    const allocator = testing.allocator;
+    
+    const allocator = testing.allocator;    
     // TODO figure out where to put a test that requires a directory with specific files
     const root = try fs.cwd().openDir("modules/valdala/entities/cube", .{});
+    
     const loader = Self.init(allocator, root);
-    try loader.load("cube.gltf", "Cube");
+    const mesh = try loader.load("cube.gltf", "Cube");
+    defer mesh.deinit(allocator);
+
+    try expectEqual(6 * 4 * 3, mesh.positions.len);
+    try expectEqual(36, mesh.indices.len);
 }
