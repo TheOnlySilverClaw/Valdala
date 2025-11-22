@@ -10,12 +10,13 @@ struct Fragment {
 }
 
 @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> transform: mat4x4<f32>;
 
 @vertex
 fn vertex(vertex: Vertex) -> Fragment {
 
   var fragment: Fragment;
-  fragment.position = projection * vec4<f32>(vertex.position, 1.0);
+  fragment.position =  projection * transform * vec4<f32>(vertex.position, 1.0);
   // fragment.uv = vertex.uv;
   // fragment.texture = vertex.texture;
 

@@ -1,4 +1,7 @@
 const webgpu = @import("webgpu");
+const algebra = @import("algebra");
+
+const Transform = algebra.Transform;
 
 
 pub const Vertex = extern struct {
@@ -29,7 +32,7 @@ pub const Index = u16;
 
 const Self = @This();
 
-
+transform: Transform(f32),
 vertex_buffer: *webgpu.buffer.Buffer,
 index_buffer: *webgpu.buffer.Buffer,
 
@@ -55,6 +58,7 @@ pub fn init(device: *webgpu.device.Device, vertices: []const Vertex, indices: []
     queue.writeBuffer(index_buffer, Index, indices, 0);
 
     return .{
+        .transform = .origin,
         .index_buffer = index_buffer,
         .vertex_buffer = vertex_buffer
     };

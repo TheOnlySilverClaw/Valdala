@@ -5,6 +5,7 @@ const module = @import("module");
 const log = std.log.scoped(.entity_renderer);
 
 const Allocator = std.mem.Allocator;
+const Matrix = algebra.Matrix(f32, 4, 4);
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const Pipeline = @import("EntityRenderPipeline.zig");
@@ -16,6 +17,7 @@ const Self = @This();
 surface: *const Surface,
 pipeline: Pipeline,
 projection_buffer: *webgpu.buffer.Buffer,
+transform_buffer: *webgpu.buffer.Buffer,
 sampler: *webgpu.sampler.Sampler,
 bindgroup: *webgpu.bind_group.BindGroup,
 
@@ -25,11 +27,11 @@ pub fn init(surface: *const Surface) !Self {
     const device = surface.device;
 
     const pipeline = try Pipeline.init(surface);
-    const bindgroup_layout = pipeline.handle.getBindGroupLayout(0);
+    const bindgroup_layout = pipeline.static_bind_group_layout;
 
     const projection_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .label = .sliced("projection"),
-        .size = 4 * 4 * @sizeOf(f32),
+        .size = @sizeOf(Matrix),
         .usage = .{ .vertex = true, .uniform = true, .copy_dst = true }
     };
 
@@ -72,13 +74,27 @@ pub fn init(surface: *const Surface) !Self {
 
     const bindgroup = surface.device.createBindGroup(&descriptor);
 
+    const transform_buffer = createTransformBuffer(device, 64);
+
     return .{
         .surface = surface,
         .pipeline = pipeline,
         .bindgroup = bindgroup,
         .projection_buffer = projection_buffer,
+        .transform_buffer = transform_buffer,
         .sampler = sampler
     };
+}
+
+fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buffer.Buffer {
+    
+    const descriptor = webgpu.buffer.BufferDescriptor {
+        .label = .sliced("transform"),
+        .size = @sizeOf(Matrix) * count,
+        .usage = .{ .uniform = true, .copy_dst = true }
+    };
+
+    return device.createBuffer(&descriptor);
 }
 
 pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
@@ -93,17 +109,35 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     queue.writeBuffer(self.projection_buffer, f32, &view_matrix.values, 0);
 
-    for(scene.entities.items) |entity| {
-        try renderEntity(entity, render_pass);
+    const transform_entry = webgpu.bind_group.BindGroupEntry {
+        .binding = 0,
+        .buffer = self.transform_buffer,
+        .size = self.transform_buffer.size()
+    };
+
+    const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
+        .layout = self.pipeline.dynamic_bind_group_layout,
+        .entries = &.{ transform_entry },
+        .entry_count = 1
+    };
+
+    const dynamic_bind_group = surface.device.createBindGroup(&dynamic_bind_group_descriptor);
+    defer dynamic_bind_group.release();
+
+    for(scene.entities.items, 0..) |mesh, instance| {
+
+        const dynamic_offset: u32 = @intCast(instance * @sizeOf(Matrix));
+        render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
+
+        const transform_matrix = mesh.transform.toMatrix();
+        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, @sizeOf(Matrix) * instance);
+
+        render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
+        render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
+        render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(EntityMesh.Index)), 1, 0, 0, 0);
     }
 }
 
-pub fn renderEntity(mesh: EntityMesh, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
-
-    render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
-    render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
-    render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(EntityMesh.Index)), 1, 0, 0, 0);
-}
 
 pub fn deinit(self: Self) void {
     self.pipeline.deinit();

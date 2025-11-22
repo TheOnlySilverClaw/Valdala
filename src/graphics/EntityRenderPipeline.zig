@@ -7,7 +7,8 @@ const Shader = @import("Shader.zig");
 const Self = @This();
 
 handle: *webgpu.render_pipeline.RenderPipeline,
-bindgroup_layout: *webgpu.bind_group_layout.BindGroupLayout,
+static_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
+dynamic_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
 
 pub fn init(surface: *const Surface) !Self {
 
@@ -15,21 +16,33 @@ pub fn init(surface: *const Surface) !Self {
     const shader = Shader.load(shader_source, surface.device, "entity");
     defer shader.release();
 
-    const bindgroup_layout = createBindGroupLayout(surface.device);
-    const handle = createRenderPipeline(surface, bindgroup_layout, shader);
+    const static_bind_group_layout = createStaticBindGroupLayout(surface.device);
+    const dynamic_bind_group_layout = createDynamicBindGroupLayout(surface.device);
 
-    return .{ .handle = handle, .bindgroup_layout = bindgroup_layout };
+    const handle = createRenderPipeline(surface, static_bind_group_layout, dynamic_bind_group_layout, shader);
+
+    return .{
+        .handle = handle,
+        .static_bind_group_layout = static_bind_group_layout,
+        .dynamic_bind_group_layout = dynamic_bind_group_layout
+    };
 }
 
 pub fn deinit(self: Self) void {
+
     self.handle.release();
+    self.static_bind_group_layout.release();
+    self.dynamic_bind_group_layout.release();
 }
 
-fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_group_layout.BindGroupLayout, shader: *webgpu.shader.ShaderModule) *webgpu.render_pipeline.RenderPipeline {
+fn createRenderPipeline(surface: *const Surface, static_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout, dynamic_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout, shader: *webgpu.shader.ShaderModule) *webgpu.render_pipeline.RenderPipeline {
 
     const device = surface.device;
 
-    const bind_group_layouts = [_]*webgpu.bind_group_layout.BindGroupLayout { bindgroup_layout };
+    const bind_group_layouts = [_]*webgpu.bind_group_layout.BindGroupLayout {
+        static_bind_group_layout,
+        dynamic_bind_group_layout
+    };
 
     const pipeline_layout_descriptor = webgpu.pipeline_layout.PipelineLayoutDescriptor {
         .label = .empty,
@@ -39,7 +52,9 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);
 
-    const vertex_position_attribute = webgpu.render_pipeline.VertexAttribute {
+    const Attribute = webgpu.render_pipeline.VertexAttribute;
+
+    const vertex_position_attribute = Attribute {
         .shader_location = 0,
         .format = .float32x3,
         .offset = 0
@@ -56,8 +71,9 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
     //     .format = .uint32,
     //     .offset = uv_attribute.offset + uv_attribute.format.size()
     // };
+
     
-    const vertex_attributes = [_]webgpu.render_pipeline.VertexAttribute {
+    const vertex_attributes = [_]Attribute {
         vertex_position_attribute,
         // uv_attribute,
         // texture_attribute
@@ -120,7 +136,7 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
     return device.createRenderPipeline(&descriptor);
 }
 
-fn createBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
 
     const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
 
@@ -140,20 +156,34 @@ fn createBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layou
         .visibility = .{ .fragment = true }
     };
 
-    // const texture_entry = Entry {
-    //     .binding = 2,
-    //     .texture = .{
-    //         .sample_type = .float,
-    //         .view_dimension = .@"2d_array",
-    //         .multisampled = 0
-    //     },
-    //     .visibility = .{ .fragment = true }
-    // };
-
     const entries = [_]Entry {
         projection_buffer_entry,
         sampler_entry
     };
+
+    const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
+        .label = .empty,
+        .entries = &entries,
+        .entry_count = entries.len
+    };
+
+    return device.createBindGroupLayout(&descriptor);
+}
+
+fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+
+    const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
+
+    const transform_buffer_entry = Entry {
+        .binding = 0,
+        .buffer = .{
+            .type = .uniform,
+            .has_dynamic_offset = 1
+        },
+        .visibility = .{ .vertex =  true }
+    };
+
+    const entries = [_]Entry { transform_buffer_entry };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
         .label = .empty,

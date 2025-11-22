@@ -135,11 +135,18 @@ pub fn launch(self: *Self) !void {
 
     // TODO figure out where to put this
     const cube_loaded_mesh = self.module_loader.entity_registry.entities.items[0].mesh;
-    const cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
+    
+    var cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
+    cube_entity_mesh.transform.scaleUniform(2.5);
+    cube_entity_mesh.transform.moveZ(10.0);
+
     try scene.entities.append(allocator, cube_entity_mesh);
+
 
     while(true) {
         defer _ = arena.reset(.retain_capacity);
+
+        scene.entities.items[0].transform.rotateRoll(0.02);
 
         const delta = timer.lap();
 
