@@ -133,6 +133,11 @@ pub fn launch(self: *Self) !void {
 
     const arena_allocator = arena.allocator();
 
+    // TODO figure out where to put this
+    const cube_loaded_mesh = self.module_loader.entity_registry.entities.items[0].mesh;
+    const cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
+    try scene.entities.append(allocator, cube_entity_mesh);
+
     while(true) {
         defer _ = arena.reset(.retain_capacity);
 

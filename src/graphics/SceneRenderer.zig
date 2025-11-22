@@ -3,6 +3,7 @@ const webgpu = @import("webgpu");
 
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
+const EntityRenderer = @import("EntityRenderer.zig");
 const TerrainRenderer = @import("TerrainRenderer.zig");
 const TextureArray = @import("TextureArray.zig");
 
@@ -11,14 +12,17 @@ const Self = @This();
 
 surface: *const Surface,
 terrain_renderer: TerrainRenderer,
+entity_renderer: EntityRenderer,
 
 pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
 
     const terrain_renderer = try TerrainRenderer.init( surface, tile_textures);
+    const entity_renderer =  try EntityRenderer.init(surface);
 
     return .{
         .surface = surface,
-        .terrain_renderer = terrain_renderer
+        .terrain_renderer = terrain_renderer,
+        .entity_renderer = entity_renderer
     };
 }
 
@@ -55,6 +59,7 @@ pub fn render(self: *Self, scene: Scene, command_encoder: *webgpu.command_encode
     const render_pass = command_encoder.beginRenderPass(&render_pass_descriptor);
     
     try self.terrain_renderer.render(scene, render_pass);
+    try self.entity_renderer.render(scene, render_pass);
 
     render_pass.end();
     render_pass.release();
