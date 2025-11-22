@@ -214,6 +214,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     test_root.addImport("algebra", algebra);
     test_root.addImport("coordinate", coordinate);
     test_root.addImport("terrain", terrain);
+    test_root.addImport("zgltf", zgltf);
 }
 
 fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
