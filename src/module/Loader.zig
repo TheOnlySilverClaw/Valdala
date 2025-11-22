@@ -16,6 +16,7 @@ const Tile = @import("Tile.zig");
 const TileRegistry = @import("TileRegistry.zig");
 const TextureArray = graphics.TextureArray;
 const Module = @import("LoadedModule.zig");
+const EntityRegistry = @import("EntityRegistry.zig");
 
 pub const Error = error {
     MissingName,
@@ -35,21 +36,26 @@ allocator: Allocator,
 root: fs.Dir,
 loaded: List(*Module),
 tile_registry: TileRegistry,
+entity_registry: EntityRegistry,
 
 pub fn init(allocator: Allocator, root: fs.Dir, tile_textures: TextureArray) !Self {
     
     const tile_registry = try TileRegistry.init(allocator, tile_textures);
+    const entity_registry = EntityRegistry.init(allocator);
 
     return .{
         .allocator = allocator,
         .root = root,
         .loaded = .empty,
-        .tile_registry = tile_registry
+        .tile_registry = tile_registry,
+        .entity_registry = entity_registry
     };
 }
 
 pub fn deinit(self: *Self) void {
+    
     self.tile_registry.deinit();
+    self.entity_registry.deinit();
     self.unloadModules();
 }
 
@@ -87,7 +93,7 @@ pub fn loadModule(self: *Self, id: []const u8) !*const Module {
     if(module_descriptor.get("entities")) |entities| {
         switch (entities) {
             .map => |map| {
-                try self.loadEntities(directory, map);
+                try self.loadEntities(parser_allocator, directory, map);
             },
             // TODO error reporting
             else => {}
@@ -158,28 +164,7 @@ fn loadEntities(self: *Self, arena: Allocator, directory: fs.Dir, map: Yaml.Map)
         const descriptor = try loadYamlMap(arena, file);
 
         const parent_directory = try directory.openDir(parent_path, .{ .no_follow = true });
-        try loadEntity(parent_directory, id_copy, descriptor);
+        try self.entity_registry.load(parent_directory, id_copy, descriptor);
     }
 }
 
-fn loadEntity(allocator: Allocator, id:[]const u8, descriptor: Yaml.Map) !void {
-
-    log.debug("load entitiy {}", .{ id });
-    if(descriptor.get("model")) |model| {
-       switch (model) {
-        .map => |map| {
-            const file_path = map.get("file").?.asScalar().?;
-            const mesh_name = map.get("mesh").?.asScalar().?;
-            log.debug("load mesh {} from {}", .{ mesh_name, file_path });
-
-            const parser = Gltf.init(allocator);
-            _ = parser;
-        }
-       } 
-    }
-}
-
-fn loadModel(allocator: Allocator, file: fs.File) !void {
-    _ = allocator;
-    _ = file;
-}
