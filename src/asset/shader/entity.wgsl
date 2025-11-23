@@ -29,5 +29,5 @@ fn vertex(vertex: Vertex) -> Fragment {
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
   // let textureColor = textureSample(textureArray, textureSampler, fragment.uv, fragment.texture);
-  return vec4<f32>(1, 0, 0, 1);
+  return vec4<f32>(0.2, 0.2, 0.2, 1);
 }

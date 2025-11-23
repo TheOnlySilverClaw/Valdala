@@ -145,8 +145,6 @@ pub fn launch(self: *Self) !void {
     while(true) {
         defer _ = arena.reset(.retain_capacity);
 
-        scene.entities.items[0].transform.rotateRoll(0.02);
-
         const delta = timer.lap();
 
         const input = self.controller.poll();
