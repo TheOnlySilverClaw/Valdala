@@ -137,6 +137,10 @@ pub fn launch(self: *Self) !void {
     const cube_loaded_mesh = self.module_loader.entity_registry.entities.items[1].mesh;
     
     var cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
+    // chunk meshes are unique and need to be destroyed with their chunk
+    // entity meshes are shared and need to be destroyed once per entity type
+    // TODO figure out where
+    defer cube_entity_mesh.deinit();
     cube_entity_mesh.transform.moveZ(10.0);
     cube_entity_mesh.transform.moveX(-50.0);
 

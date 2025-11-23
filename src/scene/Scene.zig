@@ -66,10 +66,6 @@ pub fn deinit(self: *Self) void {
         chunk.destroy();
     }
     self.chunks.clearAndFree(self.allocator);
-
-    for(self.entities.items) |entity| {
-        entity.deinit();
-    }
     self.entities.clearAndFree(self.allocator);
 
     for (self.chunks_to_queue.items) |chunk_to_mesh| chunk_to_mesh.chunk.deinit(self.allocator);
