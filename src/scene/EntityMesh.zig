@@ -1,6 +1,9 @@
+const std = @import("std");
 const webgpu = @import("webgpu");
 const algebra = @import("algebra");
+const graphics = @import("graphics");
 
+const Allocator = std.mem.Allocator;
 const Transform = algebra.Transform;
 
 
@@ -8,7 +11,7 @@ pub const Vertex = extern struct {
 
     pub const format = [_]webgpu.render_pipeline.VertexFormat{
         .float32x3,
-        // .float32x2,
+        .float32x2,
     };
 
     pub const Position = extern struct {
@@ -19,13 +22,13 @@ pub const Vertex = extern struct {
 
     pub const UV = extern struct {
         /// horizontal offset: left = 0.0 right = 1.0
-        u: f16,
+        u: f32,
         /// vertical offset: top = 0.0 bottom = 1.0
-        v: f16,
+        v: f32,
     };
 
     position: Position,
-    // uv: UV,
+    uv: UV,
 };
 
 pub const Index = u16;
@@ -35,8 +38,12 @@ const Self = @This();
 transform: Transform(f32),
 vertex_buffer: *webgpu.buffer.Buffer,
 index_buffer: *webgpu.buffer.Buffer,
+color_texture: ?u32,
 
-pub fn init(device: *webgpu.device.Device, vertices: []const Vertex, indices: []const Index) Self {
+pub fn init(allocator: Allocator, device: *webgpu.device.Device, positions: []const f32, uvs: []const f32, indices: []const Index, color_texture: ?u32) !Self {
+
+    const vertices = try createVertices(allocator, positions, uvs);
+    defer allocator.free(vertices);
 
     const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = vertices.len * @sizeOf(Vertex),
@@ -60,7 +67,8 @@ pub fn init(device: *webgpu.device.Device, vertices: []const Vertex, indices: []
     return .{
         .transform = .origin,
         .index_buffer = index_buffer,
-        .vertex_buffer = vertex_buffer
+        .vertex_buffer = vertex_buffer,
+        .color_texture = color_texture
     };
 }
 
@@ -71,4 +79,19 @@ pub fn deinit(self: Self) void {
 
     self.index_buffer.destroy();
     self.index_buffer.release();
+}
+
+fn createVertices(allocator: Allocator, positions: []const f32, uvs: []const f32) ![]const Vertex {
+
+    const vertices = try allocator.alloc(Vertex, positions.len / 3);
+    
+    for(vertices, 0..) |*vertex, index| {
+        vertex.position.x = positions[index * 3];
+        vertex.position.y = positions[index * 3 + 1];
+        vertex.position.z = positions[index * 3 + 2];
+        vertex.uv.u = uvs[index * 2];
+        vertex.uv.v = uvs[index * 2 + 1];
+    }
+
+    return vertices;
 }

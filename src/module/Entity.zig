@@ -12,7 +12,7 @@ id: ID,
 name: Name,
 mesh: Mesh,
 
-pub fn deinit(self: Self, allocator: Allocator) void {
+pub fn deinit(self: *Self, allocator: Allocator) void {
     
     allocator.free(self.id);
     allocator.free(self.name);

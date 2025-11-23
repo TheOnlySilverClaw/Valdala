@@ -1,7 +1,11 @@
 const std = @import("std");
 const mem = std.mem;
 const fs = std.fs;
+const graphics = @import("graphics");
+
 const Gltf = @import("zgltf").Gltf;
+const Image = @import("zigimg").Image;
+const TextureList = graphics.TextureList;
 const log = std.log.scoped(.model_loader);
 
 const Allocator = mem.Allocator;
@@ -19,7 +23,7 @@ pub fn init(allocator: Allocator, root: fs.Dir) Self {
     };
 }
 
-pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !LoadedMesh {
+pub fn load(self: *Self, file_path: []const u8, mesh_name: []const u8, texture_list: *TextureList) !LoadedMesh {
 
     const file = try self.root.openFile(file_path, .{});
     defer file.close();
@@ -36,22 +40,63 @@ pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !LoadedMes
     try parser.parse(@alignCast(source));
     const data = parser.data;
 
-    const mesh_descriptor = searchMesh(data.meshes, mesh_name) orelse return error.MeshMissing;
+    const mesh_descriptor = searchMesh(data.meshes, mesh_name) orelse {
+        log.debug("Mesh with name {s} not found", .{ mesh_name });
+        for(data.meshes) |mesh| {
+            if(mesh.name) |name| {
+                log.debug("Mesh found with name {s}", .{ name });
+            }
+        }
+        return error.MeshMissing;
+    };
 
     // we only support one buffer for now
     const mesh_buffer = data.buffers[0];
-    const buffer_data = try self.loadBuffer(mesh_buffer);
-    defer self.allocator.free(buffer_data);
+    const buffer_data = parser.glb_binary orelse try self.loadBuffer(mesh_buffer);
+    defer if(parser.glb_binary == null) self.allocator.free(buffer_data);
 
     const positions = try self.loadAttributeData(f32, .position, parser, mesh_descriptor, buffer_data);
-    const indices = try self.loadIndices(u16, parser, mesh_descriptor, buffer_data);
-    
     remapPositions(positions);
+
+    const indices = try self.loadIndices(u16, parser, mesh_descriptor, buffer_data);
+
+    const textcoords = try self.loadAttributeData(f32, .texcoord, parser, mesh_descriptor, buffer_data);
+    
+    const color_texture = try self.loadColorTexture(mesh_descriptor, data, texture_list);
 
     return .{
         .positions = positions,
-        .indices = indices
+        .indices = indices,
+        .textcoords = textcoords,
+        .color_texture = color_texture
     };
+}
+
+fn loadColorTexture(self: *Self, mesh: Gltf.Mesh, data: Gltf.Data, texture_list: *TextureList) !?u32 {
+
+    if(mesh.primitives[0].material) |material_index| {
+        const material = data.materials[material_index];
+        if(material.metallic_roughness.base_color_texture) |color_texture| {
+            const texture = data.textures[color_texture.index];
+            if(texture.source) |texture_source| {
+                const texture_image = data.images[texture_source];
+                if(texture_image.uri) |texture_uri| {
+                    
+                    var texture_file = try self.root.openFile(texture_uri, .{});
+                    defer texture_file.close();
+                    
+                    var read_buffer: [1024]u8 = undefined;
+                    var loaded_image = try Image.fromFile(self.allocator, texture_file, &read_buffer);
+                    try loaded_image.convert(self.allocator, .rgba32);
+                    defer loaded_image.deinit(self.allocator);
+
+                    const texture_registry_index = try texture_list.add(@intCast(loaded_image.width), @intCast(loaded_image.height), loaded_image.pixels.asConstBytes());
+                    return texture_registry_index;
+                }
+            }
+        }
+    }
+    return null;
 }
 
 fn remapPositions(positions: []f32) void {

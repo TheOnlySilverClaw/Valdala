@@ -55,9 +55,10 @@ pub fn init(allocator: Allocator, directory: fs.Dir) !Self {
     controller.window_size = .of(@floatFromInt(window_width), @floatFromInt(window_height));
 
     const tile_textures = graphics.TextureArray.create(8, 8, 64, window.surface.device, .{ .label = .sliced("tiles")});
+    const entity_textures = graphics.TextureList.init(allocator, window.surface.device);
 
     const module_directory = try directory.openDir("modules", .{.iterate = true, .no_follow = true });
-    var module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures);
+    var module_loader = try ModuleLoader.init(allocator, module_directory, tile_textures, entity_textures);
     const module_id = try allocator.dupe(u8, "valdala");
     _ = try module_loader.loadModule(module_id);
 
@@ -107,7 +108,8 @@ pub fn launch(self: *Self) !void {
     defer scene.deinit();
     
     const tile_textures = self.module_loader.tile_registry.texture_array;
-    var renderer = try graphics.GameRenderer.init(surface, tile_textures, self.fonts);
+    const entity_textures = self.module_loader.entity_registry.texture_list;
+    var renderer = try graphics.GameRenderer.init(surface, tile_textures, entity_textures, self.fonts);
 
     var user_interface = try gui.UserInterface.init(allocator, surface, self.fonts);
     defer user_interface.deinit();
@@ -134,18 +136,18 @@ pub fn launch(self: *Self) !void {
     const arena_allocator = arena.allocator();
 
     // TODO figure out where to put this
-    const cube_loaded_mesh = self.module_loader.entity_registry.entities.items[1].mesh;
-    
-    var cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
+    const loaded_entity = self.module_loader.entity_registry.entities.items[2];
+    const loaded_mesh = loaded_entity.mesh;
+    var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_mesh.positions, loaded_mesh.textcoords.?, loaded_mesh.indices, loaded_mesh.color_texture);
     // chunk meshes are unique and need to be destroyed with their chunk
     // entity meshes are shared and need to be destroyed once per entity type
     // TODO figure out where
-    defer cube_entity_mesh.deinit();
-    cube_entity_mesh.transform.moveZ(10.0);
-    cube_entity_mesh.transform.moveX(-50.0);
+    defer entity_mesh.deinit();
+    entity_mesh.transform.moveZ(10.0);
+    entity_mesh.transform.moveX(-50.0);
 
     for(0..5) |i| {
-        var copy = cube_entity_mesh;
+        var copy = entity_mesh;
         const f: f32 = @floatFromInt(i);
         copy.transform.moveX(15.0 * f);
         copy.transform.rotateRoll(std.math.degreesToRadians(15) * f);

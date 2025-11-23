@@ -15,6 +15,7 @@ const Gltf = @import("zgltf").Gltf;
 const Tile = @import("Tile.zig");
 const TileRegistry = @import("TileRegistry.zig");
 const TextureArray = graphics.TextureArray;
+const TextureList = graphics.TextureList;
 const Module = @import("LoadedModule.zig");
 const EntityRegistry = @import("EntityRegistry.zig");
 
@@ -38,10 +39,10 @@ loaded: List(*Module),
 tile_registry: TileRegistry,
 entity_registry: EntityRegistry,
 
-pub fn init(allocator: Allocator, root: fs.Dir, tile_textures: TextureArray) !Self {
+pub fn init(allocator: Allocator, root: fs.Dir, tile_textures: TextureArray, entity_textures: TextureList) !Self {
     
     const tile_registry = try TileRegistry.init(allocator, tile_textures);
-    const entity_registry = EntityRegistry.init(allocator);
+    const entity_registry = EntityRegistry.init(allocator, entity_textures);
 
     return .{
         .allocator = allocator,

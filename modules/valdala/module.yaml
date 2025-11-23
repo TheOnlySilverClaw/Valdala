@@ -8,3 +8,4 @@ tiles:
 entities:
   cube: entities/cube/entity.yaml
   shrine: entities/shrine/entity.yaml
+  cow: entities/staff/entity.yaml

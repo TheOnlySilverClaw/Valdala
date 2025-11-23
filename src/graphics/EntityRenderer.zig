@@ -10,7 +10,7 @@ const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const Pipeline = @import("EntityRenderPipeline.zig");
 const EntityMesh = @import("scene").EntityMesh;
-const TextureArray = @import("TextureArray.zig");
+const TextureList = @import("TextureList.zig");
 
 const Self = @This();
 
@@ -20,9 +20,9 @@ projection_buffer: *webgpu.buffer.Buffer,
 transform_buffer: *webgpu.buffer.Buffer,
 sampler: *webgpu.sampler.Sampler,
 bindgroup: *webgpu.bind_group.BindGroup,
+texture_list: TextureList,
 
-
-pub fn init(surface: *const Surface) !Self {
+pub fn init(surface: *const Surface, texture_list: TextureList) !Self {
 
     const device = surface.device;
 
@@ -82,7 +82,8 @@ pub fn init(surface: *const Surface) !Self {
         .bindgroup = bindgroup,
         .projection_buffer = projection_buffer,
         .transform_buffer = transform_buffer,
-        .sampler = sampler
+        .sampler = sampler,
+        .texture_list = texture_list
     };
 }
 
@@ -112,23 +113,37 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     queue.writeBuffer(self.projection_buffer, f32, &view_matrix.values, 0);
 
-    const transform_entry = webgpu.bind_group.BindGroupEntry {
-        .binding = 0,
-        .buffer = self.transform_buffer,
-        .size = dynamic_offset_stride
-    };
-
-    const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
-        .layout = self.pipeline.dynamic_bind_group_layout,
-        .entries = &.{ transform_entry },
-        .entry_count = 1
-    };
-
-    const dynamic_bind_group = surface.device.createBindGroup(&dynamic_bind_group_descriptor);
-    defer dynamic_bind_group.release();
-
     for(scene.entities.items, 0..) |mesh, instance| {
 
+        const color_texture = self.texture_list.textures.items[@intCast(mesh.color_texture.?)];
+        const color_texture_view = color_texture.createView(.{});
+        defer color_texture_view.release();
+
+        const transform_entry = webgpu.bind_group.BindGroupEntry {
+            .binding = 0,
+            .buffer = self.transform_buffer,
+            .size = dynamic_offset_stride
+        };
+
+        const color_texture_entry = webgpu.bind_group.BindGroupEntry {
+            .binding = 1,
+            .texture_view = color_texture_view,
+        };
+
+        const entries = [_] webgpu.bind_group.BindGroupEntry {
+            transform_entry,
+            color_texture_entry
+        };
+
+        const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
+            .layout = self.pipeline.dynamic_bind_group_layout,
+            .entries = &entries,
+            .entry_count = entries.len
+        };
+
+        const dynamic_bind_group = surface.device.createBindGroup(&dynamic_bind_group_descriptor);
+        defer dynamic_bind_group.release();
+        
         const dynamic_offset: u32 = @intCast(instance * dynamic_offset_stride);
         render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
 

@@ -1,0 +1,4 @@
+name: Wizard Staff
+model:
+    file: SWS.gltf
+    mesh: SWS

@@ -6,6 +6,7 @@ const Surface = @import("Surface.zig");
 const EntityRenderer = @import("EntityRenderer.zig");
 const TerrainRenderer = @import("TerrainRenderer.zig");
 const TextureArray = @import("TextureArray.zig");
+const TextureList = @import("TextureList.zig");
 
 const Self = @This();
 
@@ -14,10 +15,10 @@ surface: *const Surface,
 terrain_renderer: TerrainRenderer,
 entity_renderer: EntityRenderer,
 
-pub fn init(surface: *const Surface, tile_textures: TextureArray) !Self {
+pub fn init(surface: *const Surface, tile_textures: TextureArray, entity_textures: TextureList) !Self {
 
     const terrain_renderer = try TerrainRenderer.init( surface, tile_textures);
-    const entity_renderer =  try EntityRenderer.init(surface);
+    const entity_renderer =  try EntityRenderer.init(surface, entity_textures);
 
     return .{
         .surface = surface,

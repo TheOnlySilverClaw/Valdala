@@ -60,27 +60,19 @@ fn createRenderPipeline(surface: *const Surface, static_bind_group_layout: *webg
         .offset = 0
     };
 
-    // const uv_attribute = webgpu.render_pipeline.VertexAttribute {
-    //     .shader_location = 1,
-    //     .format = .float16x2,
-    //     .offset = vertex_position_attribute.format.size()
-    // };
+    const uv_attribute = webgpu.render_pipeline.VertexAttribute {
+        .shader_location = 1,
+        .format = .float32x2,
+        .offset = vertex_position_attribute.format.size()
+    };
 
-    // const texture_attribute = webgpu.render_pipeline.VertexAttribute {
-    //     .shader_location = 2,
-    //     .format = .uint32,
-    //     .offset = uv_attribute.offset + uv_attribute.format.size()
-    // };
-
-    
     const vertex_attributes = [_]Attribute {
         vertex_position_attribute,
-        // uv_attribute,
-        // texture_attribute
+        uv_attribute,
     };
     
     const vertex_buffer_layout = webgpu.render_pipeline.VertexBufferLayout {
-        .array_stride = vertex_position_attribute.format.size(), //  + uv_attribute.format.size() + texture_attribute.format.size(),
+        .array_stride = vertex_position_attribute.format.size() + uv_attribute.format.size(),
         .step_mode = .vertex,
         .attribute_count = vertex_attributes.len,
         .attributes = &vertex_attributes
@@ -184,7 +176,19 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_grou
         .visibility = .{ .vertex =  true }
     };
 
-    const entries = [_]Entry { transform_buffer_entry };
+    const color_texture_entry = Entry {
+        .binding = 1,
+        .texture = .{
+            .sample_type = .float,
+            .view_dimension = .@"2d"
+        },
+        .visibility = .{ .fragment =  true }
+    };
+
+    const entries = [_]Entry {
+        transform_buffer_entry,
+        color_texture_entry
+    };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
         .label = .empty,
