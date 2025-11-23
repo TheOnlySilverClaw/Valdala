@@ -178,7 +178,8 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_grou
         .binding = 0,
         .buffer = .{
             .type = .uniform,
-            .has_dynamic_offset = 1
+            .has_dynamic_offset = 1,
+            .min_binding_size = 256
         },
         .visibility = .{ .vertex =  true }
     };

@@ -138,8 +138,16 @@ pub fn launch(self: *Self) !void {
     
     var cube_entity_mesh = @import("scene").EntityMesh.init(surface.device, @ptrCast(cube_loaded_mesh.positions), cube_loaded_mesh.indices);
     cube_entity_mesh.transform.moveZ(10.0);
+    cube_entity_mesh.transform.moveX(-50.0);
 
-    try scene.entities.append(allocator, cube_entity_mesh);
+    for(0..5) |i| {
+        var copy = cube_entity_mesh;
+        const f: f32 = @floatFromInt(i);
+        copy.transform.moveX(15.0 * f);
+        copy.transform.rotateRoll(std.math.degreesToRadians(15) * f);
+        copy.transform.scaleUniform(1 - 0.1 * f);
+        try scene.entities.append(allocator, copy);
+    }
 
 
     while(true) {

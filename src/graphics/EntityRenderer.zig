@@ -90,7 +90,7 @@ fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buff
     
     const descriptor = webgpu.buffer.BufferDescriptor {
         .label = .sliced("transform"),
-        .size = @sizeOf(Matrix) * count,
+        .size = 256 * count,
         .usage = .{ .uniform = true, .copy_dst = true }
     };
 
@@ -98,12 +98,15 @@ fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buff
 }
 
 pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
-     
-     const surface = self.surface;
-     const queue = surface.getQueue();
 
-     render_pass.setPipeline(self.pipeline.handle);
-     render_pass.setBindGroup(0, self.bindgroup, null);
+    // TODO determine smallest valid stride from limit and required size
+    const dynamic_offset_stride = 256;
+
+    const surface = self.surface;
+    const queue = surface.getQueue();
+
+    render_pass.setPipeline(self.pipeline.handle);
+    render_pass.setBindGroup(0, self.bindgroup, null);
 
     const view_matrix = scene.camera.toMatrix();
 
@@ -112,7 +115,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
     const transform_entry = webgpu.bind_group.BindGroupEntry {
         .binding = 0,
         .buffer = self.transform_buffer,
-        .size = self.transform_buffer.size()
+        .size = dynamic_offset_stride
     };
 
     const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
@@ -126,11 +129,11 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     for(scene.entities.items, 0..) |mesh, instance| {
 
-        const dynamic_offset: u32 = @intCast(instance * @sizeOf(Matrix));
+        const dynamic_offset: u32 = @intCast(instance * dynamic_offset_stride);
         render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
 
         const transform_matrix = mesh.transform.toMatrix();
-        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, @sizeOf(Matrix) * instance);
+        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, dynamic_offset);
 
         render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
         render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
