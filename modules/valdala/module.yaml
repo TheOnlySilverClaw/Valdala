@@ -7,3 +7,4 @@ tiles:
   rock: tiles/rock/tile.yaml
 entities:
   cube: entities/cube/entity.yaml
+  shrine: entities/shrine/entity.yaml

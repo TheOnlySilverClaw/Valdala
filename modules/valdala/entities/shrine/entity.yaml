@@ -1,0 +1,4 @@
+name: Shrine
+model:
+    file: shrine.gltf
+    mesh: Shrine
