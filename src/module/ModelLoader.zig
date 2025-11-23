@@ -46,13 +46,28 @@ pub fn load(self: Self, file_path: []const u8, mesh_name: []const u8) !LoadedMes
     const positions = try self.loadAttributeData(f32, .position, parser, mesh_descriptor, buffer_data);
     const indices = try self.loadIndices(u16, parser, mesh_descriptor, buffer_data);
     
+    remapPositions(positions);
+
     return .{
         .positions = positions,
         .indices = indices
     };
 }
 
-fn loadAttributeData(self: Self, T: type, comptime tag: std.meta.Tag(Gltf.Attribute), parser: Gltf, mesh: Gltf.Mesh, buffer_data: []const u8) ![]const T {
+fn remapPositions(positions: []f32) void {
+
+    var i: usize = 0;
+    while(i < positions.len) : (i += 3) {
+        
+        const y = positions[i + 1];
+        const z = positions[i + 2];
+
+        positions[i + 1] = z;
+        positions[i + 2] = y;
+    }
+}
+
+fn loadAttributeData(self: Self, T: type, comptime tag: std.meta.Tag(Gltf.Attribute), parser: Gltf, mesh: Gltf.Mesh, buffer_data: []const u8) ![]T {
     
     // we only support one set of primitives for now
     const primitives = mesh.primitives[0];
@@ -62,7 +77,7 @@ fn loadAttributeData(self: Self, T: type, comptime tag: std.meta.Tag(Gltf.Attrib
     return loaded;
 }
 
-fn loadIndices(self: Self, T: type, parser: Gltf, mesh: Gltf.Mesh, buffer_data: []const u8) ![]const T {
+fn loadIndices(self: Self, T: type, parser: Gltf, mesh: Gltf.Mesh, buffer_data: []const u8) ![]T {
 
     // we only support one set of primitives for now
     const primitives = mesh.primitives[0];
