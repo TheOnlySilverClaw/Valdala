@@ -29,7 +29,7 @@
             .hash = "zig_yaml-0.2.0-C1161pmrAgDnipDTh_4v4RQD27XN5GNaVlzzvlXf1jfW"
         },
         .zgltf = .{
-            .url = "https://github.com/kooparse/zgltf#ec52d477db346af99d4cdced4e35e67e1670023f",
+            .url = "https://github.com/kooparse/zgltf/archive/ec52d477db346af99d4cdced4e35e67e1670023f.zip",
             .hash = "zgltf-0.1.0-sX6QAt0SAgDzMQCCG-N181hVbx8JnwFYZ3luQigQpVBM"
         },
         .FastNoiseLite = .{
