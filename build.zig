@@ -66,6 +66,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     const yaml = b.dependency("yaml", .{}).module("yaml");
     const glfw = b.dependency("glfw", .{}).module("glfw");
     const webgpu = b.dependency("webgpu", .{}).module("webgpu");
+    const zgltf = b.dependency("zgltf", .{}).module("zgltf");
 
     // TODO move to separate repository?
     const glfw_webgpu = b.addModule("glfw-webgpu", .{
@@ -172,6 +173,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     module.addImport("zigimg", zigimg);
     module.addImport("yaml", yaml);
     module.addImport("graphics", graphics);
+    module.addImport("zgltf", zgltf);
 
     gui.addImport("glfw", glfw);
     gui.addImport("webgpu", webgpu);
@@ -212,6 +214,7 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     test_root.addImport("algebra", algebra);
     test_root.addImport("coordinate", coordinate);
     test_root.addImport("terrain", terrain);
+    test_root.addImport("zgltf", zgltf);
 }
 
 fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {

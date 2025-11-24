@@ -9,6 +9,7 @@ const SceneRenderer = @import("SceneRenderer.zig");
 const CanvasRenderer = @import("CanvasRenderer.zig");
 const Surface = @import("Surface.zig");
 const TextureArray = @import("TextureArray.zig");
+const TextureList = @import("TextureList.zig");
 const Font = @import("Font.zig");
 
 const Self = @This();
@@ -17,9 +18,9 @@ surface: *Surface,
 scene_renderer: SceneRenderer,
 canvas_renderer: CanvasRenderer,
 
-pub fn init(surface: *Surface, tile_textures: TextureArray, fonts: []const Font) !Self {
+pub fn init(surface: *Surface, tile_textures: TextureArray, entity_textures: TextureList, fonts: []const Font) !Self {
 
-    const scene_renderer = try SceneRenderer.init(surface, tile_textures);
+    const scene_renderer = try SceneRenderer.init(surface, tile_textures, entity_textures);
     const canvas_renderer = try CanvasRenderer.init(surface, fonts);
 
     return .{

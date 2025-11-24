@@ -82,9 +82,25 @@ pub fn Transform(T: type) type {
             self.rotateAround(axis, angle);
         }
 
+        pub fn scaleUniform(self: *Self, factor: T) void {
+            self.scale = self.scale.times(factor);
+        }
+
+        pub fn scaleDimensions(self: *Self, dimensions: Vector) void {
+            self.scale = self.scale.multiply(dimensions);
+        }
+
         pub fn toMatrix(self: Self) Matrix {
-            _ = self;
-            return undefined;
+            
+            var translation = Matrix.identity;
+            translation.setColumn(3, .{ self.position.x, self.position.y, self.position.z, 1 });
+
+            const rotation = self.rotation.toMatrix();
+
+            var scale = Matrix.identity;
+            scale.setDiagonal(.{ self.scale.x, self.scale.y, self.scale.z, 1 });
+
+            return translation.multiply(rotation).multiply(scale);
         }
     };
 }

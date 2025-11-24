@@ -11,6 +11,7 @@ const List = std.ArrayListUnmanaged;
 const Camera = @import("Camera.zig");
 const ChunkMesh = @import("ChunkMesh.zig");
 const ChunkMesher = @import("ChunkMesher.zig");
+const EntityMesh = @import("EntityMesh.zig");
 const Tile = @import("Tile.zig");
 const Vector = algebra.Vector3;
 const Terrain = @import("terrain").Terrain;
@@ -33,11 +34,13 @@ chunk_in_queue: InQueue,
 chunk_out_queue: OutQueue,
 chunks_to_queue: List(ChunkToMesh),
 chunk_distance: u32,
+entities: List(EntityMesh),
 sky_color: color.RGB,
 
 pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
 
     const chunks = Map(Chunk.Position, ChunkMesh).empty;
+    const entities = List(EntityMesh).empty;
 
     var camera = Camera.init(math.degreesToRadians(70), aspect, 0.001, 1000);
     // move up
@@ -50,6 +53,7 @@ pub fn init(allocator: Allocator, chunk_distance: u32, aspect: f32) !Self {
         .chunk_in_queue = .{},
         .chunk_out_queue = .{},
         .chunks_to_queue = .empty,
+        .entities = entities,
         .camera = camera,
         .sky_color = color.RGB.of(0.2, 0.2, 0.8)
     };
@@ -62,6 +66,7 @@ pub fn deinit(self: *Self) void {
         chunk.destroy();
     }
     self.chunks.clearAndFree(self.allocator);
+    self.entities.clearAndFree(self.allocator);
 
     for (self.chunks_to_queue.items) |chunk_to_mesh| chunk_to_mesh.chunk.deinit(self.allocator);
     self.chunks_to_queue.deinit(self.allocator);

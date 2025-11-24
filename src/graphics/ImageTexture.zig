@@ -52,6 +52,12 @@ pub fn create(device: *Device, width: u32, height: u32, options: Options) Self {
     };
 }
 
+pub fn fromImage(device: *Device, image: @import("zigimg").Image) !Self {
+
+    const texture = create(device, image.width, image.height, .{});
+    try texture.write(image.pixels.asBytes());
+}
+
 pub fn destroy(self: Self) void {
 
     self.queue.release();
@@ -59,7 +65,7 @@ pub fn destroy(self: Self) void {
     self.handle.release();
 }
 
-pub fn write(self: Self, pixels: []const u8) !void {
+pub fn write(self: Self, pixels: []const u8) void {
 
     const destination = webgpu.texel.TexelCopyTextureInfo {
         .aspect = .all,
@@ -75,14 +81,14 @@ pub fn write(self: Self, pixels: []const u8) !void {
     const layout = webgpu.texel.TexelCopyBufferLayout {
         .offset = 0,
         // TODO map from texture format
-        .bytes_per_row = 4,
-        .rows_per_image = self.height
+        .bytes_per_row = self.handle.getWidth() * 4,
+        .rows_per_image = self.handle.getHeight()
     };
 
     const extent = webgpu.Extent3D {
-        .width = self.width,
-        .height = self.height,
-        .depth = 1
+        .width = self.handle.getWidth(),
+        .height = self.handle.getHeight(),
+        .depth_or_array_layers = 1
     };
     
     self.queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);

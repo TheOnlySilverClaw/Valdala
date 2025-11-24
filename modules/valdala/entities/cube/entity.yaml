@@ -1,0 +1,4 @@
+name: Cube
+model:
+    file: cube.gltf
+    mesh: Cube
