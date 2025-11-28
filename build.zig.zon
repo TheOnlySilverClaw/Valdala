@@ -17,8 +17,7 @@
             .hash = "TrueType-0.0.0-Ne-mWHIGAQBwHsiS9z_vbr1SkVZCkG01Vpzrs079dzIO"
         },
         .webgpu = .{
-            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/e42663c65ca2b748e527cd56a496a5d8a46b21ac.zip",
-            .hash = "wgpu_native-2.2.0-dKjiOOs1AQBHq3wuA3-ui2_Lov_ts0imI6VyXDn6bCOL"
+            .path = "../zig-libs/wgpu-native"
         },
         .glfw = .{
             .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/6d2af52b6b15d9b194e76c94ac8eeb472593539b.zip",
@@ -53,23 +52,23 @@
         // wgpu-native 24
         // TODO release builds
         .wgpu_linux = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-linux-x86_64-debug.zip",
-            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v27.0.2.0/wgpu-linux-x86_64-debug.zip",
+            .hash = "N-V-__8AACx_YhW8kbx_vuKCJQu1_0cVbbcLZjm-OX-TIm0B",
             .lazy = true
         },
         .wgpu_windows = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-windows-x86_64-gnu-debug.zip",
-            .hash = "N-V-__8AAMGiVhXMuSjWAYooPYRMjv5zBSwoGid7YBkOtpaj",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v27.0.2.0/wgpu-windows-x86_64-gnu-debug.zip",
+            .hash = "N-V-__8AADxhgRMl9YGsWAOdmsKsNXOk7uztVzpr1o_h4OBh",
             .lazy = true
         },
         .wgpu_macos_x86_64 = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-x86_64-debug.zip",
-            .hash = "N-V-__8AAN5gQhK2hkh1OV-9XC6oj4yjZupjtck_rbnl0UMc",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v27.0.2.0/wgpu-macos-x86_64-debug.zip",
+            .hash = "N-V-__8AAMBJFQon8Hu6WhO-Kp_7GLNV3nypyTsKLYNuBnEb",
             .lazy = true
         },
         .wgpu_macos_aarch64 = .{
-            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v24.0.3.1/wgpu-macos-aarch64-debug.zip",
-	        .hash = "N-V-__8AAGzToQjdhwDgALHVFeO9nh-DJRQkJHAbkBzYHXBj",
+            .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v27.0.2.0/wgpu-macos-aarch64-debug.zip",
+	        .hash = "N-V-__8AANjnOQoNkft8Nn5WRAL__IxRPP83A0SOpfv-TJkC",
             .lazy = true
         },
     }
