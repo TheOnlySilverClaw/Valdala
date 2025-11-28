@@ -4,3 +4,7 @@
 **/zig-out
 
 .idea/
+
+lib/libwgpu_native.a
+lib/libwgpu_native.d
+lib/libwgpu_native.so
