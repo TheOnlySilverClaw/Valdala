@@ -64,7 +64,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         .targets = &.{ color_target }
     };
 
-    const vertex_info = RenderPipeline.makeVertexInfo(gui.TextMesh.Vertex.format).init(shader);
+    const vertex_info = RenderPipeline.MakeVertexInfo(gui.TextMesh.Vertex.format).init(shader);
 
     const primitive = webgpu.render_pipeline.PrimitiveState {
         .cull_mode = .back,

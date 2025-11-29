@@ -2,7 +2,7 @@ const webgpu = @import("webgpu");
 
 const pipeline = webgpu.render_pipeline;
 
-pub fn makeVertexInfo(format: anytype) type {
+pub fn MakeVertexInfo(format: anytype) type {
     return struct {
         const Self = @This();
         attributes: [format.len]pipeline.VertexAttribute,
@@ -10,11 +10,7 @@ pub fn makeVertexInfo(format: anytype) type {
         vertex: pipeline.VertexState,
 
         pub fn init(shader: *webgpu.shader.ShaderModule) Self {
-            var self = Self{
-                .attributes = undefined,
-                .buffer_layout = undefined,
-                .vertex = undefined,
-            };
+            var self: Self = undefined;
             var offset: usize = 0;
             for (format, 0..) |attribute, index| {
                 self.attributes[index] = webgpu.render_pipeline.VertexAttribute {

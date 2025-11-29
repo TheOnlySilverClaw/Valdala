@@ -55,7 +55,7 @@ fn createRenderPipeline(surface: *const Surface, static_bind_group_layout: *webg
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);
 
-    const vertex_info= RenderPipeline.makeVertexInfo(scene.EntityMesh.Vertex.format).init(shader);
+    const vertex_info= RenderPipeline.MakeVertexInfo(scene.EntityMesh.Vertex.format).init(shader);
 
     const color_target = webgpu.render_pipeline.ColorTargetState {
         .format = surface.getColorTextureFormat()
