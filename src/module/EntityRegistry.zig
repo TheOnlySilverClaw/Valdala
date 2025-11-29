@@ -7,7 +7,7 @@ const Allocator = std.mem.Allocator;
 const List = std.ArrayListUnmanaged;
 const Yaml = @import("yaml").Yaml;
 const Entity = @import("Entity.zig");
-const ModelLoader = @import("ModelLoader.zig");
+const ModelLoader = @import("gltf/Loader.zig");
 const TextureList = graphics.TextureList;
 const Self = @This();
 
@@ -48,8 +48,8 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
                 const mesh_name = map.get("mesh").?.asScalar().?;
                 log.debug("load mesh {s} from {s}", .{ mesh_name, file_path });
 
-                var model_loader = ModelLoader.init(self.allocator, directory);
-                entity.mesh = try model_loader.load(file_path, mesh_name, &self.texture_list);
+                var model_loader = ModelLoader.init(self.allocator);
+                entity.mesh = try model_loader.load(directory, file_path);
             },
             else => {}
        }

@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const Allocator = std.mem.Allocator;
-const Mesh = @import("LoadedMesh.zig");
+const Mesh = @import("gltf/Model.zig").Mesh;
 
 const Self = @This();
 
