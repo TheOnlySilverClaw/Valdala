@@ -122,8 +122,7 @@ fn mapNode(allocator: Allocator, value: json.Value, meshes: []Model.Mesh) !Model
 
             const name = try copyString(allocator, object.get("name"));
             const transform = try mapTransform(object.get("matrix"), object.get("translation"), object.get("rotation"), object.get("scale"));
-            const mesh_index = try mapUnsigned(object.get("mesh"));
-            const mesh = if(mesh_index) |index| &meshes[index] else null;
+            const mesh = try resolveIndexOptional(Model.Mesh, object.get("mesh"), meshes);
 
             return .{
                 .name = name,
@@ -306,15 +305,15 @@ fn mapBufferView(source: json.Value, buffers: []const Model.Buffer) !Model.Buffe
     switch (source) {
         .object => |object| {
             
-            const index = try mapUnsigned(object.get("buffer")) orelse return Error.RequiredKeyMissing;
+            const buffer = try resolveIndexOptional(Model.Buffer, object.get("buffer"), buffers) orelse return Error.RequiredKeyMissing;
             const offset = try mapUnsigned(object.get("byteOffset")) orelse 0;
             const length = try mapUnsigned(object.get("byteLength")) orelse return Error.RequiredKeyMissing;
             const target = try mapBufferViewTarget(object.get("target"));
             const stride = try mapByteStride(object.get("byteStride"));
-            const buffer = buffers[index];
+            const data = buffer.*[offset..offset + length];
 
             return .{
-                .buffer = buffer[offset..offset + length],
+                .data = data,
                 .target = target,
                 .stride = stride
             };
@@ -375,17 +374,16 @@ fn mapAccessor(source: json.Value, buffer_views: []const Model.BufferView) !Mode
         .object => |object| {
 
             // not required according to spec, but currently by this implementation
-            const index = try mapUnsigned(object.get("bufferView")) orelse return Error.RequiredKeyMissing;
+            const buffer_view = try resolveIndexOptional(Model.BufferView, object.get("bufferView"), buffer_views) orelse return Error.RequiredKeyMissing;
             const accessor_type = try mapAccessorType(object.get("type")) orelse return Error.RequiredKeyMissing;
             const component_type = try mapComponentType(object.get("componentType")) orelse return Error.RequiredKeyMissing;
             const offset = try mapUnsigned(object.get("byteOffset")) orelse 0;
-            const buffer_view = buffer_views[index];
-            const bytes = buffer_view.buffer[offset..];
+            const data = buffer_view.data[offset..];
 
             return .{
                 .component_type = component_type,
                 .type = accessor_type,
-                .bytes = bytes
+                .data = data
             };
         },
         else => return Error.InvalidElementType
@@ -508,16 +506,7 @@ fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: 
             .array => |array| {
                 const resolved = try allocator.alloc(*const T, array.items.len);
                 for(array.items, resolved) |index_value, *target| {
-                    switch (index_value) {
-                        .integer => |i| {
-                            if(i >= 0) {
-                                const index: usize = @intCast(i);
-                                const ptr = &elements[index];
-                                target.* = ptr;
-                            } else return Error.InvalidElementType;
-                        },
-                        else => return Error.InvalidElementType
-                    }
+                    target.* = try resolveIndex(T, index_value, elements);
                 }
                 return resolved;
             },
@@ -526,14 +515,21 @@ fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: 
     } else return try allocator.alloc(*const T, 0);
 }
 
-fn copyString(allocator: Allocator, source: ?json.Value) ![]const u8 {
 
-    if(source) |value| {
-        return switch (value) {
-            .string => |string| try allocator.dupe(u8, string),
-            else => Error.InvalidElementType
-        };
-    } else return "";
+fn resolveIndex(T: type, source: json.Value, elements: []const T) !*const T {
+
+    switch (source) {
+        .integer => |i| {
+            if(i > 0 and i < elements.len) {
+                return &elements[@intCast(i)];
+            } else return Error.InvalidElementValue;
+        },
+        else => return Error.InvalidElementType
+    }
+}
+
+fn resolveIndexOptional(T: type, source: ?json.Value, elements: []const T) !?*const T {
+    return if(source) |value| try resolveIndex(T, value, elements) else null;
 }
 
 fn mapUnsigned(source: ?json.Value) !?usize {
@@ -548,3 +544,14 @@ fn mapUnsigned(source: ?json.Value) !?usize {
         }
     } else return null;
 }
+
+fn copyString(allocator: Allocator, source: ?json.Value) ![]const u8 {
+
+    if(source) |value| {
+        return switch (value) {
+            .string => |string| try allocator.dupe(u8, string),
+            else => Error.InvalidElementType
+        };
+    } else return "";
+}
+

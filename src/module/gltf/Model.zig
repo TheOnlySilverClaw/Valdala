@@ -52,7 +52,7 @@ pub const BufferView = struct {
     };
 
     target: ?Target,
-    buffer: Buffer,
+    data: []const u8,
     stride: ?u8
 };
 
@@ -84,7 +84,7 @@ pub const Accessor = struct {
         float
     };
     
-    bytes: []const u8,
+    data: []const u8,
     type: Type,
     component_type: ComponentType
 
