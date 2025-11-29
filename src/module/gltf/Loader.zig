@@ -46,22 +46,23 @@ pub fn load(self: Self, directory: fs.Dir, file_name: []const u8) !Model {
 
 fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
 
-    const nodes = try mapNodes(allocator, source.get("nodes"));
+    const meshes = try mapMeshes(allocator, source.get("meshes"));
+    const nodes = try mapNodes(allocator, source.get("nodes"), meshes);
     if(nodes.len > 0) {
         try resolveNodeChildren(allocator, source.get("nodes").?.array, nodes);
     }
     const buffers = try loadBuffers(allocator, source.get("buffers"), root);
     const buffer_views = try mapBufferViews(allocator, source.get("bufferViews"), buffers);
     const accessors = try mapAccessors(allocator, source.get("accessors"), buffer_views);
-    const meshes = try mapMeshes(allocator, source.get("meshes"));
     const scenes = try mapScenes(allocator, source.get("scenes"), nodes);
     _ = accessors;
-    log.debug("count {}", .{ meshes.len });
+    const materials = try mapMaterials(allocator, source.get("materials"));
 
     return .{
         .scene = null,
         .scenes = scenes,
-        .nodes = nodes
+        .nodes = nodes,
+        .materials = materials
     };
 }
 
@@ -98,14 +99,14 @@ fn mapScene(allocator: Allocator, value: json.Value, all_nodes: []const Model.No
     }
 }
 
-fn mapNodes(allocator: Allocator, source: ?json.Value) ![]Model.Node {
+fn mapNodes(allocator: Allocator, source: ?json.Value, meshes: []Model.Mesh) ![]Model.Node {
 
     if(source) |value| {
         switch (value) {
             .array => |array| {
                 const nodes = try allocator.alloc(Model.Node, array.items.len);
                 for(array.items, nodes) |element, *node| {
-                    node.* = try mapNode(allocator, element);
+                    node.* = try mapNode(allocator, element, meshes);
                 }
                 return nodes;
             },
@@ -114,18 +115,20 @@ fn mapNodes(allocator: Allocator, source: ?json.Value) ![]Model.Node {
     } else return try allocator.alloc(Model.Node, 0);
 }
 
-fn mapNode(allocator: Allocator, value: json.Value) !Model.Node {
+fn mapNode(allocator: Allocator, value: json.Value, meshes: []Model.Mesh) !Model.Node {
 
     switch (value) {
         .object => |object| {
 
             const name = try copyString(allocator, object.get("name"));
             const transform = try mapTransform(object.get("matrix"), object.get("translation"), object.get("rotation"), object.get("scale"));
+            const mesh_index = try mapUnsigned(object.get("mesh"));
+            const mesh = if(mesh_index) |index| &meshes[index] else null;
 
             return .{
                 .name = name,
                 .children = undefined,
-                .mesh = null,
+                .mesh = mesh,
                 .transform = transform
             };
         },
@@ -490,6 +493,12 @@ fn resolveNodeChildren(allocator: Allocator, source: json.Array, nodes: []Model.
     for(source.items, nodes) |element, *node| {
         node.children = try resolveIndices(allocator, Model.Node, element.object.get("children"), nodes);
     }
+}
+
+fn mapMaterials(allocator: Allocator, source: ?json.Value) ![]const Model.Material {
+    _ = allocator;
+    _ = source;
+    return undefined;
 }
 
 fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: []const T) ![]*const T {

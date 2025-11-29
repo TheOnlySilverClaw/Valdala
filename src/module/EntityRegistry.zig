@@ -40,8 +40,8 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
 
     entity.name = try self.allocator.dupe(u8, descriptor.get("name").?.asScalar().?);
     
-    if(descriptor.get("model")) |model| {
-        switch (model) {
+    if(descriptor.get("model")) |model_descriptor| {
+        switch (model_descriptor) {
             .map => |map| {
 
                 const file_path = map.get("file").?.asScalar().?;
@@ -49,7 +49,10 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
                 log.debug("load mesh {s} from {s}", .{ mesh_name, file_path });
 
                 var model_loader = ModelLoader.init(self.allocator);
-                entity.mesh = try model_loader.load(directory, file_path);
+                const model = try model_loader.load(directory, file_path);
+                // TODO find mesh by name
+                const mesh = model.nodes[0].mesh.?;
+                entity.mesh = mesh;
             },
             else => {}
        }

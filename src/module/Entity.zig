@@ -10,11 +10,11 @@ pub const Name = []const u8;
 
 id: ID,
 name: Name,
-mesh: Mesh,
+mesh: *const Mesh,
 
 pub fn deinit(self: *Self, allocator: Allocator) void {
     
     allocator.free(self.id);
     allocator.free(self.name);
-    self.mesh.deinit(allocator);
+    // self.mesh.deinit(allocator);
 }

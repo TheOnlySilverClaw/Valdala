@@ -135,25 +135,25 @@ pub fn launch(self: *Self) !void {
 
     const arena_allocator = arena.allocator();
 
-    // TODO figure out where to put this
-    const loaded_entity = self.module_loader.entity_registry.entities.items[2];
-    const loaded_mesh = loaded_entity.mesh;
-    var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_mesh.positions, loaded_mesh.textcoords.?, loaded_mesh.indices, loaded_mesh.color_texture);
-    // chunk meshes are unique and need to be destroyed with their chunk
-    // entity meshes are shared and need to be destroyed once per entity type
-    // TODO figure out where
-    defer entity_mesh.deinit();
-    entity_mesh.transform.moveZ(10.0);
-    entity_mesh.transform.moveX(-50.0);
+    // // TODO figure out where to put this
+    // const loaded_entity = self.module_loader.entity_registry.entities.items[2];
+    // const loaded_mesh = loaded_entity.mesh;
+    // var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_mesh.positions, loaded_mesh.textcoords.?, loaded_mesh.indices, loaded_mesh.color_texture);
+    // // chunk meshes are unique and need to be destroyed with their chunk
+    // // entity meshes are shared and need to be destroyed once per entity type
+    // // TODO figure out where
+    // defer entity_mesh.deinit();
+    // entity_mesh.transform.moveZ(10.0);
+    // entity_mesh.transform.moveX(-50.0);
 
-    for(0..5) |i| {
-        var copy = entity_mesh;
-        const f: f32 = @floatFromInt(i);
-        copy.transform.moveX(15.0 * f);
-        copy.transform.rotateRoll(std.math.degreesToRadians(15) * f);
-        copy.transform.scaleUniform(1 - 0.1 * f);
-        try scene.entities.append(allocator, copy);
-    }
+    // for(0..5) |i| {
+    //     var copy = entity_mesh;
+    //     const f: f32 = @floatFromInt(i);
+    //     copy.transform.moveX(15.0 * f);
+    //     copy.transform.rotateRoll(std.math.degreesToRadians(15) * f);
+    //     copy.transform.scaleUniform(1 - 0.1 * f);
+    //     try scene.entities.append(allocator, copy);
+    // }
 
 
     while(true) {

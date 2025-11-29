@@ -93,3 +93,4 @@ pub const Accessor = struct {
 scene: ?*const Scene,
 scenes: []const Scene,
 nodes: []const Node,
+materials: []const Material
