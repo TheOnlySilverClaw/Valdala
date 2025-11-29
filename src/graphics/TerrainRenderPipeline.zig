@@ -2,12 +2,18 @@ const webgpu = @import("webgpu");
 const asset = @import("asset");
 
 const Surface = @import("Surface.zig");
+const scene = @import("scene");
 const Shader = @import("Shader.zig");
 
+const RenderPipeline = @import("RenderPipeline.zig");
+
+const std = @import("std");
 const Self = @This();
+
 
 handle: *webgpu.render_pipeline.RenderPipeline,
 bindgroup_layout: *webgpu.bind_group_layout.BindGroupLayout,
+
 
 pub fn init(surface: *const Surface) !Self {
     const shader_source = asset.shader.terrain[0..];
@@ -38,47 +44,7 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);
 
-    const vertex_position_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 0,
-        .format = .float32x3,
-        .offset = 0
-    };
-
-    const uv_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 1,
-        .format = .float16x2,
-        .offset = vertex_position_attribute.format.size()
-    };
-
-    const texture_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 2,
-        .format = .uint32,
-        .offset = uv_attribute.offset + uv_attribute.format.size()
-    };
-    
-    const vertex_attributes = [_]webgpu.render_pipeline.VertexAttribute {
-        vertex_position_attribute,
-        uv_attribute,
-        texture_attribute
-    };
-    
-    const vertex_buffer_layout = webgpu.render_pipeline.VertexBufferLayout {
-        .array_stride = vertex_position_attribute.format.size() + uv_attribute.format.size() + texture_attribute.format.size(),
-        .step_mode = .vertex,
-        .attribute_count = vertex_attributes.len,
-        .attributes = &vertex_attributes
-    };
-
-    const vertex_buffer_layouts = [_]webgpu.render_pipeline.VertexBufferLayout { vertex_buffer_layout };
-
-    const vertex = webgpu.render_pipeline.VertexState {
-        .module = shader,
-        .entry_point = webgpu.StringView.sliced("vertex"),
-        .buffer_count = vertex_buffer_layouts.len,
-        .buffers = &vertex_buffer_layouts,
-        .constant_count = 0,
-        .constants = null
-    };
+    const vertex = RenderPipeline.makeVertexState(scene.ChunkMesh.Vertex.format, shader);
 
     const color_target = webgpu.render_pipeline.ColorTargetState {
         .format = surface.getColorTextureFormat()

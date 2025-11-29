@@ -7,7 +7,7 @@ pub const Vertex = extern struct {
 
     pub const format = [_]webgpu.render_pipeline.VertexFormat{
         .float32x3,
-        .float32x2,
+        .float16x2,
         .uint32
     };
 
