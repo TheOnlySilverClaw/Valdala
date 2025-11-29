@@ -54,6 +54,9 @@ pub fn build(b: *Build) void {
 
 fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
 
+    const build_options = b.addOptions();
+    build_options.addOption(bool, "debug_wireframe", b.option( bool, "debug_wireframe", "Enables simplified wireframe terrain shader for debugging.",) orelse false);
+
     const FastNoiseLite = b.dependency("FastNoiseLite", .{});
     const fastnoise = b.addModule("fastnoise", .{
         .root_source_file = FastNoiseLite.path("Zig/fastnoise.zig"),
@@ -154,6 +157,9 @@ fn organizeModules(b: *std.Build, root: *Build.Module, test_root: *Build.Module,
     asset.addImport("zigimg", zigimg);
     asset.addImport("yaml", yaml);
     asset.addImport("webgpu", webgpu);
+
+    asset.addOptions("build_options", build_options);
+
 
     glfw_webgpu.addImport("glfw", glfw);
     glfw_webgpu.addImport("webgpu", webgpu);
