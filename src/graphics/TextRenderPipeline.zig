@@ -1,5 +1,7 @@
 const webgpu = @import("webgpu");
 
+const gui= @import("gui");
+const RenderPipeline = @import("RenderPipeline.zig");
 
 handle: *webgpu.render_pipeline.RenderPipeline,
 
@@ -62,45 +64,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         .targets = &.{ color_target }
     };
 
-    const position_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 0,
-        .format = .float32x2,
-        .offset = 0
-    };
-
-    const uv_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 1,
-        .format = .float32x2,
-        .offset = position_attribute.format.size()
-    };
-
-    const color_attribute = webgpu.render_pipeline.VertexAttribute {
-        .shader_location = 2,
-        .format = .float32x4,
-        .offset = position_attribute.format.size() + uv_attribute.format.size()
-    };
-
-    const attributes = [_]webgpu.render_pipeline.VertexAttribute {
-        position_attribute,
-        uv_attribute,
-        color_attribute
-    };
-
-    const vertexBuffer = webgpu.render_pipeline.VertexBufferLayout {
-        .array_stride = position_attribute.format.size() + uv_attribute.format.size() + color_attribute.format.size(),
-        .step_mode = .vertex,
-        .attribute_count = attributes.len,
-        .attributes = &attributes
-    };
-
-    const vertex = webgpu.render_pipeline.VertexState {
-        .constant_count = 0,
-        .constants = null,
-        .entry_point = webgpu.StringView.sliced("vertex"),
-        .module = shader,
-        .buffer_count = 1,
-        .buffers = &.{ vertexBuffer }
-    };
+    const vertex_info = RenderPipeline.MakeVertexInfo(gui.TextMesh.Vertex.format).init(shader);
 
     const primitive = webgpu.render_pipeline.PrimitiveState {
         .cull_mode = .back,
@@ -114,7 +78,7 @@ pub fn create(device: *webgpu.device.Device, texture_format: webgpu.texture.Text
         .layout = pipeline_layout,
         .depth_stencil = null,
         .fragment = &fragment,
-        .vertex = vertex,
+        .vertex = vertex_info.vertex,
         .primitive = primitive,
         .multisample = .{},
     };
