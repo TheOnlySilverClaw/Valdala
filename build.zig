@@ -225,7 +225,15 @@ fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarg
     switch (target.result.os.tag) {
         .linux => {
             exe.addObjectFile(b.path("lib/linux/libglfw3.a"));
-            if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+            var has_wgpu_native = true;
+            std.fs.accessAbsolute(std.Build.pathFromRoot(b,"lib/libwgpu_native.a"), .{}) catch |err| {
+                has_wgpu_native = if (err == error.FileNotFound) false else true;
+            };
+            if (has_wgpu_native) {
+                exe.addObjectFile(b.path("lib/libwgpu_native.a"));
+            } else {
+                if(b.lazyDependency("wgpu_linux", .{})) |wgpu_dep| exe.addObjectFile(wgpu_dep.path("lib/libwgpu_native.a"));
+            }
         },
         .windows => {
             if (b.lazyDependency("glfw_windows", .{})) |glfw_dep| exe.addObjectFile(glfw_dep.path("lib-mingw-w64/libglfw3.a"));

@@ -7,7 +7,8 @@ pub const Vertex = extern struct {
 
     pub const format = [_]webgpu.render_pipeline.VertexFormat{
         .float32x3,
-        .float32x2,
+        .float16x2,
+        .float32x3,
         .uint32
     };
 
@@ -24,11 +25,20 @@ pub const Vertex = extern struct {
         v: f16,
     };
 
+    pub const Normal = extern struct {
+        x: f32,
+        y: f32,
+        z: f32,
+    };
+
     pub const Texture = u32;
+
 
     position: Position,
     uv: UV,
+    normal: Normal = .{.x = 0.0, .y = 0.0, .z = 0.0},
     texture: Texture,
+
 };
 
 pub const Index = u32;

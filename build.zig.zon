@@ -17,11 +17,12 @@
             .hash = "TrueType-0.0.0-Ne-mWHIGAQBwHsiS9z_vbr1SkVZCkG01Vpzrs079dzIO"
         },
         .webgpu = .{
-            .path = "../zig-libs/wgpu-native"
+            .url = "https://codeberg.org/Silverclaw/zig-wgpu-native/archive/db0d4822120fb6326974c5aaa0826d8238d660a8.zip",
+            .hash = "wgpu_native-2.3.0-dKjiOA02AQA-X31_18eoVLw3WTau30IqKpNd8aeX0Fgd"
         },
         .glfw = .{
-            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/6d2af52b6b15d9b194e76c94ac8eeb472593539b.zip",
-            .hash = "glfw-1.2.0-P2aiha2BAABEbrDGtBaYGqZ3BoqPTuDqU1bTqSEHDeYb"
+            .url = "https://codeberg.org/Silverclaw/zig-glfw/archive/8cf6e5ed149eed6d052bb8080336c75367a04b86.zip",
+            .hash = "glfw-1.2.1-P2aihbSBAAAh8f8cMLMz90dQYpVtCwC7a3v5Qv2YW36D"
         },
         .yaml = .{
             .url = "https://github.com/kubkon/zig-yaml/archive/a6c2cd8760bf45c49b17a3f6259c4dfe3ded528e.zip",
@@ -49,7 +50,7 @@
             .lazy = true
         },
 
-        // wgpu-native 24
+        // wgpu-native 27
         // TODO release builds
         .wgpu_linux = .{
             .url = "https://github.com/gfx-rs/wgpu-native/releases/download/v27.0.2.0/wgpu-linux-x86_64-debug.zip",
