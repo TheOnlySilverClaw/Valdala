@@ -44,7 +44,7 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);
 
-    const vertex = RenderPipeline.makeVertexState(scene.ChunkMesh.Vertex.format, shader);
+    const vertex_info = RenderPipeline.makeVertexInfo(scene.ChunkMesh.Vertex.format).init(shader);
 
     const color_target = webgpu.render_pipeline.ColorTargetState {
         .format = surface.getColorTextureFormat()
@@ -75,7 +75,7 @@ fn createRenderPipeline(surface: *const Surface, bindgroup_layout: *webgpu.bind_
     const descriptor = webgpu.render_pipeline.RenderPipelineDescriptor {
         .label = webgpu.StringView.sliced("terrain"),
         .layout = pipeline_layout,
-        .vertex = vertex,
+        .vertex = vertex_info.vertex,
         .fragment = &fragment,
         .primitive = primitive,
         .depth_stencil = &depth,
