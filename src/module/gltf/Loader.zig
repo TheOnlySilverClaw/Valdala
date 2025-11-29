@@ -14,6 +14,7 @@ pub const Error = error {
     InvalidElementType,
     InvalidElementValue,
     InvalidElementLength,
+    InvalidAccessorType,
     RequiredKeyMissing
 };
 
@@ -53,14 +54,13 @@ fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
     const images = try loadImages(allocator, source.get("images"), root, buffer_views);
     const accessors = try mapAccessors(allocator, source.get("accessors"), buffer_views);
     _ = images;
-    const meshes = try mapMeshes(allocator, source.get("meshes"));
+    const materials = try mapMaterials(allocator, source.get("materials"));
+    const meshes = try mapMeshes(allocator, source.get("meshes"), accessors, materials);
     const nodes = try mapNodes(allocator, source.get("nodes"), meshes);
     if(nodes.len > 0) {
         try resolveNodeChildren(allocator, source.get("nodes").?.array, nodes);
     }
     const scenes = try mapScenes(allocator, source.get("scenes"), nodes);
-    _ = accessors;
-    const materials = try mapMaterials(allocator, source.get("materials"));
 
     return .{
         .scene = null,
@@ -270,7 +270,7 @@ fn loadBuffer(allocator: Allocator, source: json.Value, root: fs.Dir) !Model.Buf
                         var reader = file.reader(&read_buffer);
                         const buffer = try allocator.alloc(u8, @intCast(byte_length));
                         try reader.interface.readSliceAll(buffer);
-                        return buffer;
+                        return @alignCast(buffer);
                     },
                     else => return Error.InvalidElementType
                 }
@@ -358,7 +358,7 @@ fn mapBufferView(source: json.Value, buffers: []const Model.Buffer) !Model.Buffe
             const length = try mapUnsigned(object.get("byteLength")) orelse return Error.RequiredKeyMissing;
             const target = try mapBufferViewTarget(object.get("target"));
             const stride = try mapByteStride(object.get("byteStride"));
-            const data = buffer.*[offset..offset + length];
+            const data: Model.AlignedData = @alignCast(buffer.*[offset..offset + length]);
 
             return .{
                 .data = data,
@@ -426,7 +426,7 @@ fn mapAccessor(source: json.Value, buffer_views: []const Model.BufferView) !Mode
             const accessor_type = try mapAccessorType(object.get("type")) orelse return Error.RequiredKeyMissing;
             const component_type = try mapComponentType(object.get("componentType")) orelse return Error.RequiredKeyMissing;
             const offset = try mapUnsigned(object.get("byteOffset")) orelse 0;
-            const data = buffer_view.data[offset..];
+            const data: Model.AlignedData = @alignCast(buffer_view.data[offset..]);
 
             return .{
                 .component_type = component_type,
@@ -481,14 +481,14 @@ fn mapComponentType(source: ?json.Value) !?Model.Accessor.ComponentType {
     } else return null;
 }
 
-fn mapMeshes(allocator: Allocator, source: ?json.Value) ![]Model.Mesh {
+fn mapMeshes(allocator: Allocator, source: ?json.Value, accessors: []const Model.Accessor, materials: []const Model.Material) ![]Model.Mesh {
 
     if(source) |value| {
         switch (value) {
             .array => |array| {
                 const meshes = try allocator.alloc(Model.Mesh, array.items.len);
                 for(array.items, meshes) |item, *mesh| {
-                    mesh.* = try mapMesh(allocator, item);
+                    mesh.* = try mapMesh(allocator, item, accessors, materials);
                 }
                 return meshes;
             },
@@ -497,12 +497,14 @@ fn mapMeshes(allocator: Allocator, source: ?json.Value) ![]Model.Mesh {
     } else return try allocator.alloc(Model.Mesh, 0);
 }
 
-fn mapMesh(allocator: Allocator, source: json.Value) !Model.Mesh {
+fn mapMesh(allocator: Allocator, source: json.Value, accessors: []const Model.Accessor, materials: []const Model.Material) !Model.Mesh {
 
     switch (source) {
         .object => |object| {
             const name = try copyString(allocator, object.get("name"));
-            const primitives = try mapPrimitives(allocator, object.get("primitives")) orelse return Error.RequiredKeyMissing;
+            const primitives = try mapPrimitives(allocator, object.get("primitives"), accessors, materials)
+                orelse return Error.RequiredKeyMissing;
+            
             return .{
                 .name = name,
                 .primitives = primitives
@@ -512,14 +514,14 @@ fn mapMesh(allocator: Allocator, source: json.Value) !Model.Mesh {
     }
 }
 
-fn mapPrimitives(allocator: Allocator, source: ?json.Value) !?[]Model.Mesh.Primitives {
+fn mapPrimitives(allocator: Allocator, source: ?json.Value, accessors: []const Model.Accessor, materials: []const Model.Material) !?[]Model.Primitive {
 
     if(source) |value| {
         switch (value) {
             .array => |array| {
-                const primitives = try allocator.alloc(Model.Mesh.Primitives, array.items.len);
+                const primitives = try allocator.alloc(Model.Primitive, array.items.len);
                 for(array.items, primitives) |item, *primitive| {
-                    primitive.* = try mapPrimitive(allocator, item);
+                    primitive.* = try mapPrimitive(item, accessors, materials);
                 }
                 return primitives;
             },
@@ -528,10 +530,80 @@ fn mapPrimitives(allocator: Allocator, source: ?json.Value) !?[]Model.Mesh.Primi
     } else return null;
 }
 
-fn mapPrimitive(allocator: Allocator, source: json.Value) !Model.Mesh.Primitives {
-    _ = allocator;
-    _ = source;
-    return undefined;
+fn mapPrimitive(source: json.Value, accessors: []const Model.Accessor, materials: []const Model.Material) !Model.Primitive {
+
+    switch (source) {
+        .object => |object| {
+
+            const mode = try mapPrimitiveMode(object.get("mode")) orelse .triangles;
+            const attributes = try mapPrimitiveAttributes(object.get("attributes"), accessors)
+                orelse return Error.RequiredKeyMissing;
+            const material = try resolveIndexOptional(Model.Material, object.get("material"), materials);
+
+            return .{
+                .mode = mode,
+                .attributes = attributes,
+                .material = material
+            };
+        },
+        else => return Error.InvalidElementType
+    }
+}
+
+fn mapPrimitiveMode(source: ?json.Value) !?Model.Primitive.Mode {
+
+    if(source) |value| {
+        switch (value) {
+            .integer => |i| {
+                return std.enums.fromInt(Model.Primitive.Mode, i);
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+fn mapPrimitiveAttributes(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Primitive.Attributes {
+
+    if(source) |value| {
+        switch (value) {
+            .object => |object| {
+                const positions = try mapPositions(object.get("POSITION"), accessors);
+                const normals = try mapNormals(object.get("POSITION"), accessors);
+                return .{
+                    .position = positions,
+                    .normal = normals,
+                    .texcoords = &.{}
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+// TODO coordinate system remapping
+fn mapPositions(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Primitive.Attributes.Positions {
+
+    if(source) |value| {
+        const accessor = try resolveIndex(Model.Accessor, value, accessors);
+        if(accessor.type == .vec3 and accessor.component_type == .float) {
+            return @ptrCast(accessor.data);
+        } else {
+            return Error.InvalidAccessorType;
+        }
+    } else return null;
+
+}
+
+fn mapNormals(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Primitive.Attributes.Normals {
+
+    if(source) |value| {
+        const accessor = try resolveIndex(Model.Accessor, value, accessors);
+        if(accessor.type == .vec3 and accessor.component_type == .float) {
+            return @ptrCast(accessor.data);
+        } else {
+            return Error.InvalidAccessorType;
+        }
+    } else return null;
 }
 
 fn resolveNodeChildren(allocator: Allocator, source: json.Array, nodes: []Model.Node) !void {

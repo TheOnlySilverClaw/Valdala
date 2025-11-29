@@ -61,23 +61,44 @@ pub const Sampler = struct {
 };
 
 pub const Mesh = struct {
+    name: []const u8,
+    primitives: []const Primitive
+};
 
-    pub const Primitives = struct {
-        attributes: Attributes,
-        material: ?Material
+pub const Primitive = struct {
+
+    pub const Mode = enum {
+        points,
+        lines,
+        line_strip,
+        triangles,
+        triangle_strip,
+        triangle_fan
     };
 
     pub const Attributes = struct {
-        position: usize,
-        normal: usize,
-        texcoords: []const usize,
+
+        pub const Positions = []const [3]f32;
+        pub const Normals = []const [2]f32;
+        pub const Texcoords = []const union(enum) {
+            float: [][2]f32,
+            unorm8: [][2]u8,
+            unorm16: [][2]u16
+        };
+
+        position: ?Positions,
+        normal: ?Normals,
+        texcoords: []const Texcoords,
     };
 
-    name: []const u8,
-    primitives: []const Primitives
+    mode: Mode,
+    attributes: Attributes,
+    material: ?*const Material
 };
 
-pub const Buffer = []const u8;
+pub const AlignedData = []const align(4) u8;
+
+pub const Buffer = AlignedData;
 
 pub const BufferView = struct {
     
@@ -87,7 +108,7 @@ pub const BufferView = struct {
     };
 
     target: ?Target,
-    data: []const u8,
+    data: AlignedData,
     stride: ?u8
 };
 
@@ -119,7 +140,7 @@ pub const Accessor = struct {
         float
     };
     
-    data: []const u8,
+    data: AlignedData,
     type: Type,
     component_type: ComponentType
 
