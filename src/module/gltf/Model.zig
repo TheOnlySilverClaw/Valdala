@@ -22,7 +22,42 @@ pub const Scene = struct {
 };
 
 pub const Material = struct {
+    name: []const u8,
+    double_sided: bool,
+    emissive_texture: *const Texture
+};
 
+pub const Texture = struct {
+
+};
+
+pub const Sampler = struct {
+
+    pub const MagFilter = enum {
+        nearest,
+        linear
+    };
+
+    pub const MinFilter = enum {
+        nearest,
+        linear,
+        nearest_mipmap_nearest,
+        linear_mipmap_nearest,
+        nearest_mipmap_linear,
+        linear_mipmap_linear
+    };
+
+    pub const Wrap = enum {
+        clamp_to_edge,
+        mirrored_repeat,
+        repeat
+    };
+
+    name: []const u8,
+    mag_filter: ?MagFilter,
+    min_filter: ?MinFilter,
+    wrap_u: Wrap,
+    wrap_v: Wrap
 };
 
 pub const Mesh = struct {
@@ -90,7 +125,13 @@ pub const Accessor = struct {
 
 };
 
+pub const Image = struct {
+    name: []const u8,
+    data: []const u8
+};
+
 scene: ?*const Scene,
 scenes: []const Scene,
 nodes: []const Node,
-materials: []const Material
+materials: []const Material,
+samplers: []const Sampler

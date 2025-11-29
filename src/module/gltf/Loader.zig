@@ -2,6 +2,7 @@ const std = @import("std");
 const mem = std.mem;
 const fs = std.fs;
 const json = std.json;
+const zigimg = @import("zigimg");
 const log = std.log.scoped(.gltf_loader);
 
 const Model = @import("Model.zig");
@@ -46,14 +47,17 @@ pub fn load(self: Self, directory: fs.Dir, file_name: []const u8) !Model {
 
 fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
 
+    const samplers = try mapSamplers(allocator, source.get("samplers"));
+    const buffers = try loadBuffers(allocator, source.get("buffers"), root);
+    const buffer_views = try mapBufferViews(allocator, source.get("bufferViews"), buffers);
+    const images = try loadImages(allocator, source.get("images"), root, buffer_views);
+    const accessors = try mapAccessors(allocator, source.get("accessors"), buffer_views);
+    _ = images;
     const meshes = try mapMeshes(allocator, source.get("meshes"));
     const nodes = try mapNodes(allocator, source.get("nodes"), meshes);
     if(nodes.len > 0) {
         try resolveNodeChildren(allocator, source.get("nodes").?.array, nodes);
     }
-    const buffers = try loadBuffers(allocator, source.get("buffers"), root);
-    const buffer_views = try mapBufferViews(allocator, source.get("bufferViews"), buffers);
-    const accessors = try mapAccessors(allocator, source.get("accessors"), buffer_views);
     const scenes = try mapScenes(allocator, source.get("scenes"), nodes);
     _ = accessors;
     const materials = try mapMaterials(allocator, source.get("materials"));
@@ -62,7 +66,8 @@ fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
         .scene = null,
         .scenes = scenes,
         .nodes = nodes,
-        .materials = materials
+        .materials = materials,
+        .samplers = samplers
     };
 }
 
@@ -257,27 +262,70 @@ fn loadBuffer(allocator: Allocator, source: json.Value, root: fs.Dir) !Model.Buf
             if(object.get("uri")) |uri| {
                 switch (uri) {
                     .string => |uri_string| {
-                        if(object.get("byteLength")) |byte_length_value| {
-                            switch (byte_length_value) {
-                                .integer => |byte_length| {
-                                    
-                                    if(byte_length < 0) return Error.InvalidElementType;
-                                    
-                                    var file = try root.openFile(uri_string, .{});
-                                    defer file.close();
+                        const byte_length = try mapUnsigned(object.get("byteLength")) orelse return Error.RequiredKeyMissing;
+                        var file = try root.openFile(uri_string, .{});
+                        defer file.close();
 
-                                    var read_buffer: [1024]u8 = undefined;
-                                    var reader = file.reader(&read_buffer);
-                                    const buffer = try allocator.alloc(u8, @intCast(byte_length));
-                                    try reader.interface.readSliceAll(buffer);
-                                    return buffer;
-                                },
-                                else => return Error.InvalidElementType
-                            }
-                        } else return Error.RequiredKeyMissing;
+                        var read_buffer: [1024]u8 = undefined;
+                        var reader = file.reader(&read_buffer);
+                        const buffer = try allocator.alloc(u8, @intCast(byte_length));
+                        try reader.interface.readSliceAll(buffer);
+                        return buffer;
                     },
                     else => return Error.InvalidElementType
                 }
+            } else return Error.RequiredKeyMissing;
+        },
+        else => return Error.InvalidElementType
+    }
+}
+
+fn loadImages(allocator: Allocator, source: ?json.Value, root: fs.Dir, buffer_views: []const Model.BufferView) ![]const Model.Image {
+
+    if(source) |value| {
+        switch (value) {
+            .array => |array| {
+                const images = try allocator.alloc(Model.Image, array.items.len);
+                for(array.items, images) |item, *buffer| {
+                    buffer.* = try loadImage(allocator, item, root, buffer_views);
+                }
+                return images;
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return try allocator.alloc(Model.Image, 0);
+}
+
+fn loadImage(allocator: Allocator, source: json.Value, root: fs.Dir, buffer_views: []const Model.BufferView) !Model.Image {
+
+    switch (source) {
+        .object => |object| {
+            const name = try copyString(allocator, object.get("name"));
+            
+            if(object.get("uri")) |uri| {
+                switch (uri) {
+                    .string => |uri_string| {
+
+                        var file = try root.openFile(uri_string, .{});
+                        defer file.close();
+
+                        var read_buffer: [1024]u8 = undefined;
+                        const loaded = try zigimg.Image.fromFile(allocator, file, &read_buffer);
+                        const data = loaded.pixels.asConstBytes();
+
+                        return .{
+                            .name = name,
+                            .data = data
+                        };
+                    },
+                    else => return Error.InvalidElementType
+                }
+            } else if(try resolveIndexOptional(Model.BufferView, object.get("bufferView"), buffer_views)) |buffer_view| {
+                const data = buffer_view.data;
+                return .{
+                    .name = name,
+                    .data = data
+                };
             } else return Error.RequiredKeyMissing;
         },
         else => return Error.InvalidElementType
@@ -494,9 +542,117 @@ fn resolveNodeChildren(allocator: Allocator, source: json.Array, nodes: []Model.
 }
 
 fn mapMaterials(allocator: Allocator, source: ?json.Value) ![]const Model.Material {
-    _ = allocator;
-    _ = source;
-    return undefined;
+    
+    if(source) |value| {
+        switch (value) {
+            .array => |array| {
+                const materials = try allocator.alloc(Model.Material, array.items.len);
+                for(array.items, materials) |item, *material| {
+                    material.* = try mapMaterial(allocator, item);
+                }
+                return materials;
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return try allocator.alloc(Model.Material, 0);
+}
+
+fn mapMaterial(allocator: Allocator, source: json.Value) !Model.Material {
+     _ = allocator;
+     _ = source;
+     return undefined;
+}
+
+fn mapSamplers(allocator: Allocator, source: ?json.Value) ![]const Model.Sampler {
+    
+    if(source) |value| {
+        switch (value) {
+            .array => |array| {
+                const samplers = try allocator.alloc(Model.Sampler, array.items.len);
+                for(array.items, samplers) |item, *material| {
+                    material.* = try mapSampler(allocator, item);
+                }
+                return samplers;
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return try allocator.alloc(Model.Sampler, 0);
+}
+
+fn mapSampler(allocator: Allocator, source: json.Value) !Model.Sampler {
+
+    switch (source) {
+        .object => |object| {
+            
+            const name = try copyString(allocator, object.get("name"));
+            const mag_filter = try mapMagFilter(object.get("magFilter"));
+            const min_filter = try mapMinFilter(object.get("minFilter"));
+            const wrap_u = try mapWrap(object.get("wrapS")) orelse .repeat;
+            const wrap_v = try mapWrap(object.get("wrapT")) orelse .repeat;
+            
+            return .{
+                .name = name,
+                .mag_filter = mag_filter,
+                .min_filter = min_filter,
+                .wrap_u = wrap_u,
+                .wrap_v = wrap_v
+            };
+        },
+        else => return Error.InvalidElementType
+    }
+}
+
+fn mapMagFilter(source: ?json.Value) !?Model.Sampler.MagFilter {
+
+    if(source) |value| {
+        switch (value) {
+            .integer => |i| {
+                return switch (i) {
+                    9728 => .nearest,
+                    9729 => .linear,
+                    else => Error.InvalidElementValue
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+fn mapMinFilter(source: ?json.Value) !?Model.Sampler.MinFilter {
+
+    if(source) |value| {
+        switch (value) {
+            .integer => |i| {
+                return switch (i) {
+                    9728 => .nearest,
+                    9729 => .linear,
+                    9984 => .nearest_mipmap_nearest,
+                    9985 => .linear_mipmap_nearest,
+                    9986 => .nearest_mipmap_linear,
+                    9987 => .linear_mipmap_linear,
+                    else => Error.InvalidElementValue
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+fn mapWrap(source: ?json.Value) !?Model.Sampler.Wrap {
+
+    if(source) |value| {
+        switch (value) {
+            .integer => |i| {
+                return switch (i) {
+                    33071 => .clamp_to_edge,
+                    33648 => .mirrored_repeat,
+                    10497 => .repeat,
+                    else => Error.InvalidElementValue
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
 }
 
 fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: []const T) ![]*const T {
