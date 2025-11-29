@@ -226,7 +226,7 @@ fn linkLibraries(b: *Build, exe: *Build.Step.Compile, target: Build.ResolvedTarg
         .linux => {
             exe.addObjectFile(b.path("lib/linux/libglfw3.a"));
             var has_wgpu_native = true;
-            std.fs.cwd().access("lib/libwgpu_native.a", .{}) catch |err| {
+            std.fs.accessAbsolute(std.Build.pathFromRoot(b,"lib/libwgpu_native.a"), .{}) catch |err| {
                 has_wgpu_native = if (err == error.FileNotFound) false else true;
             };
             if (has_wgpu_native) {
