@@ -13,7 +13,7 @@ const Vector = algebra.Vector2;
 
 pub const Vertex = extern struct {
     
-    pub const format = [_]webgpu.VertexFormat {
+    pub const format = [_]webgpu.render_pipeline.VertexFormat {
         .float32x2,
         .float32x2,
         .float32x4,
