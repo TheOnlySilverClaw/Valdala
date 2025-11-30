@@ -79,7 +79,7 @@ pub const Primitive = struct {
     pub const Attributes = struct {
 
         pub const Positions = []const [3]f32;
-        pub const Normals = []const [2]f32;
+        pub const Normals = []const [3]f32;
         pub const Texcoords = []const union(enum) {
             float: [][2]f32,
             unorm8: [][2]u8,

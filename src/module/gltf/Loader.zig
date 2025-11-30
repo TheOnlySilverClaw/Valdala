@@ -568,7 +568,7 @@ fn mapPrimitiveAttributes(source: ?json.Value, accessors: []const Model.Accessor
         switch (value) {
             .object => |object| {
                 const positions = try mapPositions(object.get("POSITION"), accessors);
-                const normals = try mapNormals(object.get("POSITION"), accessors);
+                const normals = try mapNormals(object.get("NORMAL"), accessors);
                 return .{
                     .position = positions,
                     .normal = normals,
