@@ -121,14 +121,7 @@ pub const Accessor = struct {
         vec4,
         mat2,
         mat3,
-        mat4,
-
-        pub fn size(self: Type) u32 {
-            return switch (self) {
-                .scalar => 1,
-                
-            };
-        }
+        mat4
     };
 
     pub const ComponentType = enum {
