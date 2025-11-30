@@ -151,8 +151,13 @@ pub const Image = struct {
     data: []const u8
 };
 
+arena: std.heap.ArenaAllocator,
 scene: ?*const Scene,
 scenes: []const Scene,
 nodes: []const Node,
 materials: []const Material,
-samplers: []const Sampler
+samplers: []const Sampler,
+
+pub fn deinit(self: @This()) void {
+    self.arena.deinit();
+}

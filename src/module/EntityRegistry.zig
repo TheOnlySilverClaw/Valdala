@@ -50,9 +50,10 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
 
                 var model_loader = ModelLoader.init(self.allocator);
                 const model = try model_loader.load(directory, file_path);
+                entity.model = model;
                 // TODO find mesh by name
-                const mesh = model.nodes[0].mesh.?;
-                entity.mesh = mesh;
+                const node = &model.nodes[0];
+                entity.node = node;
             },
             else => {}
        }

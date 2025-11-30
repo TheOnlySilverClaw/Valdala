@@ -8,6 +8,7 @@ const log = std.log.scoped(.gltf_loader);
 const Model = @import("Model.zig");
 
 const Allocator = std.mem.Allocator;
+const ArenaAllocator = std.heap.ArenaAllocator;
 
 pub const Error = error {
     FilePathInvalid,
@@ -29,6 +30,8 @@ pub fn init(allocator: Allocator) Self {
 
 pub fn load(self: Self, directory: fs.Dir, file_name: []const u8) !Model {
     
+    var arena = ArenaAllocator.init(self.allocator);
+
     var file = try directory.openFile(file_name, .{});
     defer file.close();
 
@@ -41,12 +44,14 @@ pub fn load(self: Self, directory: fs.Dir, file_name: []const u8) !Model {
     defer parsed.deinit();
 
     return switch (parsed.value) {
-        .object => |object| return mapModel(self.allocator, object, directory),
+        .object => |object| return mapModel(&arena, object, directory),
         else => Error.InvalidElementType
     };
 }
 
-fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
+fn mapModel(arena: *ArenaAllocator, source: json.ObjectMap, root: fs.Dir) !Model {
+
+    const allocator = arena.allocator();
 
     const samplers = try mapSamplers(allocator, source.get("samplers"));
     const buffers = try loadBuffers(allocator, source.get("buffers"), root);
@@ -63,6 +68,7 @@ fn mapModel(allocator: Allocator, source: json.ObjectMap, root: fs.Dir) !Model {
     const scenes = try mapScenes(allocator, source.get("scenes"), nodes);
 
     return .{
+        .arena = arena.*,
         .scene = null,
         .scenes = scenes,
         .nodes = nodes,
