@@ -115,9 +115,9 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     for(scene.entities.items, 0..) |mesh, instance| {
 
-        const color_texture = self.texture_list.textures.items[@intCast(mesh.color_texture.?)];
-        const color_texture_view = color_texture.createView(.{});
-        defer color_texture_view.release();
+        // const color_texture = self.texture_list.textures.items[@intCast(mesh.color_texture.?)];
+        // const color_texture_view = color_texture.createView(.{});
+        // defer color_texture_view.release();
 
         const transform_entry = webgpu.bind_group.BindGroupEntry {
             .binding = 0,
@@ -125,14 +125,14 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
             .size = dynamic_offset_stride
         };
 
-        const color_texture_entry = webgpu.bind_group.BindGroupEntry {
-            .binding = 1,
-            .texture_view = color_texture_view,
-        };
+        // const color_texture_entry = webgpu.bind_group.BindGroupEntry {
+        //     .binding = 1,
+        //     .texture_view = color_texture_view,
+        // };
 
         const entries = [_] webgpu.bind_group.BindGroupEntry {
             transform_entry,
-            color_texture_entry
+            // color_texture_entry
         };
 
         const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {

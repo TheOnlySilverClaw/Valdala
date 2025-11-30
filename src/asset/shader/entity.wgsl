@@ -22,11 +22,11 @@ fn vertex(vertex: Vertex) -> Fragment {
 }
 
 @group(0) @binding(1) var textureSampler: sampler;
-@group(1) @binding(1) var colorTexture: texture_2d<f32>;
+// @group(1) @binding(1) var colorTexture: texture_2d<f32>;
 
 @fragment
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
-  let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
-  return textureColor;
+  // let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
+  return vec4<f32>(1, 0, 0, 1); // textureColor;
 }

@@ -144,18 +144,18 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_grou
         .visibility = .{ .vertex =  true }
     };
 
-    const color_texture_entry = Entry {
-        .binding = 1,
-        .texture = .{
-            .sample_type = .float,
-            .view_dimension = .@"2d"
-        },
-        .visibility = .{ .fragment =  true }
-    };
+    // const color_texture_entry = Entry {
+    //     .binding = 1,
+    //     .texture = .{
+    //         .sample_type = .float,
+    //         .view_dimension = .@"2d"
+    //     },
+    //     .visibility = .{ .fragment =  true }
+    // };
 
     const entries = [_]Entry {
         transform_buffer_entry,
-        color_texture_entry
+        // color_texture_entry
     };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {

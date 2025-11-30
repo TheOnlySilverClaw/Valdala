@@ -136,13 +136,13 @@ pub fn launch(self: *Self) !void {
     const arena_allocator = arena.allocator();
 
     // TODO figure out where to put this
-    const loaded_entity = self.module_loader.entity_registry.entities.items[0];
-    var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_entity);
-    _= &entity_mesh;
+    const loaded_entity = self.module_loader.entity_registry.entities.items[2];
+    var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_entity) orelse return error.EntityMeshMissing;
+    entity_mesh.transform.moveZ(10.0);
+    try scene.entities.append(allocator, entity_mesh);
     // chunk meshes are unique and need to be destroyed with their chunk
     // entity meshes are shared and need to be destroyed once per entity type
     // TODO figure out where
-    // entity_mesh.transform.moveZ(10.0);
     // entity_mesh.transform.moveX(-50.0);
 
     // for(0..5) |i| {
