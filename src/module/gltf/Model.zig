@@ -28,7 +28,7 @@ pub const Material = struct {
 };
 
 pub const Texture = struct {
-
+    data: AlignedData
 };
 
 pub const Sampler = struct {
@@ -79,20 +79,32 @@ pub const Primitive = struct {
     pub const Attributes = struct {
 
         pub const Positions = []const [3]f32;
+        
         pub const Normals = []const [3]f32;
-        pub const Texcoords = []const union(enum) {
-            float: [][2]f32,
-            unorm8: [][2]u8,
-            unorm16: [][2]u16
+        
+        pub const TextureCoordinates = union(enum) {
+            float: []const [2]f32,
+            signed_byte_normalized: []const [2]i8,
+            signed_short_normalized: []const [2]i16,
+            unsigned_byte_normalized: []const [2]u8,
+            unsigned_short_normalized: []const [2]u16,
         };
 
-        position: ?Positions,
-        normal: ?Normals,
-        texcoords: []const Texcoords,
+        positions: ?Positions,
+        normals: ?Normals,
+        // TODO support multiple texture coordinates
+        texture_coordinates: ?TextureCoordinates
+    };
+
+    pub const Indices = union(enum) {
+        unsigned_byte: []const u8,
+        unsigned_short: []const u16,
+        unsigned_int: []const u32
     };
 
     mode: Mode,
     attributes: Attributes,
+    indices: ?Indices,
     material: ?*const Material
 };
 

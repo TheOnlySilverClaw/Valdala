@@ -544,12 +544,14 @@ fn mapPrimitive(source: json.Value, accessors: []const Model.Accessor, materials
             const mode = try mapPrimitiveMode(object.get("mode")) orelse .triangles;
             const attributes = try mapPrimitiveAttributes(object.get("attributes"), accessors)
                 orelse return Error.RequiredKeyMissing;
+            const indices = try mapIndices(object.get("indices"), accessors);
             const material = try resolveIndexOptional(Model.Material, object.get("material"), materials);
 
             return .{
                 .mode = mode,
                 .attributes = attributes,
-                .material = material
+                .material = material,
+                .indices = indices
             };
         },
         else => return Error.InvalidElementType
@@ -575,15 +577,28 @@ fn mapPrimitiveAttributes(source: ?json.Value, accessors: []const Model.Accessor
             .object => |object| {
                 const positions = try mapPositions(object.get("POSITION"), accessors);
                 const normals = try mapNormals(object.get("NORMAL"), accessors);
+                // TODO TEXCOORD_n
+                const texture_coordinates_0 = try mapTextureCoordinates(object.get("TEXCOORD_0"), accessors);
                 return .{
-                    .position = positions,
-                    .normal = normals,
-                    .texcoords = &.{}
+                    .positions = positions,
+                    .normals = normals,
+                    .texture_coordinates = texture_coordinates_0
                 };
             },
             else => return Error.InvalidElementType
         }
     } else return null;
+}
+
+fn mapIndices(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Primitive.Indices {
+
+    const accessor = try resolveIndexOptional(Model.Accessor, source, accessors) orelse return null;
+    return switch(accessor.component_type) {
+       .unsigned_byte => return Model.Primitive.Indices { .unsigned_byte = @ptrCast(accessor.data) },
+       .unsigned_short => return Model.Primitive.Indices { .unsigned_short = @ptrCast(accessor.data) },
+       .unsigned_int => return Model.Primitive.Indices { .unsigned_int = @ptrCast(accessor.data) },
+       else => Error.InvalidElementValue 
+    };
 }
 
 // TODO coordinate system remapping
@@ -606,6 +621,25 @@ fn mapNormals(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Pr
         const accessor = try resolveIndex(Model.Accessor, value, accessors);
         if(accessor.type == .vec3 and accessor.component_type == .float) {
             return @ptrCast(accessor.data);
+        } else {
+            return Error.InvalidAccessorType;
+        }
+    } else return null;
+}
+
+fn mapTextureCoordinates(source: ?json.Value, accessors: []const Model.Accessor) !?Model.Primitive.Attributes.TextureCoordinates {
+
+    if(source) |value| {
+        const accessor = try resolveIndex(Model.Accessor, value, accessors);
+        if(accessor.type == .vec2) {
+            return switch (accessor.component_type) {
+                .float => Model.Primitive.Attributes.TextureCoordinates { .float = @ptrCast(accessor.data) },
+                .signed_byte => Model.Primitive.Attributes.TextureCoordinates { .signed_byte_normalized = @ptrCast(accessor.data) },
+                .signed_short => Model.Primitive.Attributes.TextureCoordinates { .signed_short_normalized = @ptrCast(accessor.data) },
+                .unsigned_byte => Model.Primitive.Attributes.TextureCoordinates { .unsigned_byte_normalized = @ptrCast(accessor.data) },
+                .unsigned_short => Model.Primitive.Attributes.TextureCoordinates { .unsigned_short_normalized = @ptrCast(accessor.data) },
+                else => Error.InvalidElementValue
+            };
         } else {
             return Error.InvalidAccessorType;
         }

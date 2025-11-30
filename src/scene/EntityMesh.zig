@@ -2,10 +2,12 @@ const std = @import("std");
 const webgpu = @import("webgpu");
 const algebra = @import("algebra");
 const graphics = @import("graphics");
+const module = @import("module");
 
 const Allocator = std.mem.Allocator;
-const Transform = algebra.Transform;
+const List = std.ArrayListUnmanaged;
 
+const Transform = algebra.Transform;
 
 pub const Vertex = extern struct {
 
@@ -31,7 +33,13 @@ pub const Vertex = extern struct {
     uv: UV,
 };
 
+// TODO Handle u32 indices? Most meshes at our complexity level seem to use u16 anyway.
 pub const Index = u16;
+
+
+pub const Primitive = struct {
+    vertices: []const Vertex
+};
 
 const Self = @This();
 
@@ -40,36 +48,70 @@ vertex_buffer: *webgpu.buffer.Buffer,
 index_buffer: *webgpu.buffer.Buffer,
 color_texture: ?u32,
 
-pub fn init(allocator: Allocator, device: *webgpu.device.Device, positions: []const f32, uvs: []const f32, indices: []const Index, color_texture: ?u32) !Self {
+pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.Entity) !?Self {
 
-    const vertices = try createVertices(allocator, positions, uvs);
-    defer allocator.free(vertices);
+    if(entity.node.mesh) |mesh| {
 
-    const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-        .size = vertices.len * @sizeOf(Vertex),
-        .usage = .{ .vertex = true, .copy_dst = true }
-    };
+        var vertices = List(Vertex).empty;
+        defer vertices.clearAndFree(allocator);
 
-    const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-        .size = indices.len * @sizeOf(Index),
-        .usage = .{ .index = true, .copy_dst = true }
-    };
+        var indices = List(Index).empty;
+        defer indices.clearAndFree(allocator);
 
-    const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
-    const index_buffer = device.createBuffer(&index_buffer_descriptor);
+        for(mesh.primitives) |primitive| {
 
-    const queue = device.getQueue();
-    defer queue.release();
+            const positions = primitive.attributes.positions orelse return error.PositionsMissing;
+            try vertices.ensureUnusedCapacity(allocator, positions.len);
 
-    queue.writeBuffer(vertex_buffer, Vertex, vertices, 0);
-    queue.writeBuffer(index_buffer, Index, indices, 0);
+            const uvs = primitive.attributes.texture_coordinates orelse return error.TextureCoordinatesMissing;
+            // TODO handle or convert normalized integer formats
+            const uv_data = switch(uvs) {
+                .float => |f| f,
+                else => return error.TextureCoordinatesUnsupported
+            };
 
-    return .{
-        .transform = .origin,
-        .index_buffer = index_buffer,
-        .vertex_buffer = vertex_buffer,
-        .color_texture = color_texture
-    };
+            for(positions, uv_data) |position, uv| {
+                const vertex = Vertex {
+                    .position = @bitCast(position),
+                    .uv = @bitCast(uv)
+                };
+                vertices.appendAssumeCapacity(vertex);
+            }
+
+            const primitive_indices = primitive.indices orelse return error.IndicesMissing;
+            const indices_data = switch (primitive_indices) {
+                .unsigned_short => |u| u,
+                else => return error.UnsupportedIndexFormat
+            };
+            try indices.appendSlice(allocator, indices_data);
+        }
+
+        const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+            .size = vertices.items.len * @sizeOf(Vertex),
+            .usage = .{ .vertex = true, .copy_dst = true }
+        };
+
+        const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+            .size = indices.items.len * @sizeOf(u16),
+            .usage = .{ .index = true, .copy_dst = true }
+        };
+
+        const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
+        const index_buffer = device.createBuffer(&index_buffer_descriptor);
+
+        const queue = device.getQueue();
+        defer queue.release();
+
+        queue.writeBuffer(vertex_buffer, Vertex, vertices.items, 0);
+        queue.writeBuffer(index_buffer, u16, indices.items, 0);
+
+        return .{
+            .transform = .origin,
+            .index_buffer = index_buffer,
+            .vertex_buffer = vertex_buffer,
+            .color_texture = undefined
+        };
+    } else return null;
 }
 
 pub fn deinit(self: Self) void {
@@ -79,19 +121,4 @@ pub fn deinit(self: Self) void {
 
     self.index_buffer.destroy();
     self.index_buffer.release();
-}
-
-fn createVertices(allocator: Allocator, positions: []const f32, uvs: []const f32) ![]const Vertex {
-
-    const vertices = try allocator.alloc(Vertex, positions.len / 3);
-    
-    for(vertices, 0..) |*vertex, index| {
-        vertex.position.x = positions[index * 3];
-        vertex.position.y = positions[index * 3 + 1];
-        vertex.position.z = positions[index * 3 + 2];
-        vertex.uv.u = uvs[index * 2];
-        vertex.uv.v = uvs[index * 2 + 1];
-    }
-
-    return vertices;
 }
