@@ -748,9 +748,8 @@ fn resolveIndex(T: type, source: json.Value, elements: []const T) !*const T {
 
     switch (source) {
         .integer => |i| {
-            if(i > 0 and i < elements.len) {
-                return &elements[@intCast(i)];
-            } else return Error.InvalidElementValue;
+            if(i < 0 or i >= elements.len) return Error.InvalidElementValue;
+            return &elements[@intCast(i)];
         },
         else => return Error.InvalidElementType
     }
