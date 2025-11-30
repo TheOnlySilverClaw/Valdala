@@ -3,6 +3,7 @@ const webgpu = @import("webgpu");
 const algebra = @import("algebra");
 const graphics = @import("graphics");
 const module = @import("module");
+const log = std.log.scoped(.entity_mesh);
 
 const Allocator = std.mem.Allocator;
 const List = std.ArrayListUnmanaged;
@@ -46,18 +47,53 @@ const Self = @This();
 transform: Transform(f32),
 vertex_buffer: *webgpu.buffer.Buffer,
 index_buffer: *webgpu.buffer.Buffer,
-color_texture: ?u32,
+base_color_buffer: *webgpu.buffer.Buffer,
 
 pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.Entity) !?Self {
 
-    if(entity.node.mesh) |mesh| {
+    var vertices = List(Vertex).empty;
+    defer vertices.clearAndFree(allocator);
 
-        var vertices = List(Vertex).empty;
-        defer vertices.clearAndFree(allocator);
+    var indices = List(Index).empty;
+    defer indices.clearAndFree(allocator);
 
-        var indices = List(Index).empty;
-        defer indices.clearAndFree(allocator);
+    try appendNodeMeshes(allocator, entity.node, &vertices, &indices);
 
+    const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+        .size = vertices.items.len * @sizeOf(Vertex),
+        .usage = .{ .vertex = true, .copy_dst = true }
+    };
+
+    const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+        .size = indices.items.len * @sizeOf(u16),
+        .usage = .{ .index = true, .copy_dst = true }
+    };
+
+    const base_color_buffer_descriptor = webgpu.buffer.BufferDescriptor {
+        .size = 
+    }
+
+    const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
+    const index_buffer = device.createBuffer(&index_buffer_descriptor);
+
+    const queue = device.getQueue();
+    defer queue.release();
+
+    queue.writeBuffer(vertex_buffer, Vertex, vertices.items, 0);
+    queue.writeBuffer(index_buffer, u16, indices.items, 0);
+
+    log.debug("entity vertices: {}", .{ vertices.items.len });
+
+    return .{
+        .transform = .origin,
+        .index_buffer = index_buffer,
+        .vertex_buffer = vertex_buffer,
+    };
+}
+
+fn appendNodeMeshes(allocator: Allocator, node: *const module.Entity.Model.Node, vertices: *List(Vertex), indices: *List(Index)) !void {
+
+    if(node.mesh) |mesh| {
         for(mesh.primitives) |primitive| {
 
             const positions = primitive.attributes.positions orelse return error.PositionsMissing;
@@ -71,6 +107,7 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
             };
 
             for(positions, uv_data) |position, uv| {
+                log.debug("uv: {} {}", .{ uv[0], uv[1] });
                 const vertex = Vertex {
                     .position = @bitCast(position),
                     .uv = @bitCast(uv)
@@ -85,33 +122,11 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
             };
             try indices.appendSlice(allocator, indices_data);
         }
+    }
 
-        const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-            .size = vertices.items.len * @sizeOf(Vertex),
-            .usage = .{ .vertex = true, .copy_dst = true }
-        };
-
-        const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-            .size = indices.items.len * @sizeOf(u16),
-            .usage = .{ .index = true, .copy_dst = true }
-        };
-
-        const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
-        const index_buffer = device.createBuffer(&index_buffer_descriptor);
-
-        const queue = device.getQueue();
-        defer queue.release();
-
-        queue.writeBuffer(vertex_buffer, Vertex, vertices.items, 0);
-        queue.writeBuffer(index_buffer, u16, indices.items, 0);
-
-        return .{
-            .transform = .origin,
-            .index_buffer = index_buffer,
-            .vertex_buffer = vertex_buffer,
-            .color_texture = undefined
-        };
-    } else return null;
+    for(node.children) |child| {
+        try appendNodeMeshes(allocator, child, vertices, indices);
+    }
 }
 
 pub fn deinit(self: Self) void {

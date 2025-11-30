@@ -136,7 +136,7 @@ pub fn launch(self: *Self) !void {
     const arena_allocator = arena.allocator();
 
     // TODO figure out where to put this
-    const loaded_entity = self.module_loader.entity_registry.entities.items[2];
+    const loaded_entity = self.module_loader.entity_registry.entities.items[3];
     var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_entity) orelse return error.EntityMeshMissing;
     entity_mesh.transform.moveZ(10.0);
     try scene.entities.append(allocator, entity_mesh);

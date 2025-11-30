@@ -670,9 +670,58 @@ fn mapMaterials(allocator: Allocator, source: ?json.Value) ![]const Model.Materi
 }
 
 fn mapMaterial(allocator: Allocator, source: json.Value) !Model.Material {
-     _ = allocator;
-     _ = source;
-     return undefined;
+     
+     switch (source) {
+        .object => |object| {
+
+            const name = try copyString(allocator, object.get("name"));
+            const double_sided = false;
+            const metallic_roughness = try mapMetallicRoughness(object.get("pbrMetallicRoughness"));
+
+            return .{
+                .name = name,
+                .double_sided = double_sided,
+                .metallic_roughness = metallic_roughness
+            };
+        },
+        else => return Error.InvalidAccessorType
+     }
+}
+
+fn mapMetallicRoughness(source: ?json.Value) !?Model.Material.MetallicRoughness {
+
+    if(source) |value| {
+        switch (value) {
+            .object => |object| {
+                const base_color_factor = try mapColor(object.get("baseColorFactor"));
+                return .{
+                    .base_color_factor = base_color_factor
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+fn mapColor(source: ?json.Value) !?Model.Color {
+
+    if(source) |value| {
+        switch (value) {
+            .array => |array| {
+                if(array.items.len != 4) return Error.InvalidElementLength;
+                var color: Model.Color = undefined;
+                for(array.items, &color) |item, *element| {
+                    switch (item) {
+                        .float => |f| element.* = @floatCast(f),
+                        .integer => |i| element.* = @floatFromInt(i),
+                        else => return Error.InvalidElementType
+                    }
+                }
+                return color;
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
 }
 
 fn mapSamplers(allocator: Allocator, source: ?json.Value) ![]const Model.Sampler {
@@ -812,13 +861,13 @@ fn mapUnsigned(source: ?json.Value) !?usize {
     } else return null;
 }
 
-fn copyString(allocator: Allocator, source: ?json.Value) ![]const u8 {
+fn copyString(allocator: Allocator, source: ?json.Value) !?[]const u8 {
 
     if(source) |value| {
         return switch (value) {
             .string => |string| try allocator.dupe(u8, string),
             else => Error.InvalidElementType
         };
-    } else return "";
+    } else return null;
 }
 

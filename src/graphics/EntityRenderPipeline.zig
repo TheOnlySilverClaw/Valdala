@@ -11,7 +11,7 @@ const Self = @This();
 
 handle: *webgpu.render_pipeline.RenderPipeline,
 static_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
-dynamic_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
+entity_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
 
 pub fn init(surface: *const Surface) !Self {
 
@@ -20,14 +20,19 @@ pub fn init(surface: *const Surface) !Self {
     defer shader.release();
 
     const static_bind_group_layout = createStaticBindGroupLayout(surface.device);
-    const dynamic_bind_group_layout = createDynamicBindGroupLayout(surface.device);
+    const entity_bind_group_layout = createEntityBindGroupLayout(surface.device);
 
-    const handle = createRenderPipeline(surface, static_bind_group_layout, dynamic_bind_group_layout, shader);
+    const bind_group_layouts = [_]*webgpu.bind_group_layout.BindGroupLayout {
+        static_bind_group_layout,
+        entity_bind_group_layout
+    };
+
+    const handle = createRenderPipeline(surface, &bind_group_layouts, shader);
 
     return .{
         .handle = handle,
         .static_bind_group_layout = static_bind_group_layout,
-        .dynamic_bind_group_layout = dynamic_bind_group_layout
+        .entity_bind_group_layout = entity_bind_group_layout
     };
 }
 
@@ -35,21 +40,16 @@ pub fn deinit(self: Self) void {
 
     self.handle.release();
     self.static_bind_group_layout.release();
-    self.dynamic_bind_group_layout.release();
+    self.entity_bind_group_layout.release();
 }
 
-fn createRenderPipeline(surface: *const Surface, static_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout, dynamic_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout, shader: *webgpu.shader.ShaderModule) *webgpu.render_pipeline.RenderPipeline {
+fn createRenderPipeline(surface: *const Surface, bind_group_layouts: []const *webgpu.bind_group_layout.BindGroupLayout, shader: *webgpu.shader.ShaderModule) *webgpu.render_pipeline.RenderPipeline {
 
     const device = surface.device;
 
-    const bind_group_layouts = [_]*webgpu.bind_group_layout.BindGroupLayout {
-        static_bind_group_layout,
-        dynamic_bind_group_layout
-    };
-
     const pipeline_layout_descriptor = webgpu.pipeline_layout.PipelineLayoutDescriptor {
         .label = .empty,
-        .bind_group_layouts = &bind_group_layouts,
+        .bind_group_layouts = bind_group_layouts.ptr,
         .bind_group_layout_count = bind_group_layouts.len
     };
 
@@ -130,11 +130,11 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
     return device.createBindGroupLayout(&descriptor);
 }
 
-fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+fn createEntityBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
 
     const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
 
-    const transform_buffer_entry = Entry {
+    const entity_buffer_entry = Entry {
         .binding = 0,
         .buffer = .{
             .type = .uniform,
@@ -144,18 +144,8 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_grou
         .visibility = .{ .vertex =  true }
     };
 
-    // const color_texture_entry = Entry {
-    //     .binding = 1,
-    //     .texture = .{
-    //         .sample_type = .float,
-    //         .view_dimension = .@"2d"
-    //     },
-    //     .visibility = .{ .fragment =  true }
-    // };
-
     const entries = [_]Entry {
-        transform_buffer_entry,
-        // color_texture_entry
+        entity_buffer_entry,
     };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {

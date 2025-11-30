@@ -1,6 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 const graphics = @import("graphics");
+const Model = @import("gltf/Model.zig");
 const log = std.log.scoped(.entity_loader);
 
 const Allocator = std.mem.Allocator;
@@ -45,14 +46,13 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
             .map => |map| {
 
                 const file_path = map.get("file").?.asScalar().?;
-                const mesh_name = map.get("mesh").?.asScalar().?;
-                log.debug("load mesh {s} from {s}", .{ mesh_name, file_path });
+                const node_name = map.get("node").?.asScalar().?;
+                log.debug("load model for entity {s} at node {s} from {s}", .{ id, node_name, file_path });
 
                 var model_loader = ModelLoader.init(self.allocator);
                 const model = try model_loader.load(directory, file_path);
                 entity.model = model;
-                // TODO find mesh by name
-                const node = &model.nodes[0];
+                const node = searchNode(&model, node_name) orelse return error.EntityNodeMissing;
                 entity.node = node;
             },
             else => {}
@@ -60,4 +60,17 @@ pub fn load(self: *Self, directory: fs.Dir, id: Entity.ID, descriptor: Yaml.Map)
     }
 
     try self.entities.append(self.allocator, entity);
+}
+
+fn searchNode(model: *const Model, node_name: []const u8) ?*const Model.Node {
+
+    for(model.nodes) |*node| {
+        if(node.name) |name| {
+            log.debug("checking node {s}", .{ name });
+            if(std.mem.eql(u8, name, node_name)) {
+                return node;
+            }
+        }
+    }
+    return null;
 }

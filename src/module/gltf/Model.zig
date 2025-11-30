@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub const Node = struct {
-    name: []const u8,
+    name: ?[]const u8,
     transform: Transform,
     children: []const *const Node,
     mesh: ?*const Mesh
@@ -17,14 +17,21 @@ pub const Transform = union(enum) {
 };
 
 pub const Scene = struct {
-    name: []const u8,
+    name: ?[]const u8,
     nodes: []const *const Node
 };
 
+pub const Color = [4]f32;
+
 pub const Material = struct {
-    name: []const u8,
+
+    pub const MetallicRoughness = struct {
+        base_color_factor: ?Color,
+    };
+
+    name: ?[]const u8,
     double_sided: bool,
-    emissive_texture: *const Texture
+    metallic_roughness: ?MetallicRoughness
 };
 
 pub const Texture = struct {
@@ -53,7 +60,7 @@ pub const Sampler = struct {
         repeat
     };
 
-    name: []const u8,
+    name: ?[]const u8,
     mag_filter: ?MagFilter,
     min_filter: ?MinFilter,
     wrap_u: Wrap,
@@ -61,7 +68,7 @@ pub const Sampler = struct {
 };
 
 pub const Mesh = struct {
-    name: []const u8,
+    name: ?[]const u8,
     primitives: []const Primitive
 };
 
@@ -152,7 +159,7 @@ pub const Accessor = struct {
 };
 
 pub const Image = struct {
-    name: []const u8,
+    name: ?[]const u8,
     data: []const u8
 };
 

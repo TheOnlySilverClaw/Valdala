@@ -9,7 +9,16 @@ struct Fragment {
 }
 
 @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> transform: mat4x4<f32>;
+@group(0) @binding(1) var textureSampler: sampler;
+
+struct Entity {
+  transform: mat4x4<f32>;
+  base_color_factor: vec4<f32>;
+}
+
+@group(1) @binding(0) entity: Entity;
+
+// @group(1) @binding(1) var colorTexture: texture_2d<f32>;
 
 @vertex
 fn vertex(vertex: Vertex) -> Fragment {
@@ -21,12 +30,10 @@ fn vertex(vertex: Vertex) -> Fragment {
   return fragment;
 }
 
-@group(0) @binding(1) var textureSampler: sampler;
-// @group(1) @binding(1) var colorTexture: texture_2d<f32>;
 
 @fragment
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
   // let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
-  return vec4<f32>(1, 0, 0, 1); // textureColor;
+  return entity.base_color_factor; // textureColor;
 }

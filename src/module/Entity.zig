@@ -1,12 +1,12 @@
 const std = @import("std");
 
 const Allocator = std.mem.Allocator;
-const Model = @import("gltf/Model.zig");
 
-const Self = @This();
-
+pub const Model = @import("gltf/Model.zig");
 pub const ID = []const u8;
 pub const Name = []const u8;
+
+const Self = @This();
 
 id: ID,
 name: Name,
