@@ -41,3 +41,7 @@ pub fn MakeVertexInfo(format: anytype) type {
     };
 }
 
+pub fn uniformBufferAlignment(T: type, limits: webgpu.support.Limits) u32 {
+    const min = limits.min_uniform_buffer_offset_alignment;
+    return (@divFloor(@sizeOf(T), min) + 1) * min;
+}

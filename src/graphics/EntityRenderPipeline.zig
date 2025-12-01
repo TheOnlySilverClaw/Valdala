@@ -1,9 +1,10 @@
 const webgpu = @import("webgpu");
 const asset = @import("asset");
+const algebra = @import("algebra");
 
 const Surface = @import("Surface.zig");
 const Shader = @import("Shader.zig");
-
+const Transform = algebra.Transform(f32);
 
 const RenderPipeline = @import("RenderPipeline.zig");
 const scene= @import("scene");
@@ -20,7 +21,7 @@ pub fn init(surface: *const Surface) !Self {
     defer shader.release();
 
     const static_bind_group_layout = createStaticBindGroupLayout(surface.device);
-    const dynamic_bind_group_layout = createDynamicBindGroupLayout(surface.device);
+    const dynamic_bind_group_layout = createDynamicBindGroupLayout(surface.device, surface.device_limits);
 
     const handle = createRenderPipeline(surface, static_bind_group_layout, dynamic_bind_group_layout, shader);
 
@@ -130,7 +131,7 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
     return device.createBindGroupLayout(&descriptor);
 }
 
-fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+fn createDynamicBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.support.Limits) *webgpu.bind_group_layout.BindGroupLayout {
 
     const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
 
@@ -139,7 +140,7 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_grou
         .buffer = .{
             .type = .uniform,
             .has_dynamic_offset = 1,
-            .min_binding_size = 256
+            .min_binding_size =  RenderPipeline.uniformBufferAlignment(Transform, limits)
         },
         .visibility = .{ .vertex =  true }
     };

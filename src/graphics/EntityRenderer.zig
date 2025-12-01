@@ -9,8 +9,10 @@ const Matrix = algebra.Matrix(f32, 4, 4);
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const Pipeline = @import("EntityRenderPipeline.zig");
+const RenderPipeline = @import("RenderPipeline.zig");
 const EntityMesh = @import("scene").EntityMesh;
 const TextureList = @import("TextureList.zig");
+const Transform = algebra.Transform(f32);
 
 const Self = @This();
 
@@ -74,7 +76,7 @@ pub fn init(surface: *const Surface, texture_list: TextureList) !Self {
 
     const bindgroup = surface.device.createBindGroup(&descriptor);
 
-    const transform_buffer = createTransformBuffer(device, 64);
+    const transform_buffer = createTransformBuffer(device, 64, surface.device_limits);
 
     return .{
         .surface = surface,
@@ -87,11 +89,11 @@ pub fn init(surface: *const Surface, texture_list: TextureList) !Self {
     };
 }
 
-fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buffer.Buffer {
+fn createTransformBuffer(device: *webgpu.device.Device, count: u64, limits: webgpu.support.Limits) *webgpu.buffer.Buffer {
     
     const descriptor = webgpu.buffer.BufferDescriptor {
         .label = .sliced("transform"),
-        .size = 256 * count,
+        .size = RenderPipeline.uniformBufferAlignment(Transform, limits) * count,
         .usage = .{ .uniform = true, .copy_dst = true }
     };
 
@@ -101,7 +103,7 @@ fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buff
 pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
 
     // TODO determine smallest valid stride from limit and required size
-    const dynamic_offset_stride = 256;
+    const transform_stride = RenderPipeline.uniformBufferAlignment(Transform, self.surface.device_limits);
 
     const surface = self.surface;
     const queue = surface.getQueue();
@@ -122,7 +124,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
         const transform_entry = webgpu.bind_group.BindGroupEntry {
             .binding = 0,
             .buffer = self.transform_buffer,
-            .size = dynamic_offset_stride
+            .size = transform_stride
         };
 
         const color_texture_entry = webgpu.bind_group.BindGroupEntry {
@@ -144,11 +146,11 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
         const dynamic_bind_group = surface.device.createBindGroup(&dynamic_bind_group_descriptor);
         defer dynamic_bind_group.release();
         
-        const dynamic_offset: u32 = @intCast(instance * dynamic_offset_stride);
-        render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
+        const transform_offset: u32 = @intCast(instance * transform_stride);
+        render_pass.setBindGroup(1, dynamic_bind_group, &.{ transform_offset });
 
         const transform_matrix = mesh.transform.toMatrix();
-        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, dynamic_offset);
+        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, transform_offset);
 
         render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
         render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
