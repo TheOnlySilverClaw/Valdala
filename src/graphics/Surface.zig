@@ -7,6 +7,7 @@ const assert = std.debug.assert;
 
 pub const Error = error {
     CapabilitiesUnavailable,
+    DeviceLimitsUnavailable,
     DeviceLost,
     TextureLost,
     TextureOutdated,
@@ -22,6 +23,7 @@ handle: *webgpu.surface.Surface,
 capabilities: webgpu.surface.SurfaceCapabilities,
 depth_texture: ?*webgpu.texture.Texture,
 device: *webgpu.device.Device,
+device_limits: webgpu.support.Limits,
 queue: *webgpu.queue.Queue,
 width: u32,
 height: u32,
@@ -47,6 +49,9 @@ pub fn create(self: *Self, window: *glfw.window.Window, instance: *webgpu.instan
 
     self.device = try adapter.awaitDevice(null);
     adapter.release();
+
+    self.device_limits = .{};
+    if(self.device.getLimits(&self.device_limits) != 1) return Error.DeviceLimitsUnavailable;
 
     self.queue = self.device.getQueue();
 
