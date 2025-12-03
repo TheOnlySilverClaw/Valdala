@@ -160,7 +160,9 @@ pub const Accessor = struct {
 
 pub const Image = struct {
     name: ?[]const u8,
-    data: []const u8
+    data: []const u8,
+    width: usize,
+    height: usize
 };
 
 arena: std.heap.ArenaAllocator,

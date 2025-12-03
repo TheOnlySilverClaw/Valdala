@@ -9,7 +9,7 @@ const Matrix = algebra.Matrix(f32, 4, 4);
 const Scene = @import("scene").Scene;
 const Surface = @import("Surface.zig");
 const Pipeline = @import("EntityRenderPipeline.zig");
-const EntityMesh = @import("scene").EntityMesh;
+const EntityModel = @import("scene").EntityModel;
 const TextureList = @import("TextureList.zig");
 
 const Self = @This();
@@ -113,7 +113,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     queue.writeBuffer(self.projection_buffer, f32, &view_matrix.values, 0);
 
-    for(scene.entities.items, 0..) |mesh, instance| {
+    for(scene.entities.items, 0..) |model, instance| {
 
         // const color_texture = self.texture_list.textures.items[@intCast(mesh.color_texture.?)];
         // const color_texture_view = color_texture.createView(.{});
@@ -125,34 +125,38 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
             .size = dynamic_offset_stride
         };
 
-        // const color_texture_entry = webgpu.bind_group.BindGroupEntry {
-        //     .binding = 1,
-        //     .texture_view = color_texture_view,
-        // };
+        for(model.nodes) |node| {
 
-        const entries = [_] webgpu.bind_group.BindGroupEntry {
-            transform_entry,
-            // color_texture_entry
-        };
+            const color_texture_entry = webgpu.bind_group.BindGroupEntry {
+                .binding = 1,
+                .texture_view = node.,
+            };
 
-        const dynamic_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
-            .layout = self.pipeline.dynamic_bind_group_layout,
-            .entries = &entries,
-            .entry_count = entries.len
-        };
+            const entries = [_] webgpu.bind_group.BindGroupEntry {
+                transform_entry,
+                color_texture_entry
+            };
 
-        const dynamic_bind_group = surface.device.createBindGroup(&dynamic_bind_group_descriptor);
-        defer dynamic_bind_group.release();
+            const bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
+                .layout = self.pipeline.entity_bind_group_layout,
+                .entries = &entries,
+                .entry_count = entries.len
+            };
+
+
+            const dynamic_bind_group = surface.device.createBindGroup(&bind_group_descriptor);
+            defer dynamic_bind_group.release();
         
-        const dynamic_offset: u32 = @intCast(instance * dynamic_offset_stride);
-        render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
+            const dynamic_offset: u32 = @intCast(instance * dynamic_offset_stride);
+            render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
 
-        const transform_matrix = mesh.transform.toMatrix();
-        queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, dynamic_offset);
+            const transform_matrix = model.transform.toMatrix();
+            queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, dynamic_offset);
 
-        render_pass.setVertexBuffer(0, mesh.vertex_buffer, 0, mesh.vertex_buffer.size());
-        render_pass.setIndexBuffer(mesh.index_buffer, .uint16, 0, mesh.index_buffer.size());
-        render_pass.drawIndexed(@intCast(mesh.index_buffer.size() / @sizeOf(EntityMesh.Index)), 1, 0, 0, 0);
+            render_pass.setVertexBuffer(0, model.vertex_buffer, 0, model.vertex_buffer.size());
+            render_pass.setIndexBuffer(model.index_buffer, .uint16, 0, model.index_buffer.size());
+            render_pass.drawIndexed(@intCast(model.index_buffer.size() / @sizeOf(EntityModel.Index)), 1, 0, 0, 0);
+        }
     }
 }
 

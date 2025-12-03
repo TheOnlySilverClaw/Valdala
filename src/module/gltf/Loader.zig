@@ -321,16 +321,23 @@ fn loadImage(allocator: Allocator, source: json.Value, root: fs.Dir, buffer_view
 
                         return .{
                             .name = name,
-                            .data = data
+                            .data = data,
+                            .width = loaded.width,
+                            .height = loaded.height
                         };
                     },
                     else => return Error.InvalidElementType
                 }
             } else if(try resolveIndexOptional(Model.BufferView, object.get("bufferView"), buffer_views)) |buffer_view| {
-                const data = buffer_view.data;
+                
+                const mapped = try zigimg.Image.fromMemory(allocator, buffer_view.data);
+                const data = mapped.pixels.asConstBytes();
+                
                 return .{
                     .name = name,
-                    .data = data
+                    .data = data,
+                    .width = mapped.width,
+                    .height = mapped.height
                 };
             } else return Error.RequiredKeyMissing;
         },

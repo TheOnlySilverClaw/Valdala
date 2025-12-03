@@ -137,9 +137,9 @@ pub fn launch(self: *Self) !void {
 
     // TODO figure out where to put this
     const loaded_entity = self.module_loader.entity_registry.entities.items[3];
-    var entity_mesh = try @import("scene").EntityMesh.init(allocator, surface.device, loaded_entity) orelse return error.EntityMeshMissing;
-    entity_mesh.transform.moveZ(10.0);
-    try scene.entities.append(allocator, entity_mesh);
+    var entity_model = try @import("scene").EntityModel.init(allocator, surface.device, loaded_entity) orelse return error.EntityMeshMissing;
+    entity_model.transform.moveZ(10.0);
+    try scene.entities.append(allocator, entity_model);
     // chunk meshes are unique and need to be destroyed with their chunk
     // entity meshes are shared and need to be destroyed once per entity type
     // TODO figure out where

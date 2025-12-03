@@ -55,7 +55,7 @@ fn createRenderPipeline(surface: *const Surface, bind_group_layouts: []const *we
 
     const pipeline_layout = device.createPipelineLayout(&pipeline_layout_descriptor);
 
-    const vertex_info= RenderPipeline.MakeVertexInfo(scene.EntityMesh.Vertex.format).init(shader);
+    const vertex_info= RenderPipeline.MakeVertexInfo(scene.EntityModel.Vertex.format).init(shader);
 
     const color_target = webgpu.render_pipeline.ColorTargetState {
         .format = surface.getColorTextureFormat()
@@ -144,8 +144,19 @@ fn createEntityBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
         .visibility = .{ .vertex =  true }
     };
 
+    const color_texture_entry = Entry {
+        .binding = 1,
+        .texture = .{
+            .sample_type = .float,
+            .view_dimension = .@"2d"
+        },
+        .visibility = .{ .fragment =  true }
+    };
+
+
     const entries = [_]Entry {
         entity_buffer_entry,
+        color_texture_entry
     };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {

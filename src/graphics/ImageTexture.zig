@@ -1,6 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 const webgpu = @import("webgpu");
+
 const Allocator = std.mem.Allocator;
 const Device = webgpu.device.Device;
 const Queue = webgpu.queue.Queue;
@@ -19,13 +20,12 @@ pub const Options = struct {
 };
 
 pub const ViewOptions = struct {
-    label: webgpu.StringView = .empty,
+    label: webgpu.StringView = .empty
 };
 
 const Self = @This();
 
 handle: *webgpu.texture.Texture,
-queue: *webgpu.queue.Queue,
 
 pub fn create(device: *Device, width: u32, height: u32, options: Options) Self {
 
@@ -46,10 +46,7 @@ pub fn create(device: *Device, width: u32, height: u32, options: Options) Self {
     };
 
     const handle =  device.createTexture(&descriptor);
-    return .{
-        .handle = handle,
-        .queue = device.getQueue()
-    };
+    return .{ .handle = handle };
 }
 
 pub fn fromImage(device: *Device, image: @import("zigimg").Image) !Self {
@@ -60,12 +57,11 @@ pub fn fromImage(device: *Device, image: @import("zigimg").Image) !Self {
 
 pub fn destroy(self: Self) void {
 
-    self.queue.release();
     self.handle.destroy();
     self.handle.release();
 }
 
-pub fn write(self: Self, pixels: []const u8) void {
+pub fn write(self: Self, queue: *Queue, pixels: []const u8) void {
 
     const destination = webgpu.texel.TexelCopyTextureInfo {
         .aspect = .all,
@@ -91,10 +87,10 @@ pub fn write(self: Self, pixels: []const u8) void {
         .depth_or_array_layers = 1
     };
     
-    self.queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
+    queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
-pub fn writeRectangle(self: Self, pixels: []const u8, x: u32, y: u32, width: u32, height: u32) !void {
+pub fn writeRectangle(self: Self, queue: *Queue, pixels: []const u8, x: u32, y: u32, width: u32, height: u32) !void {
 
     const destination = webgpu.texel.TexelCopyTextureInfo {
         .aspect = .all,
@@ -120,7 +116,7 @@ pub fn writeRectangle(self: Self, pixels: []const u8, x: u32, y: u32, width: u32
         .depth_or_array_layers = 1
     };
     
-    self.queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
+    queue.writeTexture(&destination, pixels.ptr, pixels.len, &layout, &extent);
 }
 
 pub fn createView(self: Self, options: ViewOptions) *webgpu.texture_view.TextureView {

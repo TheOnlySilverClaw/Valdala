@@ -4,11 +4,12 @@ const algebra = @import("algebra");
 const log = std.log.scoped(.font);
 
 const Allocator = std.mem.Allocator;
-const Vector = algebra.Vector2;
-const TrueType = @import("TrueType");
-const ImageTexture = @import("ImageTexture.zig");
 const Map = std.AutoHashMapUnmanaged;
 const List = std.ArrayListUnmanaged;
+const Vector = algebra.Vector2;
+const Queue = webgpu.queue.Queue;
+const TrueType = @import("TrueType");
+const ImageTexture = @import("ImageTexture.zig");
 
 pub const Error = error {
     TextureSize,
@@ -44,6 +45,7 @@ const texture_width_max = 255;
 const texture_format = webgpu.texture.TextureFormat.r8_unorm;
 
 allocator: Allocator,
+queue: *Queue,
 trueType: TrueType,
 height: Size,
 scale: f32,
@@ -74,6 +76,7 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, source: []const
 
     return .{
         .allocator = allocator,
+        .queue = device.getQueue(),
         .trueType = trueType,
         .height = height,
         .scale = scale,
@@ -85,6 +88,7 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, source: []const
 
 pub fn deinit(self: *Self) void {
 
+    self.queue.release();
     self.glyphs.deinit(self.allocator);
     self.texture.destroy();
 }
@@ -119,7 +123,7 @@ fn loadGlyph(self: *Self, code_point: CodePoint) !void {
         self.texture_position.y += @as(u32, @intFromFloat(self.height)) + glyph_texture_padding;
     }
 
-    try self.texture.writeRectangle(pixels.items, self.texture_position.x, self.texture_position.y, bitmap.width, bitmap.height);
+    try self.texture.writeRectangle(self.queue, pixels.items, self.texture_position.x, self.texture_position.y, bitmap.width, bitmap.height);
     pixels.deinit(self.allocator);
 
     const texture_slice = calculateTextureSlice(self.texture, bitmap, @floatFromInt(self.texture_position.x), @floatFromInt(self.texture_position.y));

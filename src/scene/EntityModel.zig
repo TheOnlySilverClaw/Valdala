@@ -7,8 +7,11 @@ const log = std.log.scoped(.entity_mesh);
 
 const Allocator = std.mem.Allocator;
 const List = std.ArrayListUnmanaged;
+const Buffer = webgpu.buffer.Buffer;
+const ImageTexture = graphics.ImageTexture;
+const TextureView = webgpu.texture_view.TextureView;
+const Transform = algebra.Transform(f32);
 
-const Transform = algebra.Transform;
 
 pub const Vertex = extern struct {
 
@@ -38,16 +41,26 @@ pub const Vertex = extern struct {
 pub const Index = u16;
 
 
+pub const Node = struct {
+    transform: algebra.Transform,
+    children: []const Node,
+    primitives: []const Primitive,
+    vertex_count: u32,
+    index_count: u32,
+};
+
 pub const Primitive = struct {
-    vertices: []const Vertex
+    color_texture: ?*const TextureView
 };
 
 const Self = @This();
 
-transform: Transform(f32),
-vertex_buffer: *webgpu.buffer.Buffer,
-index_buffer: *webgpu.buffer.Buffer,
-base_color_buffer: *webgpu.buffer.Buffer,
+
+transform: Transform,
+nodes: []const Node,
+textures: []const ImageTexture,
+vertex_buffer: *const webgpu.buffer.Buffer,
+index_buffer: *const webgpu.buffer.Buffer,
 
 pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.Entity) !?Self {
 
@@ -57,7 +70,9 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
     var indices = List(Index).empty;
     defer indices.clearAndFree(allocator);
 
-    try appendNodeMeshes(allocator, entity.node, &vertices, &indices);
+    const textures = List(ImageTexture).empty;
+
+    try appendNodes(allocator, entity.node, &vertices, &indices);
 
     const vertex_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = vertices.items.len * @sizeOf(Vertex),
@@ -67,11 +82,7 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
     const index_buffer_descriptor = webgpu.buffer.BufferDescriptor {
         .size = indices.items.len * @sizeOf(u16),
         .usage = .{ .index = true, .copy_dst = true }
-    };
-
-    const base_color_buffer_descriptor = webgpu.buffer.BufferDescriptor {
-        .size = 
-    }
+    }; 
 
     const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
@@ -88,10 +99,15 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
         .transform = .origin,
         .index_buffer = index_buffer,
         .vertex_buffer = vertex_buffer,
+        .textures = textures,
+
     };
 }
 
-fn appendNodeMeshes(allocator: Allocator, node: *const module.Entity.Model.Node, vertices: *List(Vertex), indices: *List(Index)) !void {
+fn appendNodes(allocator: Allocator, node: *const module.Entity.Model.Node, vertices: *List(Vertex), indices: *List(Index)) !void {
+
+    const converted: Node = undefined;
+    _ = converted;
 
     if(node.mesh) |mesh| {
         for(mesh.primitives) |primitive| {
@@ -125,9 +141,11 @@ fn appendNodeMeshes(allocator: Allocator, node: *const module.Entity.Model.Node,
     }
 
     for(node.children) |child| {
-        try appendNodeMeshes(allocator, child, vertices, indices);
+        try appendNodes(allocator, child, vertices, indices);
     }
 }
+
+
 
 pub fn deinit(self: Self) void {
     
