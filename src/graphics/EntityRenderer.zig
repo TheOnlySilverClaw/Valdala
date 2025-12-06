@@ -11,6 +11,7 @@ const Surface = @import("Surface.zig");
 const Pipeline = @import("EntityRenderPipeline.zig");
 const EntityModel = @import("scene").EntityModel;
 const TextureList = @import("TextureList.zig");
+const Transform = algebra.Transform(f32);
 
 const Self = @This();
 
@@ -74,7 +75,7 @@ pub fn init(surface: *const Surface, texture_list: TextureList) !Self {
 
     const bindgroup = surface.device.createBindGroup(&descriptor);
 
-    const transform_buffer = createTransformBuffer(device, 64);
+    const transform_buffer = createTransformBuffer(device, 64, surface.device_limits);
 
     return .{
         .surface = surface,
@@ -87,11 +88,11 @@ pub fn init(surface: *const Surface, texture_list: TextureList) !Self {
     };
 }
 
-fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buffer.Buffer {
+fn createTransformBuffer(device: *webgpu.device.Device, count: u64, limits: webgpu.support.Limits) *webgpu.buffer.Buffer {
     
     const descriptor = webgpu.buffer.BufferDescriptor {
         .label = .sliced("transform"),
-        .size = 256 * count,
+        .size = RenderPipeline.uniformBufferAlignment(Transform, limits) * count,
         .usage = .{ .uniform = true, .copy_dst = true }
     };
 
@@ -101,7 +102,7 @@ fn createTransformBuffer(device: *webgpu.device.Device, count: u64) *webgpu.buff
 pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encoder.RenderPassEncoder) !void {
 
     // TODO determine smallest valid stride from limit and required size
-    const dynamic_offset_stride = 256;
+    const transform_stride = RenderPipeline.uniformBufferAlignment(Transform, self.surface.device_limits);
 
     const surface = self.surface;
     const queue = surface.getQueue();
@@ -122,7 +123,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
         const transform_entry = webgpu.bind_group.BindGroupEntry {
             .binding = 0,
             .buffer = self.transform_buffer,
-            .size = dynamic_offset_stride
+            .size = transform_stride
         };
 
         for(model.nodes) |node| {

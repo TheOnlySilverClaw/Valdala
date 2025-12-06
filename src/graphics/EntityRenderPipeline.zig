@@ -1,9 +1,10 @@
 const webgpu = @import("webgpu");
 const asset = @import("asset");
+const algebra = @import("algebra");
 
 const Surface = @import("Surface.zig");
 const Shader = @import("Shader.zig");
-
+const Transform = algebra.Transform(f32);
 
 const RenderPipeline = @import("RenderPipeline.zig");
 const scene= @import("scene");
@@ -130,7 +131,7 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
     return device.createBindGroupLayout(&descriptor);
 }
 
-fn createEntityBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+fn createDynamicBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.support.Limits) *webgpu.bind_group_layout.BindGroupLayout {
 
     const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
 
@@ -139,7 +140,7 @@ fn createEntityBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
         .buffer = .{
             .type = .uniform,
             .has_dynamic_offset = 1,
-            .min_binding_size = 256
+            .min_binding_size =  RenderPipeline.uniformBufferAlignment(Transform, limits)
         },
         .visibility = .{ .vertex =  true }
     };
