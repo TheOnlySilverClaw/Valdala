@@ -102,6 +102,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     // TODO determine smallest valid stride from limit and required size
     const transform_stride = RenderPipeline.uniformBufferAlignment(Transform, self.surface.device_limits);
+    const color_stride = RenderPipeline.uniformBufferAlignment(@import("color").RGBA, self.surface.device_limits);
 
     const surface = self.surface;
     const queue = surface.getQueue();
@@ -115,15 +116,16 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
 
     for(scene.entities.items, 0..) |model, instance| {
 
-        // const color_texture = self.texture_list.textures.items[@intCast(mesh.color_texture.?)];
-        // const color_texture_view = color_texture.createView(.{});
-        // defer color_texture_view.release();
-
-
         for(model.material_groups) |material_group| {
 
             const color_texture_view = material_group.material.color_texture.createView(.{});
             defer color_texture_view.release();
+
+            const base_color_entry = webgpu.bind_group.BindGroupEntry {
+                .binding = 0,
+                .buffer = model.base_color_buffer,
+                .size = color_stride
+            };
 
             const color_texture_entry = webgpu.bind_group.BindGroupEntry {
                 .binding = 1,
@@ -131,7 +133,7 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
             };
 
             const material_entries = [_] webgpu.bind_group.BindGroupEntry {
-                // transform_entry,
+                base_color_entry,
                 color_texture_entry
             };
 
@@ -157,10 +159,10 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
                 .entry_count = entity_entries.len
             };
 
-
             const material_bind_group = surface.device.createBindGroup(&material_bind_group_descriptor);
             defer material_bind_group.release();
-            render_pass.setBindGroup(1, material_bind_group, null);
+            const base_color_offset = material_group.material.base_color_index * color_stride;
+            render_pass.setBindGroup(1, material_bind_group, &.{ base_color_offset });
             
             const entity_bind_group = surface.device.createBindGroup(&entity_bind_group_descriptor);
             defer entity_bind_group.release();

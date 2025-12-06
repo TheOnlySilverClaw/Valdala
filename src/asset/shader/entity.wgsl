@@ -19,7 +19,7 @@ struct Material {
 @group(0) @binding(0) var<uniform> projection: mat4x4<f32>;
 @group(0) @binding(1) var textureSampler: sampler;
 
-// @group(1) @binding(0) var<uniform> material: Material;
+@group(1) @binding(0) var<uniform> material: vec4<f32>;
 @group(1) @binding(1) var colorTexture: texture_2d<f32>;
 
 @group(2) @binding(0) var<uniform> entity: Entity;
@@ -40,5 +40,5 @@ fn vertex(vertex: Vertex) -> Fragment {
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
   let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
-  return textureColor;
+  return material;
 }

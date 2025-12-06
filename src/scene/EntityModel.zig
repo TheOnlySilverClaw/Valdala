@@ -14,6 +14,7 @@ const TextureView = webgpu.texture_view.TextureView;
 const BufferDescriptor = webgpu.buffer.BufferDescriptor;
 const Device = webgpu.device.Device;
 
+const Color = @import("color").RGBA;
 const Transform = algebra.Transform(f32);
 const Matrix = algebra.Matrix(f32, 4, 4);
 const Vector3 = algebra.Vector3(f32);
@@ -58,6 +59,7 @@ pub const Primitive = struct {
 };
 
 pub const Material = struct {
+    base_color_index: u32,
     color_texture: ImageTexture,
 };
 
@@ -79,6 +81,7 @@ material_groups: []const MaterialGroup,
 transform_buffer: *Buffer,
 vertex_buffer: *Buffer,
 index_buffer: *Buffer,
+base_color_buffer: *Buffer,
 
 pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.Entity) !?Self {
 
@@ -91,7 +94,10 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
     var transforms = List(Matrix).empty;
     defer transforms.clearAndFree(allocator);
 
-    var material_groups = try groupByMaterial(allocator, device, entity, &vertices, &indices, &transforms);
+    var base_colors = try List(Color).initCapacity(allocator, entity.model.materials.len);
+    defer base_colors.clearAndFree(allocator);
+
+    var material_groups = try groupByMaterial(allocator, device, entity, &vertices, &indices, &transforms, &base_colors);
 
     const transform_buffer_descriptor = BufferDescriptor {
         .size = @sizeOf(Matrix) * transforms.items.len,
@@ -106,11 +112,18 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
     const index_buffer_descriptor = BufferDescriptor {
         .size = indices.items.len * @sizeOf(u16),
         .usage = .{ .index = true, .copy_dst = true }
-    }; 
+    };
+
+    const base_color_buffer_descriptor = BufferDescriptor {
+        // TODO compute size with uniform alignment
+        .size = base_colors.items.len * 256,
+        .usage = .{ .uniform = true, .copy_dst = true }
+    };
 
     const transform_buffer = device.createBuffer(&transform_buffer_descriptor);
     const vertex_buffer = device.createBuffer(&vertex_buffer_descriptor);
     const index_buffer = device.createBuffer(&index_buffer_descriptor);
+    const base_color_buffer = device.createBuffer(&base_color_buffer_descriptor);
 
     const queue = device.getQueue();
     defer queue.release();
@@ -119,26 +132,32 @@ pub fn init(allocator: Allocator, device: *webgpu.device.Device, entity: module.
     queue.writeBuffer(vertex_buffer, Vertex, vertices.items, 0);
     queue.writeBuffer(index_buffer, u16, indices.items, 0);
 
+    for(base_colors.items, 0..) |color, index| {
+        const values = [4]f32 { color.red, color.green, color.blue, color.alpha };
+        queue.writeBuffer(base_color_buffer, f32, &values, @intCast(index * 256));
+        log.debug("write color {any} to {}", .{ color, index * 256 });
+    }
+
+    for(material_groups.items) |g| {
+        log.debug("group {} {}", .{ g.material.base_color_index, g.primitives.len });
+    }
     
-    // entity.model.materials
-    log.debug("entity vertices: {}", .{ vertices.items.len });
-
-
     return .{
         .transform = .origin,
         .transform_buffer = transform_buffer,
         .index_buffer = index_buffer,
         .vertex_buffer = vertex_buffer,
+        .base_color_buffer = base_color_buffer,
         .material_groups = try material_groups.toOwnedSlice(allocator)
     };
 }
 
-fn groupByMaterial(allocator: Allocator, device: *Device, entity: module.Entity, vertices: *List(Vertex), indices: *List(Index), transforms: *List(Matrix)) !List(MaterialGroup) {
+fn groupByMaterial(allocator: Allocator, device: *Device, entity: module.Entity, vertices: *List(Vertex), indices: *List(Index), transforms: *List(Matrix), base_colors: *List(Color)) !List(MaterialGroup) {
 
     var groups = try List(MaterialGroup).initCapacity(allocator, entity.model.materials.len);
     for(entity.model.materials) |*source| {
         
-        const material = createMaterial(device, source);
+        const material = createMaterial(device, source, base_colors);
         const primitives = try collectMaterialPrimitives(allocator, source, entity.node, vertices, indices, transforms);
         const group = MaterialGroup {
             .material = material,
@@ -149,7 +168,7 @@ fn groupByMaterial(allocator: Allocator, device: *Device, entity: module.Entity,
     return groups;
 }
 
-fn createMaterial(device: *Device, source: *const module.Entity.Model.Material) Material {
+fn createMaterial(device: *Device, source: *const module.Entity.Model.Material, base_colors: *List(Color)) Material {
     
     const queue = device.getQueue();
     defer queue.release();
@@ -164,9 +183,15 @@ fn createMaterial(device: *Device, source: *const module.Entity.Model.Material) 
             material.color_texture = texture;
         } else {
             const texture = ImageTexture.create(device, 1, 1, .{ .format = .rgba8_unorm });
-            const pixel: [4]f32 = .{ 1, 1, 1, 1 };
+            const pixel: [4]u8 = .{ 255, 255, 255, 255 };
             texture.write(queue, @ptrCast(&pixel));
             material.color_texture = texture;
+        }
+
+        if(metallic_roughness.base_color_factor) |values| {
+            material.base_color_index = @intCast(base_colors.items.len);
+            const color = Color.of(values[0], values[1], values[2], values[3]);
+            base_colors.appendAssumeCapacity(color);
         }
     }
 
@@ -190,18 +215,21 @@ fn resolveMaterialPrimitives(allocator: Allocator, list: *List(Primitive), mater
 
     if(node.mesh) |mesh| {
         for(mesh.primitives) |primitive| {
-            const vertex_slice = try appendPrimitiveVertices(allocator, primitive, vertices);
-            const index_slice = try appendPrimitiveIndices(allocator, primitive, indices);
-            const transform_offset = transforms.items.len * @sizeOf(Matrix);
-            const mapped = Primitive {
-                .transform_offset = @intCast(transform_offset),
-                .vertex_offset = vertex_slice.offset,
-                .vertex_size = vertex_slice.size,
-                .index_offset = index_slice.offset,
-                .index_size = index_slice.size,
-                .index_count = @intCast(index_slice.size / @sizeOf(Index))
-            };
-            try list.append(allocator, mapped);
+            if(primitive.material == material) {
+
+                const vertex_slice = try appendPrimitiveVertices(allocator, primitive, vertices);
+                const index_slice = try appendPrimitiveIndices(allocator, primitive, indices);
+                const transform_offset = transforms.items.len * @sizeOf(Matrix);
+                const mapped = Primitive {
+                    .transform_offset = @intCast(transform_offset),
+                    .vertex_offset = vertex_slice.offset,
+                    .vertex_size = vertex_slice.size,
+                    .index_offset = index_slice.offset,
+                    .index_size = index_slice.size,
+                    .index_count = @intCast(index_slice.size / @sizeOf(Index))
+                };
+                try list.append(allocator, mapped);
+            }
         }
     }
 
@@ -334,10 +362,12 @@ fn mapTransformMatrix(source: module.Entity.Model.Transform) Matrix {
 pub fn deinit(self: Self) void {
     
     self.transform_buffer.destroy();
+    self.index_buffer.destroy();
     self.vertex_buffer.destroy();
-    self.vertex_buffer.release();
+    self.base_color_buffer.destroy();
 
     self.transform_buffer.release();
-    self.index_buffer.destroy();
     self.index_buffer.release();
+    self.vertex_buffer.release();
+    self.base_color_buffer.release();
 }
