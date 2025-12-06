@@ -27,6 +27,7 @@ pub const Material = struct {
 
     pub const MetallicRoughness = struct {
         base_color_factor: ?Color,
+        base_color_texture: ?*const Texture
     };
 
     name: ?[]const u8,
@@ -35,7 +36,13 @@ pub const Material = struct {
 };
 
 pub const Texture = struct {
-    data: AlignedData
+    image: *const Image,
+    sampler: ?*const Sampler
+};
+
+pub const TextureInfo = struct {
+    texture: *const Texture,
+    texcoord_index: usize
 };
 
 pub const Sampler = struct {

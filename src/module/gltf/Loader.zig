@@ -58,8 +58,8 @@ fn mapModel(arena: *ArenaAllocator, source: json.ObjectMap, root: fs.Dir) !Model
     const buffer_views = try mapBufferViews(allocator, source.get("bufferViews"), buffers);
     const images = try loadImages(allocator, source.get("images"), root, buffer_views);
     const accessors = try mapAccessors(allocator, source.get("accessors"), buffer_views);
-    _ = images;
-    const materials = try mapMaterials(allocator, source.get("materials"));
+    const textures = try mapTextures(allocator, source.get("textures"), images, samplers);
+    const materials = try mapMaterials(allocator, source.get("materials"), textures);
     const meshes = try mapMeshes(allocator, source.get("meshes"), accessors, materials);
     const nodes = try mapNodes(allocator, source.get("nodes"), meshes);
     if(nodes.len > 0) {
@@ -660,14 +660,14 @@ fn resolveNodeChildren(allocator: Allocator, source: json.Array, nodes: []Model.
     }
 }
 
-fn mapMaterials(allocator: Allocator, source: ?json.Value) ![]const Model.Material {
+fn mapMaterials(allocator: Allocator, source: ?json.Value, textures: []const Model.Texture) ![]const Model.Material {
     
     if(source) |value| {
         switch (value) {
             .array => |array| {
                 const materials = try allocator.alloc(Model.Material, array.items.len);
                 for(array.items, materials) |item, *material| {
-                    material.* = try mapMaterial(allocator, item);
+                    material.* = try mapMaterial(allocator, item, textures);
                 }
                 return materials;
             },
@@ -676,14 +676,14 @@ fn mapMaterials(allocator: Allocator, source: ?json.Value) ![]const Model.Materi
     } else return try allocator.alloc(Model.Material, 0);
 }
 
-fn mapMaterial(allocator: Allocator, source: json.Value) !Model.Material {
+fn mapMaterial(allocator: Allocator, source: json.Value, textures: []const Model.Texture) !Model.Material {
      
      switch (source) {
         .object => |object| {
 
             const name = try copyString(allocator, object.get("name"));
             const double_sided = false;
-            const metallic_roughness = try mapMetallicRoughness(object.get("pbrMetallicRoughness"));
+            const metallic_roughness = try mapMetallicRoughness(object.get("pbrMetallicRoughness"), textures);
 
             return .{
                 .name = name,
@@ -695,14 +695,37 @@ fn mapMaterial(allocator: Allocator, source: json.Value) !Model.Material {
      }
 }
 
-fn mapMetallicRoughness(source: ?json.Value) !?Model.Material.MetallicRoughness {
+fn mapMetallicRoughness(source: ?json.Value, textures: []const Model.Texture) !?Model.Material.MetallicRoughness {
 
     if(source) |value| {
         switch (value) {
             .object => |object| {
+                
                 const base_color_factor = try mapColor(object.get("baseColorFactor"));
+                const base_color_texture_info = try mapTextureInfo(object.get("baseColorTexture"), textures);
+                const base_color_texture = if(base_color_texture_info) |info| info.texture else null;
+
                 return .{
-                    .base_color_factor = base_color_factor
+                    .base_color_factor = base_color_factor,
+                    .base_color_texture = base_color_texture
+                };
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return null;
+}
+
+fn mapTextureInfo(source: ?json.Value, textures: []const Model.Texture) !?Model.TextureInfo {
+
+    if(source) |value| {
+        switch (value) {
+            .object => |object| {
+                const texture = try resolveIndexOptional(Model.Texture, object.get("index"), textures)
+                    orelse return Error.RequiredKeyMissing;
+                return .{
+                    .texture = texture,
+                    // TODO handle multile TEXCOORD layers.
+                    .texcoord_index = 0
                 };
             },
             else => return Error.InvalidElementType
@@ -823,6 +846,41 @@ fn mapWrap(source: ?json.Value) !?Model.Sampler.Wrap {
     } else return null;
 }
 
+fn mapTextures(allocator: Allocator, source: ?json.Value, images: []const Model.Image, samplers: []const Model.Sampler) ![]const Model.Texture {
+    
+    if(source) |value| {
+        switch (value) {
+            .array => |array| {
+                const textures = try allocator.alloc(Model.Texture, array.items.len);
+                for(array.items, textures) |item, *texture| {
+                    texture.* = try mapTexture(item, images, samplers);
+                }
+                return textures;
+            },
+            else => return Error.InvalidElementType
+        }
+    } else return try allocator.alloc(Model.Texture, 0);
+   
+}
+
+fn mapTexture(source: json.Value, images: []const Model.Image, samplers: []const Model.Sampler) !Model.Texture {
+
+    switch (source) {
+        .object => |object| {
+            
+            const image = try resolveIndexOptional(Model.Image, object.get("source"), images)
+                orelse return Error.RequiredKeyMissing;
+            const sampler = try resolveIndexOptional(Model.Sampler, object.get("sampler"), samplers);
+            
+            return .{
+                .image = image,
+                .sampler = sampler
+            };
+        },
+        else => return Error.InvalidElementType
+    }
+}
+
 fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: []const T) ![]*const T {
 
     if(source) |indices| {
@@ -838,7 +896,6 @@ fn resolveIndices(allocator: Allocator, T: type, source: ?json.Value, elements: 
         }
     } else return try allocator.alloc(*const T, 0);
 }
-
 
 fn resolveIndex(T: type, source: json.Value, elements: []const T) !*const T {
 

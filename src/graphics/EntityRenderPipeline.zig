@@ -4,6 +4,10 @@ const algebra = @import("algebra");
 
 const Surface = @import("Surface.zig");
 const Shader = @import("Shader.zig");
+const Device = webgpu.device.Device;
+const BindGroupLayout = webgpu.bind_group_layout.BindGroupLayout;
+const BindGroupLayoutEntry = webgpu.bind_group_layout.BindGroupLayoutEntry;
+const Limits = webgpu.support.Limits;
 const Transform = algebra.Transform(f32);
 
 const RenderPipeline = @import("RenderPipeline.zig");
@@ -11,8 +15,9 @@ const scene= @import("scene");
 const Self = @This();
 
 handle: *webgpu.render_pipeline.RenderPipeline,
-static_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
-entity_bind_group_layout: *webgpu.bind_group_layout.BindGroupLayout,
+static_bind_group_layout: *BindGroupLayout,
+material_bind_group_layout: *BindGroupLayout,
+node_bind_group_layout: *BindGroupLayout,
 
 pub fn init(surface: *const Surface) !Self {
 
@@ -21,11 +26,13 @@ pub fn init(surface: *const Surface) !Self {
     defer shader.release();
 
     const static_bind_group_layout = createStaticBindGroupLayout(surface.device);
-    const entity_bind_group_layout = createEntityBindGroupLayout(surface.device);
-
-    const bind_group_layouts = [_]*webgpu.bind_group_layout.BindGroupLayout {
+    const material_bind_group_layout = createMaterialBindGroupLayout(surface.device, surface.device_limits);
+    const node_bind_group_layout = createNodeBindGroupLayout(surface.device, surface.device_limits);
+    
+    const bind_group_layouts = [_]*BindGroupLayout {
         static_bind_group_layout,
-        entity_bind_group_layout
+        material_bind_group_layout,
+        node_bind_group_layout
     };
 
     const handle = createRenderPipeline(surface, &bind_group_layouts, shader);
@@ -33,7 +40,8 @@ pub fn init(surface: *const Surface) !Self {
     return .{
         .handle = handle,
         .static_bind_group_layout = static_bind_group_layout,
-        .entity_bind_group_layout = entity_bind_group_layout
+        .material_bind_group_layout = material_bind_group_layout,
+        .node_bind_group_layout = node_bind_group_layout
     };
 }
 
@@ -41,7 +49,8 @@ pub fn deinit(self: Self) void {
 
     self.handle.release();
     self.static_bind_group_layout.release();
-    self.entity_bind_group_layout.release();
+    self.material_bind_group_layout.release();
+    self.node_bind_group_layout.release();
 }
 
 fn createRenderPipeline(surface: *const Surface, bind_group_layouts: []const *webgpu.bind_group_layout.BindGroupLayout, shader: *webgpu.shader.ShaderModule) *webgpu.render_pipeline.RenderPipeline {
@@ -97,7 +106,7 @@ fn createRenderPipeline(surface: *const Surface, bind_group_layouts: []const *we
     return device.createRenderPipeline(&descriptor);
 }
 
-fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group_layout.BindGroupLayout {
+fn createStaticBindGroupLayout(device: *webgpu.device.Device) *BindGroupLayout {
 
     const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
 
@@ -123,7 +132,7 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
     };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
-        .label = .empty,
+        .label = .sliced("static"),
         .entries = &entries,
         .entry_count = entries.len
     };
@@ -131,11 +140,9 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *webgpu.bind_group
     return device.createBindGroupLayout(&descriptor);
 }
 
-fn createDynamicBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.support.Limits) *webgpu.bind_group_layout.BindGroupLayout {
+fn createMaterialBindGroupLayout(device: *webgpu.device.Device, limits: Limits) *BindGroupLayout {
 
-    const Entry = webgpu.bind_group_layout.BindGroupLayoutEntry;
-
-    const entity_buffer_entry = Entry {
+    const material_buffer_entry = BindGroupLayoutEntry {
         .binding = 0,
         .buffer = .{
             .type = .uniform,
@@ -145,7 +152,7 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.su
         .visibility = .{ .vertex =  true }
     };
 
-    const color_texture_entry = Entry {
+    const color_texture_entry = BindGroupLayoutEntry {
         .binding = 1,
         .texture = .{
             .sample_type = .float,
@@ -154,14 +161,39 @@ fn createDynamicBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.su
         .visibility = .{ .fragment =  true }
     };
 
-
-    const entries = [_]Entry {
-        entity_buffer_entry,
+    const entries = [_]BindGroupLayoutEntry {
+        material_buffer_entry,
         color_texture_entry
     };
 
     const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
-        .label = .empty,
+        .label = .sliced("material"),
+        .entries = &entries,
+        .entry_count = entries.len
+    };
+
+    return device.createBindGroupLayout(&descriptor);
+}
+
+fn createNodeBindGroupLayout(device: *webgpu.device.Device, limits: webgpu.support.Limits) *BindGroupLayout {
+
+
+    const node_buffer_entry = BindGroupLayoutEntry {
+        .binding = 0,
+        .buffer = .{
+            .type = .uniform,
+            .has_dynamic_offset = 1,
+            .min_binding_size =  RenderPipeline.uniformBufferAlignment(Transform, limits)
+        },
+        .visibility = .{ .vertex =  true }
+    };
+
+    const entries = [_]BindGroupLayoutEntry {
+        node_buffer_entry
+    };
+
+    const descriptor = webgpu.bind_group_layout.BindGroupLayoutDescriptor {
+        .label = .sliced("node"),
         .entries = &entries,
         .entry_count = entries.len
     };
