@@ -140,17 +140,17 @@ fn createStaticBindGroupLayout(device: *webgpu.device.Device) *BindGroupLayout {
     return device.createBindGroupLayout(&descriptor);
 }
 
-fn createMaterialBindGroupLayout(device: *webgpu.device.Device, limits: Limits) *BindGroupLayout {
+fn createMaterialBindGroupLayout(device: *webgpu.device.Device, _: Limits) *BindGroupLayout {
 
-    const material_buffer_entry = BindGroupLayoutEntry {
-        .binding = 0,
-        .buffer = .{
-            .type = .uniform,
-            .has_dynamic_offset = 1,
-            .min_binding_size =  RenderPipeline.uniformBufferAlignment(Transform, limits)
-        },
-        .visibility = .{ .vertex =  true }
-    };
+    // const material_buffer_entry = BindGroupLayoutEntry {
+    //     .binding = 0,
+    //     .buffer = .{
+    //         .type = .uniform,
+    //         .has_dynamic_offset = 1,
+    //         .min_binding_size =  RenderPipeline.uniformBufferAlignment(Transform, limits)
+    //     },
+    //     .visibility = .{ .vertex =  true }
+    // };
 
     const color_texture_entry = BindGroupLayoutEntry {
         .binding = 1,
@@ -162,7 +162,7 @@ fn createMaterialBindGroupLayout(device: *webgpu.device.Device, limits: Limits) 
     };
 
     const entries = [_]BindGroupLayoutEntry {
-        material_buffer_entry,
+        // material_buffer_entry,
         color_texture_entry
     };
 

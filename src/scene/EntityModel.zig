@@ -156,12 +156,16 @@ fn createMaterial(device: *Device, source: *const module.Entity.Model.Material) 
 
     var material: Material = undefined;
 
-    // TODO handle missing textures
     if(source.metallic_roughness) |metallic_roughness| {
         if(metallic_roughness.base_color_texture) |texture_source| {
             const image = texture_source.image;
             const texture = ImageTexture.create(device, @intCast(image.width), @intCast(image.height), .{ .format = .rgba8_unorm });
             texture.write(queue, image.data);
+            material.color_texture = texture;
+        } else {
+            const texture = ImageTexture.create(device, 1, 1, .{ .format = .rgba8_unorm });
+            const pixel: [4]f32 = .{ 1, 1, 1, 1 };
+            texture.write(queue, @ptrCast(&pixel));
             material.color_texture = texture;
         }
     }

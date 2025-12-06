@@ -119,42 +119,59 @@ pub fn render(self: *Self, scene: Scene, render_pass: *webgpu.render_pass_encode
         // const color_texture_view = color_texture.createView(.{});
         // defer color_texture_view.release();
 
-        const transform_entry = webgpu.bind_group.BindGroupEntry {
-            .binding = 0,
-            .buffer = self.transform_buffer,
-            .size = transform_stride
-        };
 
         for(model.material_groups) |material_group| {
 
-            for(material_group.primitives) |primitive| {
+            const color_texture_view = material_group.material.color_texture.createView(.{});
+            defer color_texture_view.release();
+
+            const color_texture_entry = webgpu.bind_group.BindGroupEntry {
+                .binding = 1,
+                .texture_view = color_texture_view
+            };
+
+            const material_entries = [_] webgpu.bind_group.BindGroupEntry {
+                // transform_entry,
+                color_texture_entry
+            };
+
+            const material_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
+                .layout = self.pipeline.material_bind_group_layout,
+                .entries = &material_entries,
+                .entry_count = material_entries.len
+            };
+
+            const transform_entry = webgpu.bind_group.BindGroupEntry {
+                .binding = 0,
+                .buffer = self.transform_buffer,
+                .size = transform_stride
+            };
+
+            const entity_entries = [_]webgpu.bind_group.BindGroupEntry {
+                transform_entry
+            };
+
+            const entity_bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
+                .layout = self.pipeline.node_bind_group_layout,
+                .entries = &entity_entries,
+                .entry_count = entity_entries.len
+            };
 
 
-                const color_texture_entry = webgpu.bind_group.BindGroupEntry {
-                    .binding = 1,
-                    .texture_view = null
-                };
-
-                const entries = [_] webgpu.bind_group.BindGroupEntry {
-                    transform_entry,
-                    color_texture_entry
-                };
-
-                const bind_group_descriptor = webgpu.bind_group.BindGroupDescriptor {
-                    .layout = self.pipeline.node_bind_group_layout,
-                    .entries = &entries,
-                    .entry_count = entries.len
-                };
-
-
-                const dynamic_bind_group = surface.device.createBindGroup(&bind_group_descriptor);
-                defer dynamic_bind_group.release();
+            const material_bind_group = surface.device.createBindGroup(&material_bind_group_descriptor);
+            defer material_bind_group.release();
+            render_pass.setBindGroup(1, material_bind_group, null);
             
-                const dynamic_offset: u32 = @intCast(instance * transform_stride);
-                render_pass.setBindGroup(1, dynamic_bind_group, &.{ dynamic_offset });
+            const entity_bind_group = surface.device.createBindGroup(&entity_bind_group_descriptor);
+            defer entity_bind_group.release();
+            render_pass.setBindGroup(2, entity_bind_group, &.{ 0 });
+
+            for(material_group.primitives) |primitive| {
+            
+                const transform_offset: u32 = @intCast(instance * transform_stride);
 
                 const transform_matrix = model.transform.toMatrix();
-                queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, dynamic_offset);
+                queue.writeBuffer(self.transform_buffer, f32, &transform_matrix.values, transform_offset);
 
                 render_pass.setVertexBuffer(0, model.vertex_buffer, primitive.vertex_offset, primitive.vertex_size);
                 render_pass.setIndexBuffer(model.index_buffer, .uint16, primitive.index_offset, primitive.index_size);
