@@ -40,5 +40,5 @@ fn vertex(vertex: Vertex) -> Fragment {
 fn fragment(fragment: Fragment) -> @location(0) vec4<f32> {
 
   let textureColor = textureSample(colorTexture, textureSampler, fragment.uv);
-  return material;
+  return textureColor * material;
 }

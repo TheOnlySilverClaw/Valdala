@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const PixelFormat = @import("zigimg").PixelFormat;
+
 pub const Node = struct {
     name: ?[]const u8,
     transform: Transform,
@@ -169,7 +171,8 @@ pub const Image = struct {
     name: ?[]const u8,
     data: []const u8,
     width: usize,
-    height: usize
+    height: usize,
+    format: PixelFormat
 };
 
 arena: std.heap.ArenaAllocator,

@@ -316,14 +316,16 @@ fn loadImage(allocator: Allocator, source: json.Value, root: fs.Dir, buffer_view
                         defer file.close();
 
                         var read_buffer: [1024]u8 = undefined;
-                        const loaded = try zigimg.Image.fromFile(allocator, file, &read_buffer);
+                        var loaded = try zigimg.Image.fromFile(allocator, file, &read_buffer);
+                        try loaded.convert(allocator, .rgba32);
                         const data = loaded.pixels.asConstBytes();
 
                         return .{
                             .name = name,
                             .data = data,
                             .width = loaded.width,
-                            .height = loaded.height
+                            .height = loaded.height,
+                            .format = loaded.pixelFormat()
                         };
                     },
                     else => return Error.InvalidElementType
@@ -337,7 +339,8 @@ fn loadImage(allocator: Allocator, source: json.Value, root: fs.Dir, buffer_view
                     .name = name,
                     .data = data,
                     .width = mapped.width,
-                    .height = mapped.height
+                    .height = mapped.height,
+                    .format = mapped.pixelFormat()
                 };
             } else return Error.RequiredKeyMissing;
         },

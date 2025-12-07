@@ -188,11 +188,9 @@ fn createMaterial(device: *Device, source: *const module.Entity.Model.Material, 
             material.color_texture = texture;
         }
 
-        if(metallic_roughness.base_color_factor) |values| {
-            material.base_color_index = @intCast(base_colors.items.len);
-            const color = Color.of(values[0], values[1], values[2], values[3]);
-            base_colors.appendAssumeCapacity(color);
-        }
+        material.base_color_index = @intCast(base_colors.items.len);
+        const base_color = if(metallic_roughness.base_color_factor) |values| Color.of(values[0], values[1], values[2], values[3]) else Color.of(1, 1, 1, 1);
+        base_colors.appendAssumeCapacity(base_color);
     }
 
     return material;
@@ -359,7 +357,7 @@ fn mapTransformMatrix(source: module.Entity.Model.Transform) Matrix {
 }
 
 
-pub fn deinit(self: Self) void {
+pub fn deinit(self: Self, allocator: Allocator) void {
     
     self.transform_buffer.destroy();
     self.index_buffer.destroy();
@@ -370,4 +368,11 @@ pub fn deinit(self: Self) void {
     self.index_buffer.release();
     self.vertex_buffer.release();
     self.base_color_buffer.release();
+
+    // TODO clean up textures and buffers
+    for(self.material_groups) |group| {
+        allocator.free(group.primitives);
+    }
+
+    allocator.free(self.material_groups);
 }
